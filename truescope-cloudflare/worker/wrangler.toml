@@ -8,7 +8,7 @@ workers_dev = true
 [[d1_databases]]
 binding = "DB"
 database_name = "truescope"
-database_id = "REPLACE_WITH_DATABASE_ID"
+database_id = "fcea0853-95b7-41a7-9591-dee2a2631342"
 migrations_dir = "migrations"
 
 # Once per minute; every run does ONE small step to stay within 10 ms CPU (free plan).
