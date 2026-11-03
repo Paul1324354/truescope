@@ -1,0 +1,14 @@
+# Cloudflare Pages project (website + /api via Pages Functions).
+# `npm run setup` in ../worker fills in database_id automatically.
+name = "truescope"
+pages_build_output_dir = "out"
+compatibility_date = "2025-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "truescope"
+database_id = "REPLACE_WITH_DATABASE_ID"
+
+[vars]
+ADMIN_EMAIL = ""
+PBKDF2_ITERATIONS = "12000"
