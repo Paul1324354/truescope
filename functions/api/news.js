@@ -271,6 +271,14 @@ export async function onRequestGet(context) {
       stories = dom.length >= MIN_PER_CAT ? dom : [...dom, ...foreign.slice(0, Math.max(MIN_PER_CAT - dom.length, 0) + 5)];
     }
     stories = stories.slice(0, 80);
+    // Immer noch weniger als 10? Mit Meldungen derselben Kategorie aus anderen Ländern Europas auffüllen.
+    if (stories.length < MIN_PER_CAT) {
+      const more = (await env.DB.prepare(
+        `SELECT * FROM stories WHERE country != ? AND cat = ? AND last_seen >= ? AND outlets > 0 AND domestic = 1
+         ORDER BY outlets DESC, last_seen DESC LIMIT ?`
+      ).bind(country, cat, since, MIN_PER_CAT - stories.length + 4).all()).results;
+      stories = [...stories, ...more.map((s) => ({ ...s, _europe: 1 }))];
+    }
   }
 
   let articles = [];
@@ -297,7 +305,8 @@ export async function onRequestGet(context) {
     first: s.first_seen,
     last: s.last_seen,
     confirmed: s.outlets >= 2,
-    foreign: country !== "EU" && STRICT.has(cat) && !s.domestic,
+    foreign: country !== "EU" && STRICT.has(cat) && !s.domestic && !s._europe,
+    europe: !!s._europe,
     sources: bySt[s.id] || [],
   }));
   items.sort((a, b) => b.last - a.last);

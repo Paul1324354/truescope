@@ -474,22 +474,25 @@ function srcLine(n){
     ${shown.map(s=>`<a href="${esc(s.link)}" target="_blank" rel="noopener">${esc(s.outlet)} ↗</a>`).join("")}${n.sources.length>5?`<span>+${n.sources.length-5}</span>`:""}</div>`;
 }
 function countryTag(n){
+  if(n.europe) return `<span class="ctry">${esc(BY[n.country]?.name||"Europa")}</span>`;
   if(n.foreign) return `<span class="ctry" title="Meldung von Medien aus ${esc(scopeName())} über das Ausland">Ausland</span>`;
   return state.intl && BY[n.country] ? `<span class="ctry">${esc(BY[n.country].name)}</span>` : (state.intl && n.country==="EU" ? `<span class="ctry">Europa</span>` : "");
 }
 function renderNews(){
   const all = onlyConfirmed ? newsItems.filter(n=>n.confirmed) : newsItems;
   const toggle = `<div class="filterbar"><button class="chip" id="onlyConf" aria-pressed="${onlyConfirmed}"><span class="dot" style="--c:var(--good)"></span>Nur bestätigte Meldungen</button>
-    <span class="fine">${newsItems.filter(n=>n.confirmed).length} von ${newsItems.length} von mehreren Medien bestätigt</span></div>`;
+    <span class="fine">${newsItems.filter(n=>n.confirmed).length} von ${newsItems.length} Meldungen von mehreren Medien bestätigt</span></div>`;
   if(!all.length){
     $("news").innerHTML = (newsItems.length?toggle:"") + `<div class="empty"><h3>${newsItems.length?"Keine bestätigten Meldungen.":"Noch keine Meldungen."}</h3>${newsItems.length
       ? "In diesem Zeitraum hat noch kein Ereignis mehrere Quellen. Zeig alle Meldungen oder wähle einen längeren Zeitraum."
       : `TrueScope sammelt die Meldungen laufend${newsFeeds.length?` (Quellen: ${esc(newsFeeds.join(", "))})`:""}. Ältere Zeiträume füllen sich mit der Zeit. Versuch ein anderes Ressort oder tippe später auf „Aktualisieren“.`}</div>`;
     bindToggle(); return;
   }
-  const sorted = [...all].sort((a,b)=>b.last-a.last);
+  const own = all.filter(n=>!n.europe), europe = all.filter(n=>n.europe);
+  const sorted = [...(own.length?own:europe)].sort((a,b)=>b.last-a.last);
   const lead = [...sorted].sort((a,b)=> b.sources.length-a.sources.length || b.last-a.last)[0];
   const rest = sorted.filter(n=>n!==lead).slice(0,newsShown-1);
+  const extra = own.length ? europe : [];
   const [l1] = dayTitle(lead.day);
   let html = toggle + (newsNote ? `<div class="note"><b>Hinweis</b><span>${esc(newsNote)}</span></div>` : "");
   html += `<article class="lead">
@@ -506,8 +509,12 @@ function renderNews(){
       g.items.map(n=>`<article class="story">${countryTag(n)?`<div class="meta">${countryTag(n)}</div>`:""}<h4>${esc(n.title)}</h4>${n.summary?`<p>${esc(n.summary)}</p>`:""}${srcLine(n)}</article>`).join("") +
       `</div>`;
   }
+  if(extra.length){
+    html += `<div class="day">Mehr aus Europa <small>${esc(CATS[state.cat].label)} · andere Länder</small></div><div class="grid">` +
+      extra.map(n=>`<article class="story"><div class="meta"><span class="ctry">${esc(BY[n.country]?.name||"Europa")}</span></div><h4>${esc(n.title)}</h4>${n.summary?`<p>${esc(n.summary)}</p>`:""}${srcLine(n)}</article>`).join("") + `</div>`;
+  }
   $("news").innerHTML = html;
-  $("more").hidden = newsShown >= all.length;
+  $("more").hidden = newsShown >= own.length;
   bindToggle();
 }
 function bindToggle(){ const t=$("onlyConf"); if(t) t.onclick=()=>{ onlyConfirmed=!onlyConfirmed; store.set("ts-confirmed",onlyConfirmed); renderNews(); }; }
