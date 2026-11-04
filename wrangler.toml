@@ -1,0 +1,8 @@
+name = "truescope"
+pages_build_output_dir = "public"
+compatibility_date = "2025-06-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "truescope"
+database_id = "fcea0853-95b7-41a7-9591-dee2a2631342"

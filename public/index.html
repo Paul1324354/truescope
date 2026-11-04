@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TrueScope</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: Kopfband mit Länder-/Zeitraum-Steuerung, darunter zwei Ansichten (Nachrichten | Abstimmungen) in einer 760px-Spalte */
+:root{
+  --bg:#F1F3F6; --surface:#FFFFFF; --ink:#141B2D; --muted:#5B6478; --line:#D9DEE7;
+  --accent:#B3122E; --accent-soft:#F7E3E6; --accent-ink:#FFFFFF;
+  --bar:#24345C; --warn-bg:#FFF4D9; --warn-ink:#6B4A00;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
+  --accent:#E8475F; --accent-soft:#3A1820; --accent-ink:#FFFFFF;
+  --bar:#8FA6E0; --warn-bg:#33290F; --warn-ink:#F2D58A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
+  --accent:#E8475F; --accent-soft:#3A1820; --accent-ink:#FFFFFF;
+  --bar:#8FA6E0; --warn-bg:#33290F; --warn-ink:#F2D58A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-stretch:72%;font-weight:800;font-size:2.4rem;line-height:1;letter-spacing:-.01em;margin:0;text-transform:uppercase}
+h1 span{color:var(--accent)}
+.date{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink)}
+.tab{font:600 .95rem var(--body);background:none;border:0;color:var(--muted);padding:10px 14px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.controls{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+@media (max-width:560px){.controls{grid-template-columns:1fr}}
+label.lbl{display:block;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+select,input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 10px}
+textarea{resize:vertical;min-height:64px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ctrysel{display:flex;gap:8px}
+.ctrysel select{flex:1;min-width:0}
+.btn{font:600 .9rem var(--body);border-radius:6px;padding:9px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.small{padding:5px 10px;font-size:.8rem}
+.link{background:none;border:0;color:var(--muted);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{font:600 .88rem var(--body);border:0;background:none;color:var(--ink);padding:9px 14px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.scope{font-family:var(--display);font-stretch:85%;font-weight:700;font-size:1.5rem;line-height:1.15;margin:0;text-wrap:balance}
+.scope small{display:block;font-family:var(--mono);font-weight:400;font-size:.78rem;color:var(--muted);margin-top:4px;font-stretch:100%}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h3{margin:0;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sources{display:flex;flex-wrap:wrap;gap:8px}
+.sources a{font-size:.88rem;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--bg)}
+.sources a.main{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.notice{background:var(--warn-bg);color:var(--warn-ink);border-radius:6px;padding:10px 12px;font-size:.86rem}
+.items{display:flex;flex-direction:column}
+.item{display:grid;grid-template-columns:86px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .d{font-family:var(--mono);font-size:.76rem;color:var(--muted);padding-top:3px;font-variant-numeric:tabular-nums}
+.item h4{margin:0 0 3px;font-size:1rem;line-height:1.35;text-wrap:balance}
+.item p{margin:0;color:var(--muted);font-size:.92rem;min-width:0}
+.tag{display:inline-block;font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.muted{color:var(--muted)}
+.empty{color:var(--muted);font-size:.92rem;margin:0}
+.poll{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.poll .meta{font-size:.78rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.poll h4{margin:0;font-size:1.08rem;line-height:1.35;text-wrap:balance}
+.opt{position:relative;display:flex;justify-content:space-between;gap:8px;align-items:center;width:100%;text-align:left;font:500 .92rem var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 12px;cursor:pointer;overflow:hidden}
+.opt .fill{position:absolute;inset:0 auto 0 0;background:var(--bar);opacity:.16;pointer-events:none}
+.opt.mine{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.opt span{position:relative}
+.opt .pct{font-family:var(--mono);font-size:.82rem;font-variant-numeric:tabular-nums}
+.comments{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.cmt{font-size:.9rem}
+.cmt b{font-weight:600}
+.cmt .when{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-left:6px}
+.cmt p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:500 .82rem var(--body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.optinputs{display:flex;flex-direction:column;gap:6px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s 0.8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:.88rem;z-index:5}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+a.item{color:inherit;text-decoration:none}
+a.item:hover h4{text-decoration:underline}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>True<span>Scope</span></h1>
+      <span class="date" id="today"></span>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-news" aria-selected="true">Nachrichten</button>
+      <button class="tab" role="tab" id="tab-polls" aria-selected="false">Abstimmungen</button>
+    </div>
+  </header>
+
+  <section class="controls" aria-label="Auswahl">
+    <div>
+      <label class="lbl" for="country">Land</label>
+      <div class="ctrysel">
+        <select id="country"></select>
+        <button class="btn" id="intl" aria-pressed="false">🌐 International</button>
+      </div>
+    </div>
+    <div id="periodBox">
+      <span class="lbl">Zeitraum</span>
+      <div class="seg" id="period">
+        <button data-p="day" aria-pressed="false">Tag</button>
+        <button data-p="week" aria-pressed="true">Woche</button>
+        <button data-p="month" aria-pressed="false">Monat</button>
+        <button data-p="year" aria-pressed="false">Jahr</button>
+      </div>
+    </div>
+    <div id="catBox" style="grid-column:1/-1">
+      <span class="lbl">Ressort</span>
+      <div class="chips" id="cat"></div>
+    </div>
+  </section>
+
+  <!-- NACHRICHTEN -->
+  <main id="view-news" style="display:flex;flex-direction:column;gap:16px">
+    <h2 class="scope" id="scopeTitle"></h2>
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <h3 id="newsHead">Schlagzeilen</h3>
+        <button class="link" id="reload">Aktualisieren</button>
+      </div>
+      <div id="news"><p class="empty"><span class="spin"></span>Nachrichten werden geladen …</p></div>
+      <div class="row" style="justify-content:space-between">
+        <button class="btn small" id="more" hidden>Mehr anzeigen</button>
+        <div class="sources" id="sources"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ABSTIMMUNGEN -->
+  <main id="view-polls" hidden style="flex-direction:column;gap:16px">
+    <div class="row" style="justify-content:space-between;align-items:end">
+      <div class="chips" id="pollFilter"></div>
+      <div style="min-width:0;max-width:220px;flex:1 1 180px">
+        <label class="lbl" for="myName">Dein Name</label>
+        <input type="text" id="myName" maxlength="40" placeholder="Anonym">
+      </div>
+    </div>
+    <details class="panel" id="newPollBox">
+      <summary style="cursor:pointer;font-weight:600">+ Neue Abstimmung starten</summary>
+      <form id="newPoll" style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <div><label class="lbl" for="pq">Frage</label><input type="text" id="pq" maxlength="200" placeholder="z. B. Soll das Wahlalter auf 16 Jahre gesenkt werden?" required></div>
+        <div><span class="lbl">Antworten (2–4)</span>
+          <div class="optinputs">
+            <input type="text" id="po1" maxlength="60" value="Dafür">
+            <input type="text" id="po2" maxlength="60" value="Dagegen">
+            <input type="text" id="po3" maxlength="60" value="Weiß nicht">
+            <input type="text" id="po4" maxlength="60" placeholder="Optionale 4. Antwort">
+          </div>
+        </div>
+        <div><label class="lbl" for="pc">Thema gehört zu</label><select id="pc"></select></div>
+        <div class="row"><button class="btn primary" type="submit">Abstimmung veröffentlichen</button></div>
+      </form>
+    </details>
+    <div id="pollList" style="display:flex;flex-direction:column;gap:14px"></div>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const COUNTRIES = [
+ ["AT","🇦🇹","Österreich","orf.at/politik","https://orf.at/"],
+ ["DE","🇩🇪","Deutschland","tagesschau.de","https://www.tagesschau.de/inland"],
+ ["CH","🇨🇭","Schweiz","srf.ch","https://www.srf.ch/news/schweiz"],
+ ["FR","🇫🇷","Frankreich","franceinfo","https://www.francetvinfo.fr/politique/"],
+ ["IT","🇮🇹","Italien","RaiNews","https://www.rainews.it/notizie/politica"],
+ ["ES","🇪🇸","Spanien","RTVE","https://www.rtve.es/noticias/politica/"],
+ ["GB","🇬🇧","Vereinigtes Königreich","BBC Politics","https://www.bbc.co.uk/news/politics"],
+ ["US","🇺🇸","USA","AP Politics","https://apnews.com/politics"],
+ ["NL","🇳🇱","Niederlande","NOS","https://nos.nl/nieuws/politiek"],
+ ["BE","🇧🇪","Belgien"],["LU","🇱🇺","Luxemburg"],["PL","🇵🇱","Polen"],["CZ","🇨🇿","Tschechien"],
+ ["SK","🇸🇰","Slowakei"],["HU","🇭🇺","Ungarn"],["SI","🇸🇮","Slowenien"],["HR","🇭🇷","Kroatien"],
+ ["RS","🇷🇸","Serbien"],["BA","🇧🇦","Bosnien und Herzegowina"],["RO","🇷🇴","Rumänien"],["BG","🇧🇬","Bulgarien"],
+ ["GR","🇬🇷","Griechenland"],["TR","🇹🇷","Türkei"],["PT","🇵🇹","Portugal"],["IE","🇮🇪","Irland"],
+ ["DK","🇩🇰","Dänemark"],["SE","🇸🇪","Schweden"],["NO","🇳🇴","Norwegen"],["FI","🇫🇮","Finnland"],
+ ["EE","🇪🇪","Estland"],["LV","🇱🇻","Lettland"],["LT","🇱🇹","Litauen"],["UA","🇺🇦","Ukraine"],
+ ["RU","🇷🇺","Russland"],["IL","🇮🇱","Israel"],["CA","🇨🇦","Kanada"],["MX","🇲🇽","Mexiko"],
+ ["BR","🇧🇷","Brasilien"],["AR","🇦🇷","Argentinien"],["CN","🇨🇳","China"],["JP","🇯🇵","Japan"],
+ ["KR","🇰🇷","Südkorea"],["IN","🇮🇳","Indien"],["AU","🇦🇺","Australien"],["ZA","🇿🇦","Südafrika"],
+ ["EG","🇪🇬","Ägypten"],["NG","🇳🇬","Nigeria"],["IR","🇮🇷","Iran"]
+].map(([code,flag,name,srcName,srcUrl])=>({code,flag,name,srcName,srcUrl}))
+ .sort((a,b)=>a.name.localeCompare(b.name,"de"));
+const BY = Object.fromEntries(COUNTRIES.map(c=>[c.code,c]));
+const CATS = {
+  politik:{label:"Politik",intl:"Weltpolitik",ai:"Politik (Regierung, Parlament, Parteien, Wahlen, Außenpolitik)"},
+  wirtschaft:{label:"Wirtschaft",intl:"Weltwirtschaft",ai:"Wirtschaft (Konjunktur, Unternehmen, Arbeitsmarkt, Finanzen, Handel)"},
+  sport:{label:"Sport",intl:"Sport international",ai:"Sport (wichtige Ergebnisse, Turniere, Transfers, Rekorde)"},
+  kultur:{label:"Kultur",intl:"Kultur international",ai:"Kultur (Film, Musik, Literatur, Kunst, Theater, Preise)"},
+  wissenschaft:{label:"Wissenschaft",intl:"Wissenschaft",ai:"Wissenschaft und Forschung"},
+  technik:{label:"Technik",intl:"Technologie",ai:"Technik und Digitales (Tech-Unternehmen, KI, Internet, Datenschutz)"},
+  gesundheit:{label:"Gesundheit",intl:"Gesundheit weltweit",ai:"Gesundheit (Gesundheitssystem, Medizin, öffentliche Gesundheit)"},
+  umwelt:{label:"Umwelt & Klima",intl:"Klima Umwelt",ai:"Umwelt und Klima (Klimapolitik, Wetterextreme, Energie, Naturschutz)"},
+  chronik:{label:"Chronik",intl:"Weltgeschehen",ai:"Chronik (Unglücke, Gerichtsverfahren, Gesellschaft, bemerkenswerte Ereignisse)"}
+};
+const PERIODS = {day:{label:"Tag",gn:"1d",text:"den letzten 24 Stunden",days:1},
+                 week:{label:"Woche",gn:"7d",text:"der letzten Woche",days:7},
+                 month:{label:"Monat",gn:"30d",text:"dem letzten Monat",days:30},
+                 year:{label:"Jahr",gn:"1y",text:"dem letzten Jahr",days:365}};
+const $ = id=>document.getElementById(id);
+const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtDate = d=>d.toLocaleDateString("de-AT",{day:"2-digit",month:"2-digit",year:"numeric"});
+const TODAY = new Date();
+$("today").textContent = TODAY.toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+const pref = store.get("ts-pref",{});
+const state = { country: BY[pref.country]?pref.country:"AT", intl: !!pref.intl,
+  period: PERIODS[pref.period]?pref.period:"week", cat: CATS[pref.cat]?pref.cat:"politik", view:"news" };
+const savePref = ()=>store.set("ts-pref",{country:state.country,intl:state.intl,period:state.period,cat:state.cat});
+
+// Browser-ID statt Login: identifiziert Stimmen und eigene Beiträge
+let CLIENT = store.get("ts-client",null);
+if(!CLIENT){ CLIENT = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36)+Math.random().toString(36).slice(2)); store.set("ts-client",CLIENT); }
+const ADMIN = store.get("ts-admin",null);
+$("myName").value = store.get("ts-name","");
+$("myName").addEventListener("change",e=>store.set("ts-name",e.target.value.trim()));
+
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2600); }
+function ago(iso){
+  if(!iso) return "";
+  const d=new Date(iso), m=Math.round((Date.now()-d)/60000);
+  if(m<60) return `vor ${Math.max(m,1)} Min.`;
+  const h=Math.round(m/60); if(h<24) return `vor ${h} Std.`;
+  const t=Math.round(h/24); if(t<7) return `vor ${t} ${t===1?"Tag":"Tagen"}`;
+  return fmtDate(d);
+}
+
+async function api(path, opts={}){
+  const headers = {"Content-Type":"application/json"};
+  if(ADMIN) headers["X-Admin-Key"]=ADMIN;
+  const res = await fetch(path,{...opts,headers});
+  let data=null; try{ data=await res.json(); }catch(e){}
+  if(!res.ok) throw new Error(data?.error || `Fehler ${res.status}`);
+  return data;
+}
+
+// ---------- Auswahl ----------
+const optHtml = COUNTRIES.map(c=>`<option value="${c.code}">${c.flag}  ${esc(c.name)}</option>`).join("");
+$("country").innerHTML = optHtml;
+$("pc").innerHTML = `<option value="INT">🌐  International</option>` + optHtml;
+const scopeCode = ()=> state.intl ? "INT" : state.country;
+const scopeName = ()=> state.intl ? "International" : BY[state.country].name;
+const scopeFlag = ()=> state.intl ? "🌐" : BY[state.country].flag;
+
+function renderControls(){
+  $("country").value = state.country;
+  $("country").disabled = state.intl;
+  $("intl").setAttribute("aria-pressed", state.intl);
+  $("intl").classList.toggle("on", state.intl);
+  document.querySelectorAll("#period button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.p===state.period));
+  $("periodBox").style.visibility = state.view==="news" ? "visible" : "hidden";
+  $("catBox").hidden = state.view!=="news";
+  $("cat").innerHTML = Object.entries(CATS).map(([k,c])=>`<button class="chip" data-c="${k}" aria-pressed="${state.cat===k}">${c.label}</button>`).join("");
+  const p = PERIODS[state.period];
+  const from = new Date(TODAY.getTime()-p.days*864e5);
+  $("scopeTitle").innerHTML = `${scopeFlag()} ${esc(scopeName())}: ${esc(CATS[state.cat].label)} aus ${esc(p.text)}<small>${fmtDate(from)} – ${fmtDate(TODAY)}</small>`;
+  $("pc").value = scopeCode();
+  renderSources();
+}
+
+function newsQuery(){
+  const c = CATS[state.cat];
+  return state.intl ? c.intl : `${c.label.replace(" & "," ")} ${BY[state.country].name}`;
+}
+function gnews(q){ return `https://news.google.com/search?q=${encodeURIComponent(q+" when:"+PERIODS[state.period].gn)}&hl=de&gl=AT&ceid=AT:de`; }
+function renderSources(){
+  let html = `<a target="_blank" rel="noopener" href="${gnews(newsQuery())}">Alle bei Google News ↗</a>`;
+  if(!state.intl){ const c = BY[state.country]; if(c.srcUrl && state.cat==="politik") html += `<a target="_blank" rel="noopener" href="${c.srcUrl}">${esc(c.srcName)} ↗</a>`; }
+  $("sources").innerHTML = html;
+}
+
+function changed(){ savePref(); renderControls(); if(state.view==="news") loadNews(); else { pollFilter=scopeCode(); loadPolls(); } }
+$("country").addEventListener("change",e=>{ state.country=e.target.value; changed(); });
+$("intl").addEventListener("click",()=>{ state.intl=!state.intl; changed(); });
+$("period").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; state.period=b.dataset.p; changed(); });
+$("cat").addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(!b) return; state.cat=b.dataset.c; changed(); });
+
+function setView(v){
+  state.view=v;
+  $("tab-news").setAttribute("aria-selected", v==="news");
+  $("tab-polls").setAttribute("aria-selected", v==="polls");
+  $("view-news").hidden = v!=="news"; $("view-news").style.display = v==="news"?"flex":"";
+  $("view-polls").hidden = v!=="polls"; $("view-polls").style.display = v==="polls"?"flex":"";
+  renderControls();
+  if(v==="polls") loadPolls(); else loadNews();
+}
+$("tab-news").onclick=()=>setView("news");
+$("tab-polls").onclick=()=>setView("polls");
+
+// ---------- Nachrichten ----------
+let newsItems=[], newsShown=15, newsReq=0;
+async function loadNews(){
+  const id=++newsReq;
+  $("newsHead").textContent = `Schlagzeilen · ${CATS[state.cat].label} · ${scopeName()}`;
+  $("news").innerHTML = `<p class="empty"><span class="spin"></span>Nachrichten werden geladen …</p>`;
+  $("more").hidden = true;
+  try{
+    const data = await api(`/api/news?q=${encodeURIComponent(newsQuery())}&when=${PERIODS[state.period].gn}`);
+    if(id!==newsReq) return;
+    newsItems = data.items||[]; newsShown=15; renderNews();
+  }catch(e){
+    if(id!==newsReq) return;
+    $("news").innerHTML = `<p class="empty">Die Nachrichten konnten nicht geladen werden (${esc(e.message)}). Sie erscheinen, sobald TrueScope auf Cloudflare läuft. Bis dahin findest du sie über den Link „Alle bei Google News“.</p>`;
+  }
+}
+function renderNews(){
+  if(!newsItems.length){ $("news").innerHTML = `<p class="empty">Für diese Auswahl wurden keine Meldungen gefunden. Probier einen längeren Zeitraum oder ein anderes Ressort.</p>`; return; }
+  $("news").innerHTML = `<div class="items">${newsItems.slice(0,newsShown).map(n=>`
+    <a class="item" href="${esc(n.link)}" target="_blank" rel="noopener">
+      <div class="d">${esc(ago(n.date))}</div>
+      <div style="min-width:0">${n.source?`<span class="tag">${esc(n.source)}</span>`:""}<h4>${esc(n.title)}</h4></div>
+    </a>`).join("")}</div>`;
+  $("more").hidden = newsShown >= newsItems.length;
+}
+$("more").onclick=()=>{ newsShown+=15; renderNews(); };
+$("reload").onclick=loadNews;
+
+// ---------- Abstimmungen ----------
+let polls=[], pollFilter="ALL", pollsLoaded=false, pollsErr=null, pollTimer=null;
+const openComments = new Set();
+
+function renderFilter(){
+  const cur = scopeCode();
+  const chips = [["ALL","Alle"],[cur, cur==="INT"?"🌐 International":`${BY[cur].flag} ${BY[cur].name}`]];
+  if(cur!=="INT") chips.push(["INT","🌐 International"]);
+  if(!chips.some(c=>c[0]===pollFilter)) pollFilter="ALL";
+  $("pollFilter").innerHTML = chips.map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${pollFilter===k}">${esc(l)}</button>`).join("");
+}
+$("pollFilter").addEventListener("click",e=>{ const b=e.target.closest("[data-f]"); if(!b) return; pollFilter=b.dataset.f; loadPolls(); });
+
+async function loadPolls(){
+  renderFilter();
+  clearTimeout(pollTimer);
+  try{
+    const data = await api(`/api/polls?country=${pollFilter}&client=${encodeURIComponent(CLIENT)}`);
+    polls = data.polls||[]; pollsErr=null;
+  }catch(e){ pollsErr=e.message; }
+  pollsLoaded=true; renderPolls();
+  if(state.view==="polls") pollTimer=setTimeout(loadPolls,30000);
+}
+
+function renderPolls(){
+  const box=$("pollList");
+  if(!pollsLoaded){ box.innerHTML='<p class="empty"><span class="spin"></span>Abstimmungen werden geladen …</p>'; return; }
+  if(pollsErr && !polls.length){ box.innerHTML=`<div class="panel"><p class="empty">Abstimmungen konnten nicht geladen werden (${esc(pollsErr)}). Sie funktionieren, sobald TrueScope auf Cloudflare läuft.</p></div>`; return; }
+  if(!polls.length){
+    box.innerHTML = `<div class="panel"><p class="empty">${pollFilter==="ALL"?"Noch keine Abstimmungen.":"Hier gibt es noch keine Abstimmung."} Starte oben die erste: Stell eine Frage zu einem Thema und lass andere abstimmen und kommentieren.</p></div>`;
+    $("newPollBox").open = true; return;
+  }
+  box.innerHTML = polls.map(p=>{
+    const total = p.counts.reduce((a,b)=>a+b,0);
+    const voted = p.myVote!==null && p.myVote!==undefined;
+    const ctry = p.country==="INT"?"🌐 International":(BY[p.country]?`${BY[p.country].flag} ${BY[p.country].name}`:p.country);
+    const opts = p.options.map((o,i)=>{
+      const n=p.counts[i]||0, pct= total? Math.round(n*100/total):0;
+      return `<button class="opt${p.myVote===i?" mine":""}" data-vote="${esc(p.id)}" data-i="${i}">
+        ${voted?`<span class="fill" style="width:${pct}%"></span>`:""}
+        <span>${esc(o)}</span>${voted?`<span class="pct">${pct}% · ${n}</span>`:""}</button>`;
+    }).join("");
+    const open = openComments.has(p.id), cs=p.comments;
+    return `<article class="poll">
+      <div class="meta"><span>${esc(ctry)}</span><span>·</span><span>von ${esc(p.author)}</span><span>·</span><span>${fmtDate(new Date(p.createdAt))}</span>
+        ${p.mine?`<button class="link" data-delpoll="${esc(p.id)}" style="margin-left:auto">Entfernen</button>`:""}</div>
+      <h4>${esc(p.question)}</h4>
+      <div style="display:flex;flex-direction:column;gap:6px">${opts}</div>
+      <div class="meta"><span>${total} ${total===1?"Stimme":"Stimmen"}</span><span>·</span>
+        <span>${voted?"Tippe auf eine andere Antwort, um deine Stimme zu ändern.":"Stimme ab, um das Ergebnis zu sehen."}</span></div>
+      <div class="row"><button class="btn small" data-togglec="${esc(p.id)}">${open?"Kommentare ausblenden":`Kommentare (${cs.length})`}</button></div>
+      ${open?`<div class="comments">
+        ${cs.length?cs.map(c=>`<div class="cmt"><b>${esc(c.author)}</b><span class="when">${fmtDate(new Date(c.createdAt))}</span>
+          ${c.mine?` <button class="link" data-delc="${esc(c.id)}">löschen</button>`:""}
+          <p>${esc(c.text)}</p></div>`).join(""):`<p class="empty">Noch keine Kommentare. Schreib als Erste:r deine Meinung.</p>`}
+        <form data-cform="${esc(p.id)}" style="display:flex;flex-direction:column;gap:6px">
+          <textarea id="c-${esc(p.id)}" maxlength="600" placeholder="Deine Meinung dazu …" required></textarea>
+          <div class="row"><button class="btn primary small" type="submit">Kommentar senden</button></div>
+        </form></div>`:""}
+    </article>`;
+  }).join("");
+}
+
+const myName = ()=> $("myName").value.trim() || "Anonym";
+async function act(fn, ok){ try{ await fn(); if(ok) toast(ok); await loadPolls(); }catch(e){ toast(e.message); } }
+
+$("pollList").addEventListener("click",e=>{
+  const v=e.target.closest("[data-vote]");
+  if(v) return act(()=>api("/api/vote",{method:"POST",body:JSON.stringify({pollId:v.dataset.vote,option:+v.dataset.i,client:CLIENT})}),"Stimme gespeichert");
+  const tg=e.target.closest("[data-togglec]");
+  if(tg){ const id=tg.dataset.togglec; openComments.has(id)?openComments.delete(id):openComments.add(id); return renderPolls(); }
+  const dp=e.target.closest("[data-delpoll]");
+  if(dp){
+    if(dp.dataset.confirm!=="1"){ dp.dataset.confirm="1"; dp.textContent="Wirklich entfernen?"; setTimeout(()=>{ if(dp.isConnected){dp.dataset.confirm="";dp.textContent="Entfernen";}},4000); return; }
+    return act(()=>api(`/api/polls?id=${encodeURIComponent(dp.dataset.delpoll)}&client=${encodeURIComponent(CLIENT)}`,{method:"DELETE"}),"Abstimmung entfernt");
+  }
+  const dc=e.target.closest("[data-delc]");
+  if(dc) return act(()=>api(`/api/comment?id=${encodeURIComponent(dc.dataset.delc)}&client=${encodeURIComponent(CLIENT)}`,{method:"DELETE"}),"Kommentar gelöscht");
+});
+$("pollList").addEventListener("submit",e=>{
+  const f=e.target.closest("[data-cform]"); if(!f) return; e.preventDefault();
+  const ta=f.querySelector("textarea"), text=ta.value.trim(); if(!text) return;
+  act(async()=>{ await api("/api/comment",{method:"POST",body:JSON.stringify({pollId:f.dataset.cform,text,name:myName(),client:CLIENT})}); ta.value=""; },"Kommentar gesendet");
+});
+$("newPoll").addEventListener("submit",e=>{
+  e.preventDefault();
+  const question=$("pq").value.trim();
+  const options=["po1","po2","po3","po4"].map(id=>$(id).value.trim()).filter(Boolean);
+  if(options.length<2) return toast("Bitte gib mindestens zwei Antworten an.");
+  act(async()=>{
+    await api("/api/polls",{method:"POST",body:JSON.stringify({question,options,country:$("pc").value,name:myName(),client:CLIENT})});
+    $("pq").value=""; $("po4").value=""; $("newPollBox").open=false; pollFilter="ALL";
+  },"Abstimmung veröffentlicht");
+});
+
+renderControls();
+loadNews();
+</script>
+</body>
+</html>
