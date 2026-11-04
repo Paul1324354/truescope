@@ -81,8 +81,9 @@ function parseJson(txt) {
 }
 
 // 2) Doppelcheck: neue Artikel bekannten Ereignissen zuordnen oder neue Ereignisse anlegen
+const DEBUG = [];
 async function assign(env, country) {
-  if (!env.AI) return 0;
+  if (!env.AI) { DEBUG.push("keine KI-Bindung"); return 0; }
   let done = 0;
   for (let round = 0; round < AI_ROUNDS; round++) {
     const arts = (await env.DB.prepare(
@@ -120,10 +121,12 @@ async function assign(env, country) {
     for (const model of MODELS) {
       try {
         const out = await env.AI.run(model, { messages, max_tokens: 4000, temperature: 0.1, chat_template_kwargs: { enable_thinking: false } });
-        res = parseJson(aiText(out));
+        const txt = aiText(out);
+        res = parseJson(txt);
         if (res && Array.isArray(res.zuordnung)) break;
+        DEBUG.push(model + ": " + (txt ? txt.slice(0, 300) + " … " + txt.slice(-200) : JSON.stringify(out).slice(0, 400)));
         res = null;
-      } catch { res = null; }
+      } catch (e) { DEBUG.push(model + " Fehler: " + String(e).slice(0, 200)); res = null; }
     }
     if (!res) break;
 
@@ -181,7 +184,8 @@ export async function onRequestGet({ request, env }) {
   if (!COUNTRY_DE[country]) return Response.json({ error: "Dieses Land wird nicht unterstützt." }, { status: 400 });
 
   try { await ingest(env, country); } catch (e) { /* Feeds nicht erreichbar: Gespeichertes zeigen */ }
-  try { await assign(env, country); } catch (e) { /* KI nicht verfügbar: später erneut */ }
+  DEBUG.length = 0;
+  try { await assign(env, country); } catch (e) { DEBUG.push("assign: " + String(e).slice(0, 200)); }
 
   const since = Date.now() - DAYS[when] * 864e5;
   const where = country === "EU" ? "" : "country = ? AND";
@@ -220,7 +224,7 @@ export async function onRequestGet({ request, env }) {
   // Top-Meldung: am meisten bestätigt
   items.sort((a, b) => b.last - a.last);
   return Response.json(
-    { country, cat, when, items, pending, feeds: FEEDS.filter(([c]) => c === country).map((f) => f[1]) },
+    { country, cat, when, items, pending, debug: url.searchParams.get("debug") ? DEBUG : undefined, feeds: FEEDS.filter(([c]) => c === country).map((f) => f[1]) },
     { headers: { "Cache-Control": "public, max-age=60" } }
   );
 }
