@@ -215,12 +215,49 @@ dialog.drawer::backdrop{background:rgba(5,16,18,.56);animation:fade .2s both}
 .src .st{grid-column:1;font:400 .98rem/1.35 var(--ui);color:var(--ink-2);margin-top:2px}
 .src .go{grid-column:2;grid-row:1/3;display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:.84rem;color:var(--accent);white-space:nowrap}
 .src .go svg{width:14px;height:14px}
+.dread + .dread{margin-top:14px}
+.dsub{font-size:.9rem;color:var(--muted);max-width:60ch;margin:-4px 0 14px}
+.rk{display:grid;gap:12px}
+.rcard{position:relative;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 14px 64px;background:var(--surface)}
+.rcard.single{padding-left:16px}
+.rcard.best{border-color:var(--accent);background:var(--accent-soft)}
+.rcard:hover{border-color:var(--accent)}
+.rpos{position:absolute;left:12px;top:11px;width:40px;text-align:center;font:800 2.1rem/1 var(--head);font-stretch:75%;color:var(--muted)}
+.rcard.best .rpos{color:var(--accent)}
+.rtop{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap}
+.rtop b{font-weight:700;font-size:.98rem}
+.rtop small{color:var(--muted);font-size:.8rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.chip{display:inline-flex;align-items:center;gap:5px;font:600 .74rem/1 var(--ui);padding:5px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface);white-space:nowrap}
+.chip svg{width:12px;height:12px;flex:none}
+.chip.best{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.first{border-color:var(--accent);color:var(--accent);background:transparent}
+.chip.pw{border-color:var(--danger);color:var(--danger);background:transparent}
+.rt{display:block;font:400 .98rem/1.38 var(--ui);color:var(--ink-2);margin-top:9px;text-decoration:none}
+.rt::after{content:"";position:absolute;inset:0;border-radius:var(--radius)}
+.rt:focus-visible{outline:none}
+.rcard:has(.rt:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.meters{display:grid;grid-template-columns:auto minmax(80px,170px) auto;justify-content:start;gap:6px 12px;align-items:center;margin-top:11px;font-size:.78rem;color:var(--muted)}
+.meter{height:6px;border-radius:3px;background:var(--sunk);position:relative;overflow:hidden}
+.rcard.best .meter{background:var(--surface)}
+.meter i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
+.meters em{font-style:normal;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.rgo{display:inline-flex;align-items:center;gap:5px;margin-top:11px;font-weight:700;font-size:.84rem;color:var(--accent)}
+.rgo svg{width:14px;height:14px}
+.rsk{height:112px;border-radius:var(--radius);border:1px solid var(--line);background:linear-gradient(90deg,var(--sunk) 0%,var(--line) 50%,var(--sunk) 100%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
+.dhow{margin-top:14px;font-size:.84rem;color:var(--muted);max-width:60ch}
+.dhow summary{cursor:pointer;font-weight:600;color:var(--ink-2);padding:4px 0}
+.dhow ul{margin:8px 0 0;padding-left:18px;list-style:disc;display:grid;gap:5px}
+.dh2{font:700 .92rem/1 var(--head);font-stretch:90%;color:var(--ink-2);margin:22px 0 10px}
 @media (max-width:759px){
   dialog.drawer{margin:auto 0 0;height:auto;max-height:92dvh;width:100%;border-radius:18px 18px 0 0}
   dialog.drawer[open]{animation-name:slideup}
   .dbody{padding:18px 18px 30px}
   .src{grid-template-columns:1fr}
   .src .go{grid-column:1;grid-row:auto;margin-top:6px}
+  .rcard{padding:13px 14px 13px 54px}
+  .rcard.single{padding-left:14px}
+  .rpos{left:8px;width:36px;font-size:1.8rem}
 }
 
 footer.site{border-top:1px solid var(--line);background:var(--bg);padding:26px max(20px,env(safe-area-inset-left)) calc(26px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center}
@@ -651,54 +688,124 @@ function head(item, d){
       : `${dots(1,false)}<span>Nur eine Quelle, nicht bestätigt</span>`}<span class="ki" title="Schlagzeile von einer KI formuliert">KI</span></div>
     ${thumbsBox(dId,true)}`;
 }
+const ICON_CLOCK = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.3 1.4"/></svg>`;
+const ICON_LOCK = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.6"/><path d="M5.3 7V5.2a2.7 2.7 0 015.4 0V7"/></svg>`;
+const ICON_STAR = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1.6l1.9 4 4.3.5-3.2 3 .9 4.3L8 11.2 4.1 13.4l.9-4.3-3.2-3 4.3-.5z"/></svg>`;
+const ICON_BOLT = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M9.2 1.5L3.5 9h3.7l-.6 5.5L12.5 7H8.8z"/></svg>`;
+let dSt = {item:null, d:null, mode:"loading", rank:null, rmode:"loading"};
+const readMin = txt=>Math.max(1, Math.round((String(txt).trim().split(/\s+/).length)/200));
+
 function overviewHtml(d, mode){
-  let body;
-  if(mode==="loading") body = `<div class="dsk"><i></i><i></i><i style="width:70%"></i></div>`;
-  else if(d.detail) body = `<p class="dread">${esc(d.detail)}</p>`;
+  let body, extra = "";
+  if(mode==="loading") body = `<div class="dsk"><i></i><i></i><i style="width:70%"></i><i></i><i style="width:55%"></i></div>`;
+  else if(d.detail){
+    body = d.detail.split(/\n\n+/).map(p=>`<p class="dread">${esc(p)}</p>`).join("");
+    extra = `<span class="n">Lesezeit ca. ${readMin(d.detail)} Min.</span>`;
+  }
   else if(d.status==="busy") body = `<div class="dsk"><i></i><i></i><i style="width:60%"></i></div><p class="dfine">Der Überblick wird gerade geschrieben.</p>`;
   else if(d.status==="limit") body = `<p class="dread mute">Für heute sind alle Überblicke geschrieben, die das Gratis-Kontingent der KI hergibt. Morgen geht es weiter. Die Originalartikel findest du unten.</p>`;
   else body = `<p class="dread mute">Für diese Meldung gibt es gerade keinen Überblick. Die Originalartikel findest du unten.</p>`;
-  return `<h3 class="dh">Überblick <span class="ki">KI</span></h3>${body}
-    ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten geschrieben. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}`;
+  return `<h3 class="dh">Überblick <span class="ki">KI</span>${extra}</h3>${body}
+    ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten aus den Angaben der Medien geschrieben. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}`;
+}
+
+// flache Liste der Originalartikel (Ersatz, falls das Ranking fehlt; außerdem „Weitere Artikel“)
+function linkList(arr){
+  return `<ul class="srcs">${arr.map(a=>`<li><a class="src" href="${esc(safeUrl(a.link))}" target="_blank" rel="noopener noreferrer">
+      <span class="so">${esc(a.outlet)}${a.published?`<small>${esc(ago(a.published))}</small>`:""}</span>
+      ${a.title?`<span class="st">${esc(a.title)}</span>`:""}
+      <span class="go">Original lesen${ICON_OUT}</span></a></li>`).join("")}</ul>`;
 }
 function sourcesHtml(item, d){
-  if(d && d.articles?.length){
-    return `<h3 class="dh">Das berichten die Medien <span class="n">${d.articles.length}</span></h3><ul class="srcs">${d.articles.map(a=>`<li><a class="src" href="${esc(safeUrl(a.link))}" target="_blank" rel="noopener noreferrer">
-      <span class="so">${esc(a.outlet)}<small>${esc(ago(a.published))}</small></span>
-      <span class="st">${esc(a.title)}</span>
-      <span class="go">Original lesen${ICON_OUT}</span></a></li>`).join("")}</ul>`;
-  }
-  if(item && item.sources.length){
-    return `<h3 class="dh">Das berichten die Medien <span class="n">${item.sources.length}</span></h3><ul class="srcs">${item.sources.map(s=>`<li><a class="src" href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer">
-      <span class="so">${esc(s.outlet)}</span><span class="go">Original lesen${ICON_OUT}</span></a></li>`).join("")}</ul>`;
-  }
+  if(d && d.articles?.length) return `<h3 class="dh">Das berichten die Medien <span class="n">${d.articles.length}</span></h3>${linkList(d.articles)}`;
+  if(item && item.sources.length) return `<h3 class="dh">Das berichten die Medien <span class="n">${item.sources.length}</span></h3>${linkList(item.sources.map(s=>({outlet:s.outlet,link:s.link})))}`;
   return "";
 }
-function renderDrawer(item, d, mode){
+
+function meter(label, v){
+  if(v==null) return "";
+  return `<span>${label}</span><span class="meter" role="img" aria-label="${label} ${v} von 10"><i style="width:${v*10}%"></i></span><em>${v}/10</em>`;
+}
+function rankCard(s, single){
+  const chips = [];
+  if(s.best) chips.push(`<span class="chip best">${ICON_STAR}Beste Quelle</span>`);
+  if(s.first) chips.push(`<span class="chip first">${ICON_BOLT}Erstmeldung</span>`);
+  if(s.paywall) chips.push(`<span class="chip pw">${ICON_LOCK}Bezahlschranke</span>`);
+  if(s.minutes) chips.push(`<span class="chip">${ICON_CLOCK}Lesezeit ca. ${s.minutes} Min.</span>`);
+  const m = meter("Fakten", s.facts) + meter("Sachlichkeit", s.neutral);
+  return `<li class="rcard${s.best?" best":""}${single?" single":""}">
+    ${single?"":`<span class="rpos" aria-label="Platz ${s.rank}">${s.rank}</span>`}
+    <div class="rtop"><b>${esc(s.outlet)}</b><small>${esc(ago(s.published))}</small></div>
+    ${chips.length?`<div class="chips">${chips.join("")}</div>`:""}
+    <a class="rt" href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a>
+    ${m?`<div class="meters">${m}</div>`:""}
+    <span class="rgo">Original lesen${ICON_OUT}</span></li>`;
+}
+function rankHtml(){
+  const {d, rank, rmode} = dSt;
+  if(rmode==="loading") return `<h3 class="dh">Ranking der Quellen</h3><div class="rk"><div class="rsk"></div><div class="rsk"></div></div>`;
+  if(rmode==="error" || !rank || !rank.sources?.length) return sourcesHtml(dSt.item, d);
+  const list = rank.sources, single = list.length===1;
+  const have = new Set(list.map(x=>x.link));
+  const more = (d?.articles||[]).filter(a=>!have.has(a.link));
+  let note = "";
+  if(rank.status==="busy") note = `<p class="dfine">Das Ranking wird gerade erstellt …</p>`;
+  else if(rank.status==="basic") note = `<p class="dfine">Die KI-Bewertung ist gerade nicht verfügbar. Die Reihenfolge richtet sich nur nach Tempo und Umfang der Artikel.</p>`;
+  return `<h3 class="dh">${single?"Quelle":"Ranking der Quellen"} <span class="n">${list.length}</span></h3>
+    ${single?"":`<p class="dsub">Welche Quelle liefert am meisten? Verglichen werden Faktendichte, Sachlichkeit, Tempo und Umfang der Artikel.</p>`}
+    <ol class="rk">${list.map(x=>rankCard(x,single)).join("")}</ol>${note}
+    <details class="dhow"><summary>So entsteht das Ranking</summary><ul>
+      <li>Faktendichte und Sachlichkeit schätzt eine KI aus Titel und Anriss des jeweiligen Artikels. Das ist eine Einschätzung des einzelnen Artikels, nicht des ganzen Mediums.</li>
+      <li>Wer zuerst berichtet, bekommt beim Tempo mehr Punkte.</li>
+      <li>Umfang und Lesezeit: Wir zählen die Wörter der Artikelseite (200 Wörter je Minute). Die Seite rufen wir nur ab, wenn die robots.txt des Mediums das erlaubt, und wir speichern nur die Zahl, nie den Text. Ohne Erlaubnis oder hinter einer Bezahlschranke zeigen wir keine Lesezeit.</li>
+      <li>Quellen hinter einer Bezahlschranke werden leicht abgewertet, weil du sie nicht frei lesen kannst.</li>
+    </ul></details>
+    ${more.length?`<h4 class="dh2">Weitere Artikel</h4>${linkList(more)}`:""}`;
+}
+
+function renderDrawer(){
+  const {item, d, mode} = dSt;
   const keepScroll = $("dBody").scrollTop;
-  $("dBody").innerHTML = head(item,d) + overviewHtml(d||{}, mode) + sourcesHtml(item,d) +
+  $("dBody").innerHTML = head(item,d) + overviewHtml(d||{}, mode) + rankHtml() +
     `<p class="dfine" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--line)">Ein Fehler in der Meldung oder ein Medium, das nicht verlinkt werden möchte? Melde dich über das <a href="/impressum.html">Impressum</a>.</p>`;
   $("dBody").scrollTop = keepScroll;
 }
 function openStory(id, item, fromHash){
   const req = ++dReq; dId = id; item = item || findItem(id);
-  renderDrawer(item, null, "loading");
+  dSt = {item, d:null, mode:"loading", rank:null, rmode:"loading"};
+  renderDrawer();
   if(!drawer.open){ drawer.showModal(); document.documentElement.classList.add("locked"); }
   $("dBody").scrollTop = 0;
   if(!fromHash && location.hash !== "#s="+id){ history.pushState({s:id},"","#s="+id); dPushed = true; }
   else if(fromHash) dPushed = false;
   if(!REACT[id]) loadReactions([id]);
-  loadStory(id, item, req, 0);
+  loadStory(id, req, 0);
+  loadRank(id, req, 0);
 }
-async function loadStory(id, item, req, tries){
+async function loadStory(id, req, tries){
   try{
     const d = await api(`/api/story?id=${encodeURIComponent(id)}`);
     if(req!==dReq) return;
-    renderDrawer(item || {sources:[],confirmed:d.confirmed}, d, "done");
-    if(d.status==="busy" && tries<3) setTimeout(()=>{ if(req===dReq && drawer.open) loadStory(id, item, req, tries+1); }, 4000);
+    if(!dSt.item) dSt.item = {sources:[],confirmed:d.confirmed};
+    dSt.d = d; dSt.mode = "done";
+    renderDrawer();
+    if(d.status==="busy" && tries<3) setTimeout(()=>{ if(req===dReq && drawer.open) loadStory(id, req, tries+1); }, 4000);
   }catch(e){
     if(req!==dReq) return;
     $("dBody").innerHTML = `<div class="empty"><h3>Das hat nicht geklappt.</h3>${esc(e.message)}</div>`;
+  }
+}
+async function loadRank(id, req, tries){
+  try{
+    const r = await api(`/api/story?id=${encodeURIComponent(id)}&part=rank`);
+    if(req!==dReq) return;
+    dSt.rank = r; dSt.rmode = "done";
+    renderDrawer();
+    if(r.status==="busy" && tries<4) setTimeout(()=>{ if(req===dReq && drawer.open) loadRank(id, req, tries+1); }, 4000);
+  }catch(e){
+    if(req!==dReq) return;
+    dSt.rmode = "error";
+    if(dSt.mode==="done") renderDrawer();
   }
 }
 drawer.addEventListener("close",()=>{

@@ -18,7 +18,10 @@ CREATE TABLE IF NOT EXISTS articles (
   story_id   TEXT,                      -- NULL = noch nicht geprüft, '-' = keine Nachricht
   created_at INTEGER NOT NULL,
   hint       TEXT,                      -- Ressort-Hinweis aus dem Feed
-  descr      TEXT DEFAULT ''            -- kurzer Feed-Anriss, nur als Eingabe für die KI, wird nie angezeigt
+  descr      TEXT DEFAULT '',           -- kurzer Feed-Anriss, nur als Eingabe für die KI, wird nie angezeigt
+  words      INTEGER,                   -- gezählte Wörter der Artikelseite (nur die Zahl, kein Text) für die Lesezeit
+  paywall    INTEGER DEFAULT 0,         -- 1 = Bezahlschranke erkannt
+  measured_at INTEGER DEFAULT 0         -- Zeitpunkt der Messung (0 = noch nicht gemessen)
 );
 CREATE INDEX IF NOT EXISTS articles_open ON articles (country, story_id, published);
 CREATE INDEX IF NOT EXISTS articles_story ON articles (story_id);
@@ -35,7 +38,10 @@ CREATE TABLE IF NOT EXISTS stories (
   domestic   INTEGER NOT NULL DEFAULT 1, -- 1 = betrifft das Land selbst, 0 = Auslandsmeldung
   detail     TEXT DEFAULT '',           -- KI-Überblick für „Mehr lesen“ (wird beim ersten Öffnen erzeugt)
   detail_n   INTEGER DEFAULT 0,         -- Anzahl Artikel, aus denen der Überblick entstand
-  detail_at  INTEGER DEFAULT 0          -- Zeitpunkt der Erzeugung (für die Tagesgrenze)
+  detail_at  INTEGER DEFAULT 0,         -- Zeitpunkt der Erzeugung (für die Tagesgrenze)
+  rank_json  TEXT DEFAULT '',           -- KI-Bewertung je Artikel: [{i: Artikel-ID, f: Faktendichte, s: Sachlichkeit}]
+  rank_n     INTEGER DEFAULT 0,         -- Anzahl Artikel zum Zeitpunkt der Bewertung
+  rank_at    INTEGER DEFAULT 0          -- Zeitpunkt der Bewertung (0 = noch nicht bewertet)
 );
 CREATE INDEX IF NOT EXISTS stories_q ON stories (country, cat, last_seen);
 
@@ -47,4 +53,11 @@ CREATE TABLE IF NOT EXISTS feed_state (
 CREATE TABLE IF NOT EXISTS locks (
   name  TEXT PRIMARY KEY,
   until INTEGER NOT NULL
+);
+
+-- robots.txt der Medien (Zwischenspeicher), damit Artikelseiten nur dann abgerufen werden, wenn es erlaubt ist
+CREATE TABLE IF NOT EXISTS robots (
+  host       TEXT PRIMARY KEY,          -- Ursprung, z. B. https://www.beispiel.at
+  body       TEXT,                      -- NULL = nicht abrufbar (dann wird nichts abgerufen)
+  fetched_at INTEGER NOT NULL
 );
