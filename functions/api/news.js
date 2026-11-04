@@ -79,6 +79,33 @@ async function fromBing(q, when) {
   return parseRss(await res.text()).filter((i) => !i.date || Date.parse(i.date) >= since);
 }
 
+// GDELT: offene Nachrichten-Datenbank, deckt die letzten 3 Monate ab.
+async function fromGdelt(q, when) {
+  const timespan = { "1d": "1d", "7d": "1week", "30d": "1month", "1y": "3months" }[when];
+  const terms = q.split(/\s+/).filter((w) => w.length >= 3).join(" ");
+  const api = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(terms + " sourcelang:german")}` +
+    `&mode=artlist&format=json&maxrecords=60&sort=datedesc&timespan=${timespan}`;
+  const res = await fetch(api, { headers: { "User-Agent": BROWSER_UA } });
+  if (!res.ok) throw new Error(`GDELT ${res.status}`);
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { throw new Error("GDELT: " + text.slice(0, 80)); }
+  const seen = new Set();
+  return (data.articles || []).map((a) => {
+    const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(a.seendate || "");
+    return {
+      title: decodeEntities(String(a.title || "")).trim(),
+      link: a.url,
+      source: a.domain || "",
+      date: m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}.000Z` : null,
+    };
+  }).filter((i) => {
+    const key = i.title.toLowerCase();
+    if (!i.title || !/^https?:\/\//.test(i.link) || seen.has(key)) return false;
+    seen.add(key); return true;
+  });
+}
+
 export async function onRequestGet({ request }) {
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") || "").trim().slice(0, 120);
@@ -92,7 +119,7 @@ export async function onRequestGet({ request }) {
 
   const errors = [];
   let items = null, provider = null;
-  for (const [name, fn] of [["Google News", fromGoogle], ["Bing News", fromBing]]) {
+  for (const [name, fn] of [["Google News", fromGoogle], ["GDELT", fromGdelt], ["Bing News", fromBing]]) {
     try {
       const r = await fn(q, when);
       if (r.length) { items = r; provider = name; break; }
