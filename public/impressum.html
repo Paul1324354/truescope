@@ -5,42 +5,61 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Impressum · TrueScope</title>
 <style>
+@font-face{font-family:"Newsreader";src:url("/fonts/newsreader.woff") format("woff");font-weight:400 700;font-display:swap}
+@font-face{font-family:"Schibsted Grotesk";src:url("/fonts/schibsted-grotesk.woff") format("woff");font-weight:400 900;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("/fonts/jetbrains-mono.woff") format("woff");font-weight:400 600;font-display:swap}
+
+/* Layout: Instrumenten-Konzept „Scope“. Klebende Kopfzeile, eine Satz-Überschrift als Steuerung,
+   Top-Meldung + nach Tagen gruppierte Meldungen in einem 2-Spalten-Raster (1 Spalte auf dem Handy). */
 :root{
-  --bg:#F1F3F6; --surface:#FFFFFF; --ink:#141B2D; --muted:#5B6478; --line:#D9DEE7;
-  --accent:#B3122E; --accent-soft:#F7E3E6; --accent-ink:#FFFFFF;
-  --bar:#24345C; --warn-bg:#FFF4D9; --warn-ink:#6B4A00;
-  --display:"Arial Narrow","Roboto Condensed","Helvetica Neue",system-ui,sans-serif;
-  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --bg:#F2F4F7; --surface:#FFFFFF; --sunk:#E9ECF1; --ink:#0B1220; --ink-2:#2A3345; --muted:#5D6678; --line:#DDE1E8;
+  --accent:#2448F5; --accent-ink:#FFFFFF; --accent-soft:#E6EBFF; --amber:#C77A12; --amber-soft:#FCEFD9;
+  --good:#0F8A5F; --danger:#C7362F;
+  --c-politik:#2448F5; --c-wirtschaft:#0E8A8A; --c-sport:#2E8B3E; --c-kultur:#B0328C; --c-wissenschaft:#6B3FD6;
+  --c-technik:#0A7FB8; --c-gesundheit:#C93D5A; --c-umwelt:#5C8A1E; --c-chronik:#5A6478;
+  --display:"Newsreader","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --body:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --radius:14px; --shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px -12px rgba(11,18,32,.12);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
-  --accent:#E8475F; --accent-soft:#3A1820; --accent-ink:#FFFFFF;
-  --bar:#8FA6E0; --warn-bg:#33290F; --warn-ink:#F2D58A; color-scheme:dark}}
+  --bg:#080C14; --surface:#10161F; --sunk:#0C1119; --ink:#EDF0F5; --ink-2:#C9CFDA; --muted:#8B94A7; --line:#1F2734;
+  --accent:#7B93FF; --accent-ink:#0B1220; --accent-soft:#18213D; --amber:#F2B25A; --amber-soft:#2A2110;
+  --good:#45C08D; --danger:#F06A63;
+  --c-politik:#7B93FF; --c-wirtschaft:#3CC2C2; --c-sport:#5BC46B; --c-kultur:#E46CC2; --c-wissenschaft:#A585FF;
+  --c-technik:#46B5EE; --c-gesundheit:#F27391; --c-umwelt:#9CCB4F; --c-chronik:#98A2B7;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
-  --accent:#E8475F; --accent-soft:#3A1820; --accent-ink:#FFFFFF;
-  --bar:#8FA6E0; --warn-bg:#33290F; --warn-ink:#F2D58A; color-scheme:dark}
+  --bg:#080C14; --surface:#10161F; --sunk:#0C1119; --ink:#EDF0F5; --ink-2:#C9CFDA; --muted:#8B94A7; --line:#1F2734;
+  --accent:#7B93FF; --accent-ink:#0B1220; --accent-soft:#18213D; --amber:#F2B25A; --amber-soft:#2A2110;
+  --good:#45C08D; --danger:#F06A63;
+  --c-politik:#7B93FF; --c-wirtschaft:#3CC2C2; --c-sport:#5BC46B; --c-kultur:#E46CC2; --c-wissenschaft:#A585FF;
+  --c-technik:#46B5EE; --c-gesundheit:#F27391; --c-umwelt:#9CCB4F; --c-chronik:#98A2B7;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6); color-scheme:dark}
+
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--body)}
-.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 56px}
-.back{font-size:.9rem;color:var(--muted)}
-.brand{font-family:var(--display);font-stretch:72%;font-weight:800;font-size:1.6rem;text-transform:uppercase;text-decoration:none;color:var(--ink)}
-.brand span{color:var(--accent)}
-h1{font-family:var(--display);font-stretch:85%;font-size:2rem;line-height:1.15;margin:24px 0 8px;text-wrap:balance}
-h2{font-size:1.1rem;margin:28px 0 6px}
-p,li{max-width:65ch}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 var(--body)}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font:600 1.25rem/1 var(--display)}
+.brand svg{width:26px;height:26px}
+.brand i{font-style:normal;color:var(--accent)}
+h1{font:500 clamp(2.2rem,6vw,3.2rem)/1.08 var(--display);letter-spacing:-.02em;margin:40px 0 12px;text-wrap:balance}
+h2{font:500 1.35rem/1.25 var(--display);margin:34px 0 8px}
+p,li{max-width:65ch;color:var(--ink-2)}
+strong{color:var(--ink)}
 a{color:var(--accent)}
-.fill{background:var(--warn-bg);color:var(--warn-ink);padding:1px 6px;border-radius:4px}
-.muted{color:var(--muted);font-size:.9rem}
-footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
-footer a{color:inherit}
+.fill{background:var(--amber-soft);color:var(--amber);padding:1px 7px;border-radius:5px;font-weight:600}
+.muted{font:500 .78rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px;display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--ink)}
 </style>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 </head>
 <body>
 <div class="wrap">
-  <a class="brand" href="/">True<span>Scope</span></a>
+  <a class="brand" href="/"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="var(--accent)"/><path d="M16 1.5v6M16 24.5v6M1.5 16h6M24.5 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>True<i>Scope</i></span></a>
   <h1>Impressum</h1>
 
   <p class="muted">Angaben gemäß § 5 E-Commerce-Gesetz und Offenlegung gemäß § 25 Mediengesetz</p>
