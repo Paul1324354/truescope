@@ -6,7 +6,7 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 ## Aufbau
 
 - `public/index.html`: die App (eine Seite, ohne Build-Schritt)
-- `functions/api/news.js` + `lib/wiki.js`: Schlagzeilen-Bot. Liest Wikipedia „Portal:Current events“ (CC BY-SA 4.0), ordnet Land und Ressort zu und lässt Workers AI eigene deutsche Schlagzeilen schreiben. Kein Schlüssel nötig.
+- `functions/api/news.js`: Recherche-Bot. Liest die RSS-Feeds von 2–5 Medien pro europäischem Land (`lib/feeds.js`, Leser in `lib/rss.js`), bündelt Artikel verschiedener Medien zum selben Ereignis (Doppelcheck: ab 2 Medien „bestätigt“) und lässt Workers AI eine eigene deutsche Schlagzeile schreiben. Angezeigt werden nur KI-Schlagzeile und Links zu den Originalen.
 - `functions/api/report.js`: Beiträge melden; ab 3 Meldungen automatisch ausgeblendet
 - `public/impressum.html`, `datenschutz.html`, `regeln.html`: rechtliche Seiten (Platzhalter im Impressum und in der Datenschutzerklärung ausfüllen!)
 - `functions/api/polls.js`, `vote.js`, `comment.js`: Abstimmungen, Stimmen, Kommentare
@@ -36,7 +36,7 @@ Einen gemeldeten Beitrag wieder freigeben:
 
 ## Rechtliches
 
-- Nachrichten: eigene KI-Schlagzeilen aus frei lizenzierten Wikipedia-Texten, Links zu den Originalquellen. Quelle: Wikipedia (CC BY-SA 4.0), Nennung mit Link und Lizenz ist Pflicht; die KI-Schlagzeilen sind als solche gekennzeichnet (Art. 50 KI-Verordnung) und stehen ebenfalls unter CC BY-SA 4.0.
+- Nachrichten: eigene KI-Schlagzeilen, keine Artikeltexte, nur Links zu den Originalartikeln (§ 76f UrhG erlaubt Hyperlinks und sehr kurze Auszüge). Medien können sich austragen lassen.
 - Keine Cookies, kein Tracking, keine externen Schriften.
 - Impressum und Datenschutzerklärung enthalten gelb markierte Platzhalter, die ausgefüllt werden müssen.
 

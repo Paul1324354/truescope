@@ -61,3 +61,34 @@ CREATE TABLE IF NOT EXISTS wiki_days (
   fetched_at INTEGER NOT NULL,
   n          INTEGER NOT NULL
 );
+
+-- Recherche-Bot: Artikel aus den RSS-Feeds europäischer Medien und daraus gebündelte Ereignisse
+CREATE TABLE IF NOT EXISTS articles (
+  id         TEXT PRIMARY KEY,          -- Hash des Links
+  country    TEXT NOT NULL,
+  outlet     TEXT NOT NULL,
+  title      TEXT NOT NULL,
+  link       TEXT NOT NULL,
+  published  INTEGER NOT NULL,
+  story_id   TEXT,                      -- NULL = noch nicht geprüft, '-' = keine Nachricht
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS articles_open ON articles (country, story_id, published);
+CREATE INDEX IF NOT EXISTS articles_story ON articles (story_id);
+
+CREATE TABLE IF NOT EXISTS stories (
+  id         TEXT PRIMARY KEY,
+  country    TEXT NOT NULL,
+  cat        TEXT NOT NULL,
+  headline   TEXT NOT NULL,             -- KI-formulierte Schlagzeile
+  summary    TEXT,
+  first_seen INTEGER NOT NULL,
+  last_seen  INTEGER NOT NULL,
+  outlets    INTEGER NOT NULL           -- Anzahl verschiedener Medien (Doppelcheck)
+);
+CREATE INDEX IF NOT EXISTS stories_q ON stories (country, cat, last_seen);
+
+CREATE TABLE IF NOT EXISTS feed_state (
+  url        TEXT PRIMARY KEY,
+  fetched_at INTEGER NOT NULL
+);

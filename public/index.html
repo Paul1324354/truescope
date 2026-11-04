@@ -117,6 +117,10 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .src{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin-top:2px}
 .src a{text-decoration:none;border-bottom:1px solid var(--line);color:var(--ink-2)}
 .src a:hover{border-bottom-color:var(--ink-2)}
+.ok{display:inline-flex;align-items:center;gap:4px;font:600 .7rem/1 var(--mono);letter-spacing:.04em;color:var(--good);background:color-mix(in srgb,var(--good) 13%,transparent);border-radius:5px;padding:4px 7px}
+.single{display:inline-flex;align-items:center;font:600 .7rem/1 var(--mono);letter-spacing:.04em;color:var(--muted);border:1px dashed var(--line);border-radius:5px;padding:3px 7px}
+.ctry{font:600 .7rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.filterbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
 .ai{display:inline-flex;align-items:center;gap:4px;font:600 .66rem/1 var(--mono);letter-spacing:.08em;color:var(--amber);background:var(--amber-soft);border-radius:5px;padding:4px 6px}
 
 .day{display:flex;align-items:center;gap:14px;margin:34px 0 4px;font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
@@ -252,9 +256,10 @@ footer.site .claim{font:italic 500 1rem var(--display);color:var(--muted)}
       <div class="more"><button class="btn line" id="more" hidden>Weitere Meldungen</button></div>
 
       <details class="how">
-        <summary><span class="ai">KI</span> Wie entstehen die Schlagzeilen?</summary>
-        <p>Ein Bot liest jeden Tag die Ereignis-Übersicht der englischen <a href="https://en.wikipedia.org/wiki/Portal:Current_events" target="_blank" rel="noopener">Wikipedia (Portal:Current events)</a>, ordnet jede Meldung Ländern und Ressorts zu und lässt eine KI daraus eine eigene deutsche Schlagzeile und eine Kurzfassung schreiben. Die Texte werden nicht von Menschen geprüft und können Fehler enthalten. Prüfe Wichtiges über den Quellenlink.</p>
-        <p>Grundlage und Ergebnis stehen unter der Lizenz <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Die verlinkten Artikel gehören den jeweiligen Medien.</p>
+        <summary><span class="ai">KI</span> Wie entstehen die Schlagzeilen und wie funktioniert der Doppelcheck?</summary>
+        <p>Ein Recherche-Bot liest laufend die öffentlichen RSS-Feeds von drei bis fünf Nachrichtenmedien pro Land, zum Beispiel ORF, Der Standard, Die Presse, Kurier und Salzburger Nachrichten für Österreich.</p>
+        <p><strong>Doppelcheck:</strong> Eine KI vergleicht jeden neuen Artikel mit den Artikeln der anderen Medien. Berichten mindestens zwei verschiedene Medien über dasselbe Ereignis, gilt die Meldung als <span class="ok">✓ Bestätigt</span>. Hat bisher nur ein Medium darüber berichtet, steht <span class="single">1 Quelle · nicht bestätigt</span> dabei.</p>
+        <p>Die Schlagzeile und den Satz darunter schreibt die KI in eigenen Worten. Sie werden nicht von Menschen geprüft und können Fehler enthalten. Die verlinkten Artikel gehören den jeweiligen Medien. Lies dort nach, bevor du etwas weitergibst.</p>
       </details>
     </div>
   </section>
@@ -310,26 +315,14 @@ footer.site .claim{font:italic 500 1rem var(--display);color:var(--muted)}
 
 <script>
 const COUNTRIES = [
- ["AT","🇦🇹","Österreich","orf.at/politik","https://orf.at/"],
- ["DE","🇩🇪","Deutschland","tagesschau.de","https://www.tagesschau.de/inland"],
- ["CH","🇨🇭","Schweiz","srf.ch","https://www.srf.ch/news/schweiz"],
- ["FR","🇫🇷","Frankreich","franceinfo","https://www.francetvinfo.fr/politique/"],
- ["IT","🇮🇹","Italien","RaiNews","https://www.rainews.it/notizie/politica"],
- ["ES","🇪🇸","Spanien","RTVE","https://www.rtve.es/noticias/politica/"],
- ["GB","🇬🇧","Vereinigtes Königreich","BBC Politics","https://www.bbc.co.uk/news/politics"],
- ["US","🇺🇸","USA","AP Politics","https://apnews.com/politics"],
- ["NL","🇳🇱","Niederlande","NOS","https://nos.nl/nieuws/politiek"],
- ["BE","🇧🇪","Belgien"],["LU","🇱🇺","Luxemburg"],["PL","🇵🇱","Polen"],["CZ","🇨🇿","Tschechien"],
- ["SK","🇸🇰","Slowakei"],["HU","🇭🇺","Ungarn"],["SI","🇸🇮","Slowenien"],["HR","🇭🇷","Kroatien"],
- ["RS","🇷🇸","Serbien"],["BA","🇧🇦","Bosnien und Herzegowina"],["RO","🇷🇴","Rumänien"],["BG","🇧🇬","Bulgarien"],
- ["GR","🇬🇷","Griechenland"],["TR","🇹🇷","Türkei"],["PT","🇵🇹","Portugal"],["IE","🇮🇪","Irland"],
- ["DK","🇩🇰","Dänemark"],["SE","🇸🇪","Schweden"],["NO","🇳🇴","Norwegen"],["FI","🇫🇮","Finnland"],
- ["EE","🇪🇪","Estland"],["LV","🇱🇻","Lettland"],["LT","🇱🇹","Litauen"],["UA","🇺🇦","Ukraine"],
- ["RU","🇷🇺","Russland"],["IL","🇮🇱","Israel"],["CA","🇨🇦","Kanada"],["MX","🇲🇽","Mexiko"],
- ["BR","🇧🇷","Brasilien"],["AR","🇦🇷","Argentinien"],["CN","🇨🇳","China"],["JP","🇯🇵","Japan"],
- ["KR","🇰🇷","Südkorea"],["IN","🇮🇳","Indien"],["AU","🇦🇺","Australien"],["ZA","🇿🇦","Südafrika"],
- ["EG","🇪🇬","Ägypten"],["NG","🇳🇬","Nigeria"],["IR","🇮🇷","Iran"]
-].map(([code,flag,name,srcName,srcUrl])=>({code,flag,name,srcName,srcUrl}))
+ ["AT","🇦🇹","Österreich"],["BE","🇧🇪","Belgien"],["BA","🇧🇦","Bosnien und Herzegowina"],["BG","🇧🇬","Bulgarien"],
+ ["DK","🇩🇰","Dänemark"],["DE","🇩🇪","Deutschland"],["EE","🇪🇪","Estland"],["FI","🇫🇮","Finnland"],["FR","🇫🇷","Frankreich"],
+ ["GR","🇬🇷","Griechenland"],["IE","🇮🇪","Irland"],["IT","🇮🇹","Italien"],["HR","🇭🇷","Kroatien"],["LV","🇱🇻","Lettland"],
+ ["LT","🇱🇹","Litauen"],["LU","🇱🇺","Luxemburg"],["NL","🇳🇱","Niederlande"],["NO","🇳🇴","Norwegen"],["PL","🇵🇱","Polen"],
+ ["PT","🇵🇹","Portugal"],["RO","🇷🇴","Rumänien"],["SE","🇸🇪","Schweden"],["CH","🇨🇭","Schweiz"],["RS","🇷🇸","Serbien"],
+ ["SK","🇸🇰","Slowakei"],["SI","🇸🇮","Slowenien"],["ES","🇪🇸","Spanien"],["CZ","🇨🇿","Tschechien"],["UA","🇺🇦","Ukraine"],
+ ["HU","🇭🇺","Ungarn"],["GB","🇬🇧","Vereinigtes Königreich"]
+].map(([code,flag,name])=>({code,flag,name}))
  .sort((a,b)=>a.name.localeCompare(b.name,"de"));
 const BY = Object.fromEntries(COUNTRIES.map(c=>[c.code,c]));
 const CATS = {
@@ -372,11 +365,12 @@ async function api(path, opts={}){
 
 // ---------- Auswahl ----------
 const optHtml = COUNTRIES.map(c=>`<option value="${c.code}">${c.flag} ${esc(c.name)}</option>`).join("");
-$("country").innerHTML = `<option value="INT">aus aller Welt</option><optgroup label="Länder">` +
+$("country").innerHTML = `<option value="EU">aus ganz Europa</option><optgroup label="Länder">` +
   COUNTRIES.map(c=>`<option value="${c.code}">aus ${esc(c.name)}</option>`).join("") + `</optgroup>`;
-$("pc").innerHTML = `<option value="INT">🌐 International</option>` + optHtml;
-const scopeCode = ()=> state.intl ? "INT" : state.country;
-const scopeName = ()=> state.intl ? "International" : BY[state.country].name;
+$("pc").innerHTML = `<option value="INT">🇪🇺 Ganz Europa</option>` + optHtml;
+const scopeCode = ()=> state.intl ? "EU" : state.country;
+const pollScope = ()=> state.intl ? "INT" : state.country;
+const scopeName = ()=> state.intl ? "Europa" : BY[state.country].name;
 
 // Auswahlfelder in der Überschrift so breit wie der gewählte Text
 const measurer = document.createElement("span");
@@ -399,12 +393,12 @@ function renderControls(){
   $("cat").innerHTML = Object.entries(CATS).map(([k,c])=>`<button class="chip" data-c="${k}" style="--c:var(--c-${k})" aria-pressed="${state.cat===k}"><span class="dot"></span>${c.label}</button>`).join("");
   const from = new Date(TODAY.getTime()-PERIODS[state.period].days*864e5);
   $("range").textContent = `${fmtDate(from)} – ${fmtDate(TODAY)}`;
-  $("pc").value = scopeCode();
+  $("pc").value = pollScope();
   fitAll();
 }
 
-function changed(){ savePref(); renderControls(); if(state.view==="news") loadNews(); else { pollFilter=scopeCode(); loadPolls(); } }
-$("country").addEventListener("change",e=>{ const v=e.target.value; if(v==="INT"){ state.intl=true; } else { state.intl=false; state.country=v; } changed(); });
+function changed(){ savePref(); renderControls(); if(state.view==="news") loadNews(); else { pollFilter=pollScope(); loadPolls(); } }
+$("country").addEventListener("change",e=>{ const v=e.target.value; if(v==="EU"){ state.intl=true; } else { state.intl=false; state.country=v; } changed(); });
 $("period").addEventListener("change",e=>{ state.period=e.target.value; changed(); });
 $("cat").addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(!b) return; state.cat=b.dataset.c; changed(); });
 
@@ -422,9 +416,9 @@ $("tab-news").onclick=()=>setView("news");
 $("tab-polls").onclick=()=>setView("polls");
 
 // ---------- Nachrichten ----------
-let newsItems=[], newsShown=13, newsReq=0, newsNote="";
+let newsItems=[], newsShown=13, newsReq=0, newsNote="", onlyConfirmed=store.get("ts-confirmed",false), newsFeeds=[];
 function skeleton(){
-  return `<div class="loadmsg">${RETICLE}Der Bot liest die Ereignisse und schreibt Schlagzeilen. Beim ersten Mal dauert das bis zu 20 Sekunden.</div>
+  return `<div class="loadmsg">${RETICLE}Der Bot liest die Nachrichtendienste, vergleicht die Artikel miteinander und schreibt Schlagzeilen. Beim ersten Mal dauert das bis zu 30 Sekunden.</div>
   <div class="skel"><i class="h"></i><i class="h2"></i><i style="width:64%"></i></div>
   <div class="grid"><div class="skel"><i class="h" style="height:22px"></i><i></i><i style="width:70%"></i></div><div class="skel"><i class="h" style="height:22px"></i><i></i><i style="width:60%"></i></div></div>`;
 }
@@ -436,15 +430,8 @@ async function loadNews(){
   try{
     const data = await api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
     if(id!==newsReq) return;
-    newsItems = data.items||[]; newsShown=13; newsNote = data.pendingDays ? "Ältere Tage werden gerade nach und nach geladen. Lade die Seite später neu, um mehr zu sehen." : "";
-    if(!newsItems.length && !state.intl){
-      const intl = await api(`/api/news?country=INT&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
-      if(id!==newsReq) return;
-      if((intl.items||[]).length){
-        newsItems = intl.items;
-        newsNote = `Zu ${scopeName()} gibt es in diesem Zeitraum keine Meldungen in der Quelle. Hier sind die internationalen Schlagzeilen.`;
-      }
-    }
+    newsItems = data.items||[]; newsShown=13; newsFeeds = data.feeds||[];
+    newsNote = data.pending ? `Der Bot prüft noch ${data.pending} weitere Artikel. Tippe gleich auf „Aktualisieren“, um mehr zu sehen.` : "";
     renderNews();
   }catch(e){
     if(id!==newsReq) return;
@@ -460,35 +447,52 @@ function dayTitle(day){
   if(day===y) return ["Gestern", long];
   return [d.toLocaleDateString("de-AT",{weekday:"long"}), d.toLocaleDateString("de-AT",{day:"numeric",month:"long"})];
 }
-function srcLine(n){
-  return `<div class="src">${n.aiWritten?`<span class="ai" title="Von einer KI formuliert">KI</span>`:`<span class="ai">EN</span>`}
-    ${n.source?`<a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.source)} ↗</a><span>·</span>`:""}<a href="${esc(n.wiki)}" target="_blank" rel="noopener">Wikipedia</a></div>`;
+function check(n){
+  const k=n.sources.length;
+  return n.confirmed
+    ? `<span class="ok" title="Mehrere unabhängige Medien berichten darüber">✓ Bestätigt · ${k} Quellen</span>`
+    : `<span class="single" title="Bisher berichtet nur ein Medium darüber">1 Quelle · nicht bestätigt</span>`;
 }
+function srcLine(n){
+  const shown = n.sources.slice(0,5);
+  return `<div class="src">${check(n)}<span class="ai" title="Schlagzeile von einer KI formuliert">KI</span>
+    ${shown.map(s=>`<a href="${esc(s.link)}" target="_blank" rel="noopener">${esc(s.outlet)} ↗</a>`).join("")}${n.sources.length>5?`<span>+${n.sources.length-5}</span>`:""}</div>`;
+}
+function countryTag(n){ return state.intl && BY[n.country] ? `<span class="ctry">${esc(BY[n.country].name)}</span>` : (state.intl && n.country==="EU" ? `<span class="ctry">Europa</span>` : ""); }
 function renderNews(){
-  if(!newsItems.length){
-    $("news").innerHTML = `<div class="empty"><h3>Keine Meldungen gefunden.</h3>Die Quelle sammelt vor allem international wichtige Ereignisse. Für kleinere Länder oder Ressorts kann die Liste leer sein. Wähle einen längeren Zeitraum oder „aus aller Welt“.</div>`;
-    return;
+  const all = onlyConfirmed ? newsItems.filter(n=>n.confirmed) : newsItems;
+  const toggle = `<div class="filterbar"><button class="chip" id="onlyConf" aria-pressed="${onlyConfirmed}"><span class="dot" style="--c:var(--good)"></span>Nur bestätigte Meldungen</button>
+    <span class="fine">${newsItems.filter(n=>n.confirmed).length} von ${newsItems.length} von mehreren Medien bestätigt</span></div>`;
+  if(!all.length){
+    $("news").innerHTML = (newsItems.length?toggle:"") + `<div class="empty"><h3>${newsItems.length?"Keine bestätigten Meldungen.":"Noch keine Meldungen."}</h3>${newsItems.length
+      ? "In diesem Zeitraum hat noch kein Ereignis mehrere Quellen. Zeig alle Meldungen oder wähle einen längeren Zeitraum."
+      : `TrueScope sammelt die Meldungen laufend${newsFeeds.length?` (Quellen: ${esc(newsFeeds.join(", "))})`:""}. Ältere Zeiträume füllen sich mit der Zeit. Versuch ein anderes Ressort oder tippe später auf „Aktualisieren“.`}</div>`;
+    bindToggle(); return;
   }
-  const list = newsItems.slice(0,newsShown);
-  const [lead, ...rest] = list;
+  const sorted = [...all].sort((a,b)=>b.last-a.last);
+  const lead = [...sorted].sort((a,b)=> b.sources.length-a.sources.length || b.last-a.last)[0];
+  const rest = sorted.filter(n=>n!==lead).slice(0,newsShown-1);
   const [l1] = dayTitle(lead.day);
-  let html = newsNote ? `<div class="note"><b>Hinweis</b><span>${esc(newsNote)}</span></div>` : "";
+  let html = toggle + (newsNote ? `<div class="note"><b>Hinweis</b><span>${esc(newsNote)}</span></div>` : "");
   html += `<article class="lead">
     <h3>${esc(lead.title)}</h3>
     <div class="aside">${lead.summary?`<p>${esc(lead.summary)}</p>`:""}${srcLine(lead)}</div>
-    <div class="meta"><span class="cat" style="--c:var(--c-${state.cat})">Top-Meldung</span><span>·</span><span>${esc(l1)}</span></div>
+    <div class="meta"><span class="cat" style="--c:var(--c-${state.cat})">Top-Meldung</span><span>·</span><span>${esc(l1)}</span>${countryTag(lead)}</div>
   </article>`;
   const groups = [];
   for(const n of rest){ const g = groups[groups.length-1]; if(g && g.day===n.day) g.items.push(n); else groups.push({day:n.day, items:[n]}); }
   for(const g of groups){
+    g.items.sort((a,b)=>b.sources.length-a.sources.length || b.last-a.last);
     const [a,b] = dayTitle(g.day);
     html += `<div class="day">${esc(a)} <small>${esc(b)}</small></div><div class="grid">` +
-      g.items.map(n=>`<article class="story"><h4>${esc(n.title)}</h4>${n.summary?`<p>${esc(n.summary)}</p>`:""}${srcLine(n)}</article>`).join("") +
+      g.items.map(n=>`<article class="story">${countryTag(n)?`<div class="meta">${countryTag(n)}</div>`:""}<h4>${esc(n.title)}</h4>${n.summary?`<p>${esc(n.summary)}</p>`:""}${srcLine(n)}</article>`).join("") +
       `</div>`;
   }
   $("news").innerHTML = html;
-  $("more").hidden = newsShown >= newsItems.length;
+  $("more").hidden = newsShown >= all.length;
+  bindToggle();
 }
+function bindToggle(){ const t=$("onlyConf"); if(t) t.onclick=()=>{ onlyConfirmed=!onlyConfirmed; store.set("ts-confirmed",onlyConfirmed); renderNews(); }; }
 $("more").onclick=()=>{ newsShown+=12; renderNews(); };
 $("reload").onclick=loadNews;
 
@@ -500,9 +504,9 @@ const colorFor = s=>{ let h=0; for(const ch of String(s)) h=(h*31+ch.charCodeAt(
 const initials = s=>String(s||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
 
 function renderFilter(){
-  const cur = scopeCode();
-  const chips = [["ALL","Alle"],[cur, cur==="INT"?"🌐 International":`${BY[cur].flag} ${BY[cur].name}`]];
-  if(cur!=="INT") chips.push(["INT","🌐 International"]);
+  const cur = pollScope();
+  const chips = [["ALL","Alle"],[cur, cur==="INT"?"🇪🇺 Ganz Europa":`${BY[cur].flag} ${BY[cur].name}`]];
+  if(cur!=="INT") chips.push(["INT","🇪🇺 Ganz Europa"]);
   if(!chips.some(c=>c[0]===pollFilter)) pollFilter="ALL";
   $("pollFilter").innerHTML = chips.map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${pollFilter===k}">${esc(l)}</button>`).join("");
 }
@@ -531,7 +535,7 @@ function renderPolls(){
   box.innerHTML = polls.map(p=>{
     const total = p.counts.reduce((a,b)=>a+b,0);
     const voted = p.myVote!==null && p.myVote!==undefined;
-    const ctry = p.country==="INT"?"International":(BY[p.country]?BY[p.country].name:p.country);
+    const ctry = p.country==="INT"?"Ganz Europa":(BY[p.country]?BY[p.country].name:p.country);
     const opts = p.options.map((o,i)=>{
       const n=p.counts[i]||0, pct= total? Math.round(n*100/total):0;
       return `<button class="vote${p.myVote===i?" mine":""}" data-vote="${esc(p.id)}" data-i="${i}" aria-pressed="${p.myVote===i}">
