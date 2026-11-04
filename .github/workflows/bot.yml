@@ -1,0 +1,22 @@
+name: Recherche-Bot
+
+# Ruft regelmäßig alle Länder ab, damit TrueScope schon gefüllt ist, bevor jemand die Seite öffnet.
+# Kostet nichts (öffentliches Repo). Die KI-Arbeit läuft im kostenlosen Kontingent von Cloudflare.
+on:
+  schedule:
+    - cron: "17 */3 * * *"   # alle 3 Stunden
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Alle Länder abarbeiten
+        run: |
+          for c in AT DE CH FR IT ES GB NL BE LU PL CZ SK HU SI HR RS BA RO BG GR PT IE DK SE NO FI EE LV LT UA EU; do
+            echo "== $c"
+            curl -sS --max-time 120 "https://truescope-49p.pages.dev/api/news?country=$c&bot=1" | head -c 400 || true
+            echo
+            sleep 3
+          done

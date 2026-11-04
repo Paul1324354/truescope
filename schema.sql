@@ -71,7 +71,8 @@ CREATE TABLE IF NOT EXISTS articles (
   link       TEXT NOT NULL,
   published  INTEGER NOT NULL,
   story_id   TEXT,                      -- NULL = noch nicht geprüft, '-' = keine Nachricht
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  hint       TEXT                       -- Ressort-Hinweis aus dem Feed
 );
 CREATE INDEX IF NOT EXISTS articles_open ON articles (country, story_id, published);
 CREATE INDEX IF NOT EXISTS articles_story ON articles (story_id);

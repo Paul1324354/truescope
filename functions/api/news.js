@@ -1,4 +1,4 @@
-// GET /api/news?country=AT|EU&cat=politik&when=7d
+// GET /api/news?country=AT|EU&cat=politik&when=7d   (bot=1: Bot-Lauf für den Zeitplan)
 // Recherche-Bot: liest die offiziellen RSS-Feeds europäischer Medien, bündelt Artikel verschiedener
 // Medien zum selben Ereignis (Doppelcheck) und lässt eine KI eine eigene, neutrale deutsche Schlagzeile
 // schreiben. Angezeigt werden nur diese KI-Schlagzeile und Links zu den Originalartikeln.
@@ -7,46 +7,52 @@ import { FEEDS } from "../../lib/feeds.js";
 import { parseFeed } from "../../lib/rss.js";
 
 const UA = "TrueScope/1.0 (+https://truescope-49p.pages.dev; RSS-Leser)";
-const FEED_TTL = 15 * 60 * 1000;          // Feeds höchstens alle 15 Minuten abrufen
+const FEED_TTL = 20 * 60 * 1000;          // Feeds höchstens alle 20 Minuten abrufen
 const KEEP_MS = 4 * 864e5;                // nur Artikel der letzten 4 Tage aufnehmen
 const STORY_WINDOW = 3 * 864e5;           // neue Artikel mit Ereignissen der letzten 3 Tage vergleichen
-const AI_BATCH = 35;
-const AI_ROUNDS = 2;
+const AI_BATCH = 50;
+const MIN_PER_CAT = 10;
 const MODELS = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"];
 const CATS = ["politik", "wirtschaft", "sport", "kultur", "wissenschaft", "technik", "gesundheit", "umwelt", "chronik"];
+const STRICT = new Set(["politik", "wirtschaft", "chronik"]); // hier zählen zuerst nur Inlandsmeldungen
 const DAYS = { "1d": 1, "7d": 7, "30d": 30, "1y": 365 };
-const COUNTRY_DE = {
+export const COUNTRY_DE = {
   AT: "Österreich", DE: "Deutschland", CH: "Schweiz", FR: "Frankreich", IT: "Italien", ES: "Spanien", GB: "Vereinigtes Königreich",
   NL: "Niederlande", BE: "Belgien", LU: "Luxemburg", PL: "Polen", CZ: "Tschechien", SK: "Slowakei", HU: "Ungarn", SI: "Slowenien",
   HR: "Kroatien", RS: "Serbien", BA: "Bosnien und Herzegowina", RO: "Rumänien", BG: "Bulgarien", GR: "Griechenland", PT: "Portugal",
   IE: "Irland", DK: "Dänemark", SE: "Schweden", NO: "Norwegen", FI: "Finnland", EE: "Estland", LV: "Lettland", LT: "Litauen",
   UA: "Ukraine", EU: "Europa",
 };
+const DEBUG = [];
 
 async function hashId(s) {
   const b = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(s));
   return [...new Uint8Array(b)].slice(0, 8).map((x) => x.toString(16).padStart(2, "0")).join("");
 }
-const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const rid = () => Date.now().toString(36).slice(-6) + Math.random().toString(36).slice(2, 5);
+const clean = (s, n) => String(s || "").replace(/\s+/g, " ").replace(/\|/g, "/").trim().slice(0, n);
 
-// 1) Feeds des Landes abrufen und neue Artikel speichern
-async function ingest(env, country) {
-  const feeds = FEEDS.filter(([c]) => c === country);
-  if (!feeds.length) return;
+// 1) Feeds abrufen und neue Artikel speichern. Feeds: [Land, Medium, URL, Ressort-Hinweis]
+async function ingest(env, country, cat, max) {
+  const feeds = FEEDS.filter((f) => f[0] === country && (!cat || !f[3] || f[3] === cat));
+  if (!feeds.length) return 0;
   const state = new Map((await env.DB.prepare(
     `SELECT url, fetched_at FROM feed_state WHERE url IN (${feeds.map(() => "?").join(",")})`
   ).bind(...feeds.map((f) => f[2])).all()).results.map((r) => [r.url, r.fetched_at]));
-  const due = feeds.filter((f) => Date.now() - (state.get(f[2]) || 0) > FEED_TTL);
-  if (!due.length) return;
+  const due = feeds
+    .filter((f) => Date.now() - (state.get(f[2]) || 0) > FEED_TTL)
+    .sort((a, b) => (state.get(a[2]) || 0) - (state.get(b[2]) || 0))
+    .slice(0, max);
+  if (!due.length) return 0;
 
-  const results = await Promise.allSettled(due.map(async ([c, outlet, url]) => {
+  const results = await Promise.allSettled(due.map(async ([c, outlet, url, hint]) => {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 8000);
     try {
       const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" }, signal: ctl.signal });
       if (!r.ok) throw new Error(String(r.status));
-      const xml = (await r.text()).slice(0, 400000);
-      return parseFeed(xml, 40).map((a) => ({ ...a, outlet, country: c }));
+      const xml = (await r.text()).slice(0, 300000);
+      return parseFeed(xml, 35).map((a) => ({ ...a, outlet, hint: hint || "", country: c }));
     } finally { clearTimeout(t); }
   }));
 
@@ -56,112 +62,111 @@ async function ingest(env, country) {
   const fresh = items.filter((a) => !a.published || now - a.published < KEEP_MS);
   const withIds = await Promise.all(fresh.map(async (a) => ({ ...a, id: await hashId(a.link) })));
   const stmts = withIds.map((a) => env.DB.prepare(
-    "INSERT OR IGNORE INTO articles (id, country, outlet, title, link, published, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  ).bind(a.id, a.country, a.outlet, a.title, a.link, Math.min(a.published || now, now), now));
+    "INSERT OR IGNORE INTO articles (id, country, outlet, title, link, published, created_at, hint) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+  ).bind(a.id, a.country, a.outlet, a.title, a.link, Math.min(a.published || now, now), now, a.hint));
   due.forEach((f) => stmts.push(env.DB.prepare(
     "INSERT INTO feed_state (url, fetched_at) VALUES (?, ?) ON CONFLICT(url) DO UPDATE SET fetched_at = excluded.fetched_at"
   ).bind(f[2], now)));
   for (let i = 0; i < stmts.length; i += 90) await env.DB.batch(stmts.slice(i, i + 90));
+  return due.length;
 }
 
 function aiText(out) {
   if (!out) return "";
   if (typeof out === "string") return out;
   if (typeof out.response === "string") return out.response;
-  if (out.response && typeof out.response === "object") return JSON.stringify(out.response);
   const c = out.choices?.[0]?.message?.content;
   if (typeof c === "string") return c;
   if (Array.isArray(c)) return c.map((p) => p.text || "").join("");
   return "";
 }
-function parseJson(txt) {
-  const m = txt.match(/\{[\s\S]*\}/);
-  if (!m) return null;
-  try { return JSON.parse(m[0]); } catch { return null; }
+async function ask(env, system, user, maxTokens) {
+  for (const model of MODELS) {
+    try {
+      const out = await env.AI.run(model, {
+        messages: [{ role: "system", content: system }, { role: "user", content: user }],
+        max_tokens: maxTokens, temperature: 0.1, chat_template_kwargs: { enable_thinking: false },
+      });
+      const txt = aiText(out);
+      if (txt && txt.length > 3) return txt;
+      DEBUG.push(model + ": leere Antwort");
+    } catch (e) {
+      DEBUG.push(model + " Fehler: " + String(e).slice(0, 160));
+      if (/3036|daily free allocation/i.test(String(e))) return null; // Tageskontingent aufgebraucht
+    }
+  }
+  return null;
 }
 
-// 2) Doppelcheck: neue Artikel bekannten Ereignissen zuordnen oder neue Ereignisse anlegen
-const DEBUG = [];
-async function assign(env, country) {
+// 2) Doppelcheck: neue Artikel bekannten Ereignissen zuordnen oder neue Ereignisse anlegen.
+// Kompaktes Zeilenformat statt JSON spart etwa die Hälfte der KI-Kosten.
+const ASSIGN_SYSTEM =
+  "Du bist Nachrichtenredakteur und prüfst Meldungen gegen andere Medien.\n" +
+  "Eingabe: BEKANNT = bekannte Ereignisse (id|Titel), NEU = neue Artikel (n|Medium|Ressort-Hinweis|Titel).\n" +
+  "Ordne jeden neuen Artikel einem bekannten Ereignis zu, wenn er über dasselbe konkrete Ereignis berichtet " +
+  "(gleiche Handlung, gleiche Beteiligte, gleicher Anlass – nicht nur dasselbe Thema). Sonst bilde neue Gruppen A, B, C …; " +
+  "Artikel verschiedener Medien über dasselbe neue Ereignis bekommen dieselbe Gruppe. " +
+  "Werbung, Horoskope, Rätsel, Rezepte, Gewinnspiele und reine Service-Texte bekommen \"-\".\n" +
+  "Für jede neue Gruppe: Ressort (" + CATS.join(", ") + "; der Ressort-Hinweis ist meist richtig), " +
+  "i wenn das Ereignis im Land LAND stattfindet oder es direkt betrifft, sonst a, " +
+  "und eine eigene, neutrale deutsche Schlagzeile (höchstens 12 Wörter, keine wörtliche Übersetzung, keine Wertung, nur Fakten aus den Titeln).\n" +
+  "Antworte NUR mit Zeilen in genau diesem Format, ohne weiteren Text:\n" +
+  "1=<id>\n2=A\n3=-\nA|politik|i|Schlagzeile";
+
+async function assign(env, country, rounds) {
   if (!env.AI) { DEBUG.push("keine KI-Bindung"); return 0; }
   let done = 0;
-  for (let round = 0; round < AI_ROUNDS; round++) {
+  for (let round = 0; round < rounds; round++) {
     const arts = (await env.DB.prepare(
-      "SELECT id, outlet, title, published FROM articles WHERE country = ? AND story_id IS NULL ORDER BY published DESC LIMIT ?"
+      "SELECT id, outlet, title, hint FROM articles WHERE country = ? AND story_id IS NULL ORDER BY published DESC LIMIT ?"
     ).bind(country, AI_BATCH).all()).results;
     if (!arts.length) break;
     const stories = (await env.DB.prepare(
-      "SELECT id, headline FROM stories WHERE country = ? AND last_seen > ? ORDER BY outlets DESC, last_seen DESC LIMIT 90"
+      "SELECT id, headline FROM stories WHERE country = ? AND last_seen > ? ORDER BY outlets DESC, last_seen DESC LIMIT 80"
     ).bind(country, Date.now() - STORY_WINDOW).all()).results;
 
-    const prompt = {
-      land: COUNTRY_DE[country],
-      bekannte_ereignisse: stories.map((s) => ({ id: s.id, titel: s.headline })),
-      neue_artikel: arts.map((a, i) => ({ n: i + 1, medium: a.outlet, titel: a.title })),
-    };
-    const messages = [
-      {
-        role: "system",
-        content:
-          "Du bist ein sorgfältiger Nachrichtenredakteur und prüfst Meldungen gegen andere Medien. " +
-          "Ordne jeden neuen Artikel einem bekannten Ereignis zu, wenn er eindeutig über dasselbe konkrete Ereignis berichtet " +
-          "(gleiche Handlung, gleiche Beteiligte, gleicher Ort und Zeitpunkt – nicht nur dasselbe Thema; im Zweifel ein neues Ereignis). Artikel, die zu keinem bekannten Ereignis passen, fasst du zu neuen Ereignissen zusammen; " +
-          "mehrere neue Artikel über dasselbe Ereignis bekommen dieselbe Gruppe. Für jede neue Gruppe schreibst du eine eigene, " +
-          "neutrale deutsche Schlagzeile (höchstens 12 Wörter, keine wörtliche Übersetzung, keine Wertung), einen sachlichen Satz " +
-          "(höchstens 30 Wörter) nur mit Fakten aus den Titeln, ein Ressort aus: " + CATS.join(", ") + ", und \"inland\": true, " +
-          "wenn das Ereignis hauptsächlich im angegebenen Land stattfindet oder dieses Land direkt betrifft, sonst false " +
-          "(bei Land Europa: true, wenn es Europa oder die EU betrifft). " +
-          "Werbung, Horoskope, Rätsel, Liveticker-Hinweise, Rezepte und reine Service-Texte markierst du mit \"skip\". " +
-          "Antworte nur mit JSON in dieser Form: " +
-          "{\"zuordnung\":[{\"n\":1,\"id\":\"<bekannte id>\"},{\"n\":2,\"neu\":\"A\"},{\"n\":3,\"skip\":true}]," +
-          "\"neu\":{\"A\":{\"titel\":\"…\",\"satz\":\"…\",\"ressort\":\"politik\",\"inland\":true}}}",
-      },
-      { role: "user", content: JSON.stringify(prompt) },
-    ];
-
-    let res = null;
-    for (const model of MODELS) {
-      try {
-        const out = await env.AI.run(model, { messages, max_tokens: 4000, temperature: 0.1, chat_template_kwargs: { enable_thinking: false } });
-        const txt = aiText(out);
-        res = parseJson(txt);
-        if (res && Array.isArray(res.zuordnung)) break;
-        DEBUG.push(model + ": " + (txt ? txt.slice(0, 300) + " … " + txt.slice(-200) : JSON.stringify(out).slice(0, 400)));
-        res = null;
-      } catch (e) { DEBUG.push(model + " Fehler: " + String(e).slice(0, 200)); res = null; }
-    }
-    if (!res) break;
+    const user = `LAND: ${COUNTRY_DE[country]}\nBEKANNT:\n` +
+      stories.map((s) => `${s.id}|${clean(s.headline, 90)}`).join("\n") +
+      `\nNEU:\n` + arts.map((a, i) => `${i + 1}|${a.outlet}|${a.hint || "?"}|${clean(a.title, 140)}`).join("\n");
+    const txt = await ask(env, ASSIGN_SYSTEM, user, 2500);
+    if (!txt) break;
 
     const known = new Set(stories.map((s) => s.id));
     const groups = {};
     const stmts = [];
     const now = Date.now();
-    for (const [key, g] of Object.entries(res.neu || {})) {
-      const title = String(g?.titel || "").replace(/\s+/g, " ").trim().slice(0, 160);
-      if (!title) continue;
-      const id = rid() + key.toString().slice(0, 3).replace(/\W/g, "");
+    const lines = txt.split(/\r?\n/).map((l) => l.trim().replace(/^[-*•]\s*/, "")).filter(Boolean);
+    for (const l of lines) {
+      const m = /^([A-Z]{1,2})\s*\|\s*([a-zäöü]+)\s*\|\s*([ia])\s*\|\s*(.+)$/i.exec(l);
+      if (!m) continue;
+      const key = m[1].toUpperCase();
+      const title = clean(m[4].replace(/^["„]|["“]$/g, ""), 160);
+      if (!title || groups[key]) continue;
+      const id = rid();
       groups[key] = id;
+      const cat = CATS.includes(m[2].toLowerCase()) ? m[2].toLowerCase() : "chronik";
       stmts.push(env.DB.prepare(
-        "INSERT INTO stories (id, country, cat, headline, summary, first_seen, last_seen, outlets, domestic) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)"
-      ).bind(id, country, CATS.includes(g.ressort) ? g.ressort : "chronik", title,
-        String(g.satz || "").replace(/\s+/g, " ").trim().slice(0, 300), now, now, g.inland === false ? 0 : 1));
+        "INSERT INTO stories (id, country, cat, headline, summary, first_seen, last_seen, outlets, domestic) VALUES (?, ?, ?, ?, '', ?, ?, 0, ?)"
+      ).bind(id, country, cat, title, now, now, m[3].toLowerCase() === "a" ? 0 : 1));
     }
     const touched = new Set();
     const handled = new Set();
-    for (const z of res.zuordnung) {
-      const a = arts[Number(z.n) - 1];
+    for (const l of lines) {
+      const m = /^(\d{1,3})\s*[=:]\s*([\w-]+)/.exec(l);
+      if (!m) continue;
+      const a = arts[Number(m[1]) - 1];
       if (!a || handled.has(a.id)) continue;
+      const v = m[2];
       let sid = null;
-      if (z.skip) sid = "-";
-      else if (z.id && known.has(z.id)) sid = z.id;
-      else if (z.neu && groups[z.neu]) sid = groups[z.neu];
+      if (v === "-") sid = "-";
+      else if (known.has(v)) sid = v;
+      else if (groups[v.toUpperCase()]) sid = groups[v.toUpperCase()];
       if (!sid) continue;
       handled.add(a.id);
       stmts.push(env.DB.prepare("UPDATE articles SET story_id = ? WHERE id = ?").bind(sid, a.id));
       if (sid !== "-") touched.add(sid);
     }
-    // Artikel, die die KI ausgelassen hat, nicht endlos erneut prüfen
-    if (handled.size === 0) break;
+    if (handled.size === 0) { DEBUG.push("Antwort nicht lesbar: " + txt.slice(0, 200)); break; }
     for (const sid of touched) {
       stmts.push(env.DB.prepare(
         `UPDATE stories SET
@@ -178,6 +183,29 @@ async function assign(env, country) {
   return done;
 }
 
+// 3) Kurzfassung nur für bestätigte Meldungen (spart KI-Kontingent)
+async function summarize(env, country) {
+  if (!env.AI) return;
+  const rows = (await env.DB.prepare(
+    `SELECT s.id, s.headline, (SELECT group_concat(title, ' / ') FROM (SELECT title FROM articles WHERE story_id = s.id LIMIT 3)) AS titles
+       FROM stories s WHERE s.country = ? AND s.outlets >= 2 AND (s.summary IS NULL OR s.summary = '') AND s.last_seen > ?
+      ORDER BY s.outlets DESC LIMIT 20`
+  ).bind(country, Date.now() - STORY_WINDOW).all()).results;
+  if (!rows.length) return;
+  const txt = await ask(env,
+    "Schreibe zu jeder Meldung einen sachlichen deutschen Satz (höchstens 25 Wörter), nur mit Fakten aus den Titeln, " +
+    "ohne Wertung und ohne wörtliche Übernahme. Antworte NUR mit Zeilen: id|Satz",
+    rows.map((r) => `${r.id}|${clean(r.headline, 100)}|${clean(r.titles, 300)}`).join("\n"), 1500);
+  if (!txt) return;
+  const ids = new Set(rows.map((r) => r.id));
+  const stmts = [];
+  for (const l of txt.split(/\r?\n/)) {
+    const m = /^\s*([a-z0-9]+)\s*\|\s*(.+)$/i.exec(l);
+    if (m && ids.has(m[1])) stmts.push(env.DB.prepare("UPDATE stories SET summary = ? WHERE id = ?").bind(clean(m[2], 300), m[1]));
+  }
+  if (stmts.length) await env.DB.batch(stmts);
+}
+
 // Verhindert, dass mehrere Anfragen gleichzeitig dieselben Artikel prüfen
 async function lock(env, name, ms) {
   const now = Date.now();
@@ -190,13 +218,15 @@ async function unlock(env, name) {
   await env.DB.prepare("UPDATE locks SET until = 0 WHERE name = ?").bind(name).run();
 }
 
-async function work(env, country) {
-  if (!(await lock(env, "bot:" + country, 90000))) return false;
+export async function work(env, country, { cat = null, maxFeeds = 8, rounds = 2 } = {}) {
+  if (!(await lock(env, "bot:" + country, 120000))) return { busy: true };
+  const res = { feeds: 0, assigned: 0 };
   try {
-    try { await ingest(env, country); } catch (e) { DEBUG.push("ingest: " + String(e).slice(0, 200)); }
-    try { await assign(env, country); } catch (e) { DEBUG.push("assign: " + String(e).slice(0, 200)); }
+    try { res.feeds = await ingest(env, country, cat, maxFeeds); } catch (e) { DEBUG.push("ingest: " + String(e).slice(0, 200)); }
+    try { res.assigned = await assign(env, country, rounds); } catch (e) { DEBUG.push("assign: " + String(e).slice(0, 200)); }
+    try { await summarize(env, country); } catch (e) { DEBUG.push("summary: " + String(e).slice(0, 200)); }
   } finally { await unlock(env, "bot:" + country); }
-  return true;
+  return res;
 }
 
 export async function onRequestGet(context) {
@@ -206,24 +236,43 @@ export async function onRequestGet(context) {
   const cat = CATS.includes(url.searchParams.get("cat")) ? url.searchParams.get("cat") : "politik";
   const when = DAYS[url.searchParams.get("when")] ? url.searchParams.get("when") : "7d";
   if (!COUNTRY_DE[country]) return Response.json({ error: "Dieses Land wird nicht unterstützt." }, { status: 400 });
-
   DEBUG.length = 0;
-  // Gibt es für dieses Land schon geprüfte Meldungen, antworten wir sofort und der Bot arbeitet im Hintergrund.
-  // Beim allerersten Aufruf warten wir bis zu 25 Sekunden auf erste Ergebnisse.
+
+  // Bot-Lauf für den Zeitplan: alle Feeds des Landes, mehrere Prüfrunden, synchron
+  if (url.searchParams.get("bot") === "1") {
+    const res = await work(env, country, { maxFeeds: 14, rounds: 4 });
+    const pending = (await env.DB.prepare("SELECT COUNT(*) AS n FROM articles WHERE country = ? AND story_id IS NULL").bind(country).first())?.n || 0;
+    return Response.json({ country, ...res, pending, debug: DEBUG }, { headers: { "Cache-Control": "no-store" } });
+  }
+
+  // Normale Anfrage: sofort antworten, Bot arbeitet im Hintergrund weiter.
   const has = await env.DB.prepare(
     `SELECT 1 FROM stories WHERE ${country === "EU" ? "" : "country = ? AND"} last_seen > ? LIMIT 1`
   ).bind(...(country === "EU" ? [] : [country]), Date.now() - 864e5).first();
-  const job = work(env, country);
+  const job = work(env, country, { cat });
   if (has) context.waitUntil(job);
   else await Promise.race([job, new Promise((r) => setTimeout(r, 25000))]).then(() => context.waitUntil(job));
 
   const since = Date.now() - DAYS[when] * 864e5;
-  const where = country === "EU" ? "" : "country = ? AND";
-  const binds = country === "EU" ? [cat, since] : [country, cat, since];
-  const stories = (await env.DB.prepare(
-    `SELECT * FROM stories WHERE ${where} domestic = 1 AND cat = ? AND last_seen >= ? AND outlets > 0
-     ORDER BY last_seen DESC LIMIT ${country === "EU" ? 80 : 60}`
-  ).bind(...binds).all()).results;
+  let stories;
+  if (country === "EU") {
+    stories = (await env.DB.prepare(
+      `SELECT * FROM stories WHERE domestic = 1 AND cat = ? AND last_seen >= ? AND outlets > 0
+       ORDER BY outlets DESC, last_seen DESC LIMIT 100`
+    ).bind(cat, since).all()).results;
+  } else {
+    stories = (await env.DB.prepare(
+      `SELECT * FROM stories WHERE country = ? AND cat = ? AND last_seen >= ? AND outlets > 0
+       ORDER BY domestic DESC, last_seen DESC LIMIT 120`
+    ).bind(country, cat, since).all()).results;
+    const dom = stories.filter((s) => s.domestic);
+    if (STRICT.has(cat)) {
+      // Inlandsmeldungen zuerst; reichen sie nicht für 10, mit Auslandsmeldungen der Medien des Landes auffüllen
+      const foreign = stories.filter((s) => !s.domestic).sort((a, b) => b.outlets - a.outlets || b.last_seen - a.last_seen);
+      stories = dom.length >= MIN_PER_CAT ? dom : [...dom, ...foreign.slice(0, Math.max(MIN_PER_CAT - dom.length, 0) + 5)];
+    }
+    stories = stories.slice(0, 80);
+  }
 
   let articles = [];
   if (stories.length) {
@@ -244,17 +293,18 @@ export async function onRequestGet(context) {
     id: s.id,
     country: s.country,
     title: s.headline,
-    summary: s.summary,
+    summary: s.summary || "",
     day: new Date(s.first_seen).toISOString().slice(0, 10),
     first: s.first_seen,
     last: s.last_seen,
     confirmed: s.outlets >= 2,
+    foreign: country !== "EU" && STRICT.has(cat) && !s.domestic,
     sources: bySt[s.id] || [],
   }));
-  // Top-Meldung: am meisten bestätigt
   items.sort((a, b) => b.last - a.last);
+  const outlets = [...new Set(FEEDS.filter((f) => f[0] === country).map((f) => f[1]))];
   return Response.json(
-    { country, cat, when, items, pending, working: !!has && pending > 0, debug: url.searchParams.get("debug") ? DEBUG : undefined, feeds: FEEDS.filter(([c]) => c === country).map((f) => f[1]) },
+    { country, cat, when, items, pending, debug: url.searchParams.get("debug") ? DEBUG : undefined, feeds: outlets },
     { headers: { "Cache-Control": "public, max-age=60" } }
   );
 }

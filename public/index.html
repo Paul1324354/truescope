@@ -473,7 +473,10 @@ function srcLine(n){
   return `<div class="src">${check(n)}<span class="ai" title="Schlagzeile von einer KI formuliert">KI</span>
     ${shown.map(s=>`<a href="${esc(s.link)}" target="_blank" rel="noopener">${esc(s.outlet)} ↗</a>`).join("")}${n.sources.length>5?`<span>+${n.sources.length-5}</span>`:""}</div>`;
 }
-function countryTag(n){ return state.intl && BY[n.country] ? `<span class="ctry">${esc(BY[n.country].name)}</span>` : (state.intl && n.country==="EU" ? `<span class="ctry">Europa</span>` : ""); }
+function countryTag(n){
+  if(n.foreign) return `<span class="ctry" title="Meldung von Medien aus ${esc(scopeName())} über das Ausland">Ausland</span>`;
+  return state.intl && BY[n.country] ? `<span class="ctry">${esc(BY[n.country].name)}</span>` : (state.intl && n.country==="EU" ? `<span class="ctry">Europa</span>` : "");
+}
 function renderNews(){
   const all = onlyConfirmed ? newsItems.filter(n=>n.confirmed) : newsItems;
   const toggle = `<div class="filterbar"><button class="chip" id="onlyConf" aria-pressed="${onlyConfirmed}"><span class="dot" style="--c:var(--good)"></span>Nur bestätigte Meldungen</button>
