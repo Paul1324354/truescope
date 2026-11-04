@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Regeln für Beiträge · TrueScope</title>
+<style>
+:root{
+  --bg:#F1F3F6; --surface:#FFFFFF; --ink:#141B2D; --muted:#5B6478; --line:#D9DEE7;
+  --accent:#B3122E; --accent-soft:#F7E3E6; --accent-ink:#FFFFFF;
+  --bar:#24345C; --warn-bg:#FFF4D9; --warn-ink:#6B4A00;
+  --display:"Arial Narrow","Roboto Condensed","Helvetica Neue",system-ui,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
+  --accent:#E8475F; --accent-soft:#3A1820; --accent-ink:#FFFFFF;
+  --bar:#8FA6E0; --warn-bg:#33290F; --warn-ink:#F2D58A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
+  --accent:#E8475F; --accent-soft:#3A1820; --accent-ink:#FFFFFF;
+  --bar:#8FA6E0; --warn-bg:#33290F; --warn-ink:#F2D58A; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--body)}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 56px}
+.back{font-size:.9rem;color:var(--muted)}
+.brand{font-family:var(--display);font-stretch:72%;font-weight:800;font-size:1.6rem;text-transform:uppercase;text-decoration:none;color:var(--ink)}
+.brand span{color:var(--accent)}
+h1{font-family:var(--display);font-stretch:85%;font-size:2rem;line-height:1.15;margin:24px 0 8px;text-wrap:balance}
+h2{font-size:1.1rem;margin:28px 0 6px}
+p,li{max-width:65ch}
+a{color:var(--accent)}
+.fill{background:var(--warn-bg);color:var(--warn-ink);padding:1px 6px;border-radius:4px}
+.muted{color:var(--muted);font-size:.9rem}
+footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="brand" href="/">True<span>Scope</span></a>
+  <h1>Regeln für Beiträge</h1>
+
+  <p>TrueScope lebt von offenen, aber fairen Diskussionen. Mit dem Veröffentlichen einer Abstimmung oder eines Kommentars akzeptierst du diese Regeln.</p>
+  <h2>Nicht erlaubt</h2>
+  <ul>
+    <li>Beleidigungen, Drohungen, Hetze oder Aufrufe zu Gewalt</li>
+    <li>Inhalte, die gegen Gesetze verstoßen, zum Beispiel Verhetzung oder Wiederbetätigung</li>
+    <li>Persönliche Daten anderer Menschen, etwa Adressen oder Telefonnummern</li>
+    <li>Falsche Behauptungen über konkrete Personen</li>
+    <li>Werbung, Spam und Links zu schädlichen Seiten</li>
+    <li>Fremde Texte, die du ohne Erlaubnis kopierst</li>
+  </ul>
+  <h2>Melden</h2>
+  <p>Unter jedem fremden Beitrag findest du „Melden“. Wird ein Beitrag mehrmals gemeldet, blenden wir ihn automatisch aus, bis er geprüft ist. Du kannst rechtswidrige Inhalte auch per E-Mail melden, die Adresse steht im <a href="/impressum.html">Impressum</a>. Bitte gib an, um welchen Beitrag es geht und warum er rechtswidrig ist.</p>
+  <h2>Was wir tun</h2>
+  <p>Wir prüfen Meldungen so schnell wie möglich und entfernen Beiträge, die gegen diese Regeln oder gegen Gesetze verstoßen. Du kannst deine eigenen Beiträge jederzeit selbst löschen.</p>
+
+  <footer><a href="/">Zur App</a><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><a href="/regeln.html">Regeln für Beiträge</a></footer>
+</div>
+</body>
+</html>

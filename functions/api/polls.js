@@ -10,9 +10,15 @@ export async function onRequestGet({ request, env }) {
   const client = clientOf(request);
   const admin = isAdmin(request, env);
 
+  // Beiträge mit 3 oder mehr Meldungen bleiben ausgeblendet, bis sie freigegeben sind.
+  const hidden = (type) => {
+    const t = type === "poll" ? "polls" : "comments";
+    return `(${t}.approved = 0 AND (SELECT COUNT(*) FROM reports r WHERE r.type = '${type}' AND r.target_id = ${t}.id) >= 3)`;
+  };
+  const visiblePoll = admin ? "1=1" : `NOT ${hidden("poll")}`;
   const polls = (country === "ALL"
-    ? await env.DB.prepare("SELECT * FROM polls ORDER BY created_at DESC LIMIT 100").all()
-    : await env.DB.prepare("SELECT * FROM polls WHERE country = ? ORDER BY created_at DESC LIMIT 100").bind(country).all()
+    ? await env.DB.prepare(`SELECT * FROM polls WHERE ${visiblePoll} ORDER BY created_at DESC LIMIT 100`).all()
+    : await env.DB.prepare(`SELECT * FROM polls WHERE country = ? AND ${visiblePoll} ORDER BY created_at DESC LIMIT 100`).bind(country).all()
   ).results;
   if (!polls.length) return json({ polls: [] });
 
@@ -26,7 +32,7 @@ export async function onRequestGet({ request, env }) {
         .bind(client, ...ids).all()).results
     : [];
   const comments = (await env.DB.prepare(
-    `SELECT * FROM comments WHERE poll_id IN (${marks}) ORDER BY created_at ASC`
+    `SELECT * FROM comments WHERE poll_id IN (${marks}) AND ${admin ? "1=1" : "NOT " + hidden("comment")} ORDER BY created_at ASC`
   ).bind(...ids).all()).results;
 
   const out = polls.map((p) => {
@@ -83,6 +89,7 @@ export async function onRequestDelete({ request, env }) {
   if (!poll) return bad("Abstimmung nicht gefunden.", 404);
   if (poll.author_client !== client && !isAdmin(request, env)) return bad("Nur die Person, die sie erstellt hat, kann sie löschen.", 403);
   await env.DB.batch([
+    env.DB.prepare("DELETE FROM reports WHERE (type = 'poll' AND target_id = ?) OR (type = 'comment' AND target_id IN (SELECT id FROM comments WHERE poll_id = ?))").bind(id, id),
     env.DB.prepare("DELETE FROM votes WHERE poll_id = ?").bind(id),
     env.DB.prepare("DELETE FROM comments WHERE poll_id = ?").bind(id),
     env.DB.prepare("DELETE FROM polls WHERE id = ?").bind(id),

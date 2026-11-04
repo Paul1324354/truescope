@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS polls (
   country       TEXT NOT NULL,          -- Ländercode (AT, FR …) oder INT
   author_name   TEXT NOT NULL,
   author_client TEXT NOT NULL,
-  created_at    INTEGER NOT NULL
+  created_at    INTEGER NOT NULL,
+  approved      INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS polls_country ON polls (country, created_at);
 
@@ -23,6 +24,16 @@ CREATE TABLE IF NOT EXISTS comments (
   text          TEXT NOT NULL,
   author_name   TEXT NOT NULL,
   author_client TEXT NOT NULL,
-  created_at    INTEGER NOT NULL
+  created_at    INTEGER NOT NULL,
+  approved      INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS comments_poll ON comments (poll_id, created_at);
+
+-- Meldungen von Beiträgen (eine pro Browser und Beitrag)
+CREATE TABLE IF NOT EXISTS reports (
+  type       TEXT NOT NULL,             -- poll oder comment
+  target_id  TEXT NOT NULL,
+  client     TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (type, target_id, client)
+);

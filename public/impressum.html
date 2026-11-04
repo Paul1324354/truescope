@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Impressum · TrueScope</title>
+<style>
+:root{
+  --bg:#F1F3F6; --surface:#FFFFFF; --ink:#141B2D; --muted:#5B6478; --line:#D9DEE7;
+  --accent:#B3122E; --accent-soft:#F7E3E6; --accent-ink:#FFFFFF;
+  --bar:#24345C; --warn-bg:#FFF4D9; --warn-ink:#6B4A00;
+  --display:"Arial Narrow","Roboto Condensed","Helvetica Neue",system-ui,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
+  --accent:#E8475F; --accent-soft:#3A1820; --accent-ink:#FFFFFF;
+  --bar:#8FA6E0; --warn-bg:#33290F; --warn-ink:#F2D58A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
+  --accent:#E8475F; --accent-soft:#3A1820; --accent-ink:#FFFFFF;
+  --bar:#8FA6E0; --warn-bg:#33290F; --warn-ink:#F2D58A; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--body)}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 56px}
+.back{font-size:.9rem;color:var(--muted)}
+.brand{font-family:var(--display);font-stretch:72%;font-weight:800;font-size:1.6rem;text-transform:uppercase;text-decoration:none;color:var(--ink)}
+.brand span{color:var(--accent)}
+h1{font-family:var(--display);font-stretch:85%;font-size:2rem;line-height:1.15;margin:24px 0 8px;text-wrap:balance}
+h2{font-size:1.1rem;margin:28px 0 6px}
+p,li{max-width:65ch}
+a{color:var(--accent)}
+.fill{background:var(--warn-bg);color:var(--warn-ink);padding:1px 6px;border-radius:4px}
+.muted{color:var(--muted);font-size:.9rem}
+footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="brand" href="/">True<span>Scope</span></a>
+  <h1>Impressum</h1>
+
+  <p class="muted">Angaben gemäß § 5 E-Commerce-Gesetz und Offenlegung gemäß § 25 Mediengesetz</p>
+  <h2>Medieninhaber und Betreiber</h2>
+  <p><span class="fill">Vor- und Nachname</span><br><span class="fill">Straße und Hausnummer</span><br><span class="fill">PLZ Ort</span>, Österreich</p>
+  <h2>Kontakt</h2>
+  <p>E-Mail: <span class="fill">deine E-Mail-Adresse</span></p>
+  <p>Diese Adresse ist auch die Kontaktstelle für Behörden und für Nutzer:innen nach Art. 11 und 12 des Digital Services Act. Anfragen werden auf Deutsch und Englisch beantwortet.</p>
+  <h2>Grundlegende Richtung</h2>
+  <p>TrueScope ist ein privates, nicht kommerzielles Projekt. Es zeigt Schlagzeilen aus verschiedenen Ländern und Ressorts mit Links zu den Originalartikeln und bietet die Möglichkeit, über Themen abzustimmen und sie zu kommentieren.</p>
+  <h2>Nachrichteninhalte</h2>
+  <p>Die Schlagzeilen stammen aus der offenen Datenbank <a href="https://www.gdeltproject.org" target="_blank" rel="noopener">The GDELT Project</a>. TrueScope zeigt nur Überschrift, Name der Quelle und einen Link zum Originalartikel. Alle Artikel und Rechte daran gehören den jeweiligen Medien. Für die Inhalte verlinkter Seiten sind ausschließlich deren Betreiber verantwortlich.</p>
+  <h2>Beiträge von Nutzer:innen</h2>
+  <p>Abstimmungen und Kommentare geben die Meinung der jeweiligen Verfasser:innen wieder. Rechtswidrige Beiträge können über „Melden“ oder per E-Mail gemeldet werden und werden nach Prüfung entfernt. Mehr dazu in den <a href="/regeln.html">Regeln für Beiträge</a>.</p>
+
+  <footer><a href="/">Zur App</a><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><a href="/regeln.html">Regeln für Beiträge</a></footer>
+</div>
+</body>
+</html>

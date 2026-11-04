@@ -6,7 +6,9 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 ## Aufbau
 
 - `public/index.html`: die App (eine Seite, ohne Build-Schritt)
-- `functions/api/news.js`: holt Schlagzeilen aus Google News (RSS), 10 Minuten zwischengespeichert
+- `functions/api/news.js`: holt Schlagzeilen aus [The GDELT Project](https://www.gdeltproject.org) (frei nutzbar mit Quellenangabe), 15 Minuten zwischengespeichert
+- `functions/api/report.js`: Beiträge melden; ab 3 Meldungen automatisch ausgeblendet
+- `public/impressum.html`, `datenschutz.html`, `regeln.html`: rechtliche Seiten (Platzhalter im Impressum und in der Datenschutzerklärung ausfüllen!)
 - `functions/api/polls.js`, `vote.js`, `comment.js`: Abstimmungen, Stimmen, Kommentare
 - `schema.sql`: Tabellen der D1-Datenbank
 - `wrangler.toml`: Cloudflare-Einstellungen (Datenbank-Bindung `DB`)
@@ -20,10 +22,23 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 
 Danach wird jede Änderung auf GitHub automatisch veröffentlicht.
 
-## Moderation (optional)
+## Moderation
 
 Unter Einstellungen → Variablen eine geheime Variable `ADMIN_KEY` anlegen. Im Browser einmal in der Konsole
-`localStorage.setItem("ts-admin", JSON.stringify("DEIN_KEY"))` ausführen: Dann kannst du alle Abstimmungen und Kommentare löschen.
+`localStorage.setItem("ts-admin", JSON.stringify("DEIN_KEY"))` ausführen: Dann siehst du auch ausgeblendete Beiträge
+und kannst alle Abstimmungen und Kommentare löschen.
+
+Gemeldete Beiträge ansehen (in der Konsole auf der Seite):
+`await fetch("/api/report",{headers:{"X-Admin-Key":"DEIN_KEY"}}).then(r=>r.json())`
+
+Einen gemeldeten Beitrag wieder freigeben:
+`await fetch("/api/report",{method:"POST",headers:{"X-Admin-Key":"DEIN_KEY"},body:JSON.stringify({action:"approve",type:"comment",id:"…"})})`
+
+## Rechtliches
+
+- Nachrichten: nur Überschrift, Quelle und Link (§ 76f UrhG erlaubt Hyperlinks und sehr kurze Auszüge). Quelle: GDELT, Nennung mit Link ist Pflicht.
+- Keine Cookies, kein Tracking, keine externen Schriften.
+- Impressum und Datenschutzerklärung enthalten gelb markierte Platzhalter, die ausgefüllt werden müssen.
 
 ## Ältere Version
 

@@ -1,142 +1,80 @@
 // GET /api/news?q=Politik%20Österreich&when=7d
-// Holt aktuelle Schlagzeilen aus dem Google-News-RSS-Feed und liefert sie als JSON.
+// Holt Schlagzeilen aus der GDELT-Datenbank (https://www.gdeltproject.org).
+// GDELT erlaubt die Nutzung ausdrücklich, auch kommerziell, unter der Bedingung,
+// dass GDELT genannt und verlinkt wird. Die App zeigt nur Überschrift, Quelle und Link
+// zum Originalartikel – keine Artikeltexte.
 
-const ALLOWED_WHEN = new Set(["1d", "7d", "30d", "1y"]);
+const TIMESPAN = { "1d": "1d", "7d": "1week", "30d": "1month", "1y": "3months" };
+const FRESH_MS = 15 * 60 * 1000; // 15 Minuten frisch
+const KEEP_S = 24 * 60 * 60;     // ältere Kopie 24 h als Reserve behalten
 
 function decodeEntities(str) {
   return str
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&");
+    .replace(/&quot;/g, '"').replace(/&apos;|&#39;/g, "'")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
 }
 
-function tag(block, name) {
-  const m = block.match(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, "i"));
-  return m ? decodeEntities(m[1]).trim() : "";
-}
-
-const DAYS = { "1d": 1, "7d": 7, "30d": 30, "1y": 365 };
-
-// Bing verpackt den Artikel-Link in eine Weiterleitung: echte Adresse aus dem url-Parameter holen.
-function realLink(link) {
-  try {
-    const u = new URL(link);
-    if (u.hostname.endsWith("bing.com")) {
-      const inner = u.searchParams.get("url");
-      if (inner && /^https?:\/\//.test(inner)) return inner;
-    }
-  } catch {}
-  return link;
-}
-
-export function parseRss(xml, limit = 40) {
-  const items = [];
-  const re = /<item>([\s\S]*?)<\/item>/gi;
-  let m;
-  while ((m = re.exec(xml)) && items.length < limit) {
-    const block = m[1];
-    const source = tag(block, "source") || tag(block, "News:Source");
-    let title = tag(block, "title");
-    if (source && title.endsWith(" - " + source)) title = title.slice(0, -(source.length + 3));
-    const link = realLink(tag(block, "link"));
-    const pub = tag(block, "pubDate");
-    const date = pub ? new Date(pub) : null;
-    if (!title || !/^https?:\/\//.test(link)) continue;
-    items.push({
-      title,
-      link,
-      source,
-      date: date && !isNaN(date) ? date.toISOString() : null,
-    });
-  }
-  items.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  return items;
-}
-
-const BROWSER_UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
-
-async function fromGoogle(q, when) {
-  const feed = `https://news.google.com/rss/search?q=${encodeURIComponent(q + " when:" + when)}&hl=de&gl=AT&ceid=AT:de`;
-  const res = await fetch(feed, { headers: { "User-Agent": BROWSER_UA, "Accept-Language": "de-AT,de;q=0.9" } });
-  if (!res.ok) throw new Error(`Google News ${res.status}`);
-  return parseRss(await res.text());
-}
-
-async function fromBing(q, when) {
-  const freshness = { "1d": "Day", "7d": "Week", "30d": "Month" }[when];
-  const feed = `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&setmkt=de-AT&setlang=de${freshness ? "&qft=interval%3d%22" + { Day: 7, Week: 8, Month: 9 }[freshness] + "%22" : ""}`;
-  const res = await fetch(feed, { headers: { "User-Agent": BROWSER_UA, "Accept-Language": "de-AT,de;q=0.9" } });
-  if (!res.ok) throw new Error(`Bing News ${res.status}`);
-  const since = Date.now() - DAYS[when] * 864e5;
-  return parseRss(await res.text()).filter((i) => !i.date || Date.parse(i.date) >= since);
-}
-
-// GDELT: offene Nachrichten-Datenbank, deckt die letzten 3 Monate ab.
-async function fromGdelt(q, when) {
-  const timespan = { "1d": "1d", "7d": "1week", "30d": "1month", "1y": "3months" }[when];
-  const terms = q.split(/\s+/).filter((w) => w.length >= 3).join(" ");
-  const api = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(terms + " sourcelang:german")}` +
-    `&mode=artlist&format=json&maxrecords=60&sort=datedesc&timespan=${timespan}`;
-  const res = await fetch(api, { headers: { "User-Agent": BROWSER_UA } });
-  if (!res.ok) throw new Error(`GDELT ${res.status}`);
-  const text = await res.text();
-  let data;
-  try { data = JSON.parse(text); } catch { throw new Error("GDELT: " + text.slice(0, 80)); }
+export function parseGdelt(data) {
   const seen = new Set();
   return (data.articles || []).map((a) => {
     const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(a.seendate || "");
     return {
-      title: decodeEntities(String(a.title || "")).trim(),
-      link: a.url,
-      source: a.domain || "",
+      title: decodeEntities(String(a.title || "")).replace(/\s+/g, " ").trim().slice(0, 200),
+      link: String(a.url || ""),
+      source: String(a.domain || ""),
       date: m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}.000Z` : null,
     };
   }).filter((i) => {
     const key = i.title.toLowerCase();
     if (!i.title || !/^https?:\/\//.test(i.link) || seen.has(key)) return false;
-    seen.add(key); return true;
+    seen.add(key);
+    return true;
   });
+}
+
+async function fromGdelt(q, when) {
+  const terms = q.split(/\s+/).filter((w) => w.length >= 3).join(" ");
+  const api = "https://api.gdeltproject.org/api/v2/doc/doc?query=" +
+    encodeURIComponent(terms + " sourcelang:german") +
+    `&mode=artlist&format=json&maxrecords=60&sort=datedesc&timespan=${TIMESPAN[when]}`;
+  const res = await fetch(api, { headers: { "User-Agent": "TrueScope (https://truescope-49p.pages.dev)" } });
+  if (!res.ok) throw new Error(`GDELT antwortet mit ${res.status}`);
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { throw new Error("GDELT ist gerade ausgelastet"); }
+  return parseGdelt(data);
 }
 
 export async function onRequestGet({ request }) {
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") || "").trim().slice(0, 120);
-  const when = ALLOWED_WHEN.has(url.searchParams.get("when")) ? url.searchParams.get("when") : "7d";
+  const when = TIMESPAN[url.searchParams.get("when")] ? url.searchParams.get("when") : "7d";
   if (!q) return Response.json({ error: "Parameter q fehlt." }, { status: 400 });
 
   const cache = caches.default;
-  const cacheKey = new Request(`https://cache.truescope/news?q=${encodeURIComponent(q)}&when=${when}`);
+  const cacheKey = new Request(`https://cache.truescope/gdelt?q=${encodeURIComponent(q)}&when=${when}`);
   const hit = await cache.match(cacheKey);
-  if (hit) return hit;
+  const cached = hit ? await hit.json() : null;
+  if (cached && Date.now() - Date.parse(cached.fetchedAt) < FRESH_MS) {
+    return Response.json(cached, { headers: { "Cache-Control": "public, max-age=300" } });
+  }
 
-  const errors = [];
-  let items = null, provider = null;
-  for (const [name, fn] of [["Google News", fromGoogle], ["GDELT", fromGdelt], ["Bing News", fromBing]]) {
-    try {
-      const r = await fn(q, when);
-      if (r.length) { items = r; provider = name; break; }
-      errors.push(`${name}: keine Treffer`);
-      if (!items) items = r;
-    } catch (e) {
-      errors.push(String(e.message || e));
+  try {
+    const items = await fromGdelt(q, when);
+    const body = {
+      query: q, when, fetchedAt: new Date().toISOString(), items,
+      coverageNote: when === "1y" ? "Die Datenquelle reicht nur 3 Monate zurück." : null,
+      attribution: { name: "The GDELT Project", url: "https://www.gdeltproject.org" },
+    };
+    if (items.length) {
+      await cache.put(cacheKey, Response.json(body, { headers: { "Cache-Control": `public, max-age=${KEEP_S}` } }));
     }
+    return Response.json(body, { headers: { "Cache-Control": "public, max-age=300" } });
+  } catch (e) {
+    // Bei Ausfall die letzte gespeicherte Version zeigen, falls vorhanden.
+    if (cached) return Response.json({ ...cached, stale: true }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ error: String(e.message || e) }, { status: 502 });
   }
-  if (items === null) {
-    return Response.json({ error: "Nachrichtenquellen nicht erreichbar (" + errors.join(", ") + ")." }, { status: 502 });
-  }
-
-  const out = Response.json(
-    { query: q, when, provider, notes: errors, fetchedAt: new Date().toISOString(), items },
-    { headers: { "Cache-Control": "public, max-age=600" } }
-  );
-  if (items.length) await cache.put(cacheKey, out.clone());
-  return out;
 }

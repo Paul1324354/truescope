@@ -5,16 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TrueScope</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: Kopfband mit Länder-/Zeitraum-Steuerung, darunter zwei Ansichten (Nachrichten | Abstimmungen) in einer 760px-Spalte */
 :root{
   --bg:#F1F3F6; --surface:#FFFFFF; --ink:#141B2D; --muted:#5B6478; --line:#D9DEE7;
   --accent:#B3122E; --accent-soft:#F7E3E6; --accent-ink:#FFFFFF;
   --bar:#24345C; --warn-bg:#FFF4D9; --warn-ink:#6B4A00;
-  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
-  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --display:"Arial Narrow","Roboto Condensed","Helvetica Neue",system-ui,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0F131C; --surface:#171C28; --ink:#E7EAF1; --muted:#9AA3B8; --line:#2A3142;
@@ -97,6 +96,10 @@ body{margin:0}
 [hidden]{display:none!important}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 a.item{color:inherit;text-decoration:none}
+.attr{font-size:.8rem;color:var(--muted);margin:0}
+.attr a{color:inherit}
+footer.site{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+footer.site a{color:inherit}
 a.item:hover h4{text-decoration:underline}
 </style>
 
@@ -150,6 +153,7 @@ a.item:hover h4{text-decoration:underline}
         <button class="btn small" id="more" hidden>Mehr anzeigen</button>
         <div class="sources" id="sources"></div>
       </div>
+      <p class="attr" id="attr">Schlagzeilen und Links zu den Originalartikeln: <a href="https://www.gdeltproject.org" target="_blank" rel="noopener">The GDELT Project</a>. Die Artikel gehören den jeweiligen Medien.</p>
     </div>
   </main>
 
@@ -175,11 +179,18 @@ a.item:hover h4{text-decoration:underline}
           </div>
         </div>
         <div><label class="lbl" for="pc">Thema gehört zu</label><select id="pc"></select></div>
+        <p class="attr">Mit dem Veröffentlichen akzeptierst du die <a href="/regeln.html" target="_blank">Regeln für Beiträge</a>. Dein Name und deine Frage sind für alle sichtbar.</p>
         <div class="row"><button class="btn primary" type="submit">Abstimmung veröffentlichen</button></div>
       </form>
     </details>
     <div id="pollList" style="display:flex;flex-direction:column;gap:14px"></div>
   </main>
+  <footer class="site">
+    <span>TrueScope</span>
+    <a href="/impressum.html">Impressum</a>
+    <a href="/datenschutz.html">Datenschutz</a>
+    <a href="/regeln.html">Regeln für Beiträge</a>
+  </footer>
 </div>
 <div class="toast" id="toast" hidden></div>
 
@@ -291,9 +302,8 @@ function newsQuery(){
   const c = CATS[state.cat];
   return state.intl ? c.intl : `${c.label.replace(" & "," ")} ${BY[state.country].name}`;
 }
-function gnews(q){ return `https://news.google.com/search?q=${encodeURIComponent(q+" when:"+PERIODS[state.period].gn)}&hl=de&gl=AT&ceid=AT:de`; }
 function renderSources(){
-  let html = `<a target="_blank" rel="noopener" href="${gnews(newsQuery())}">Alle bei Google News ↗</a>`;
+  let html = "";
   if(!state.intl){ const c = BY[state.country]; if(c.srcUrl && state.cat==="politik") html += `<a target="_blank" rel="noopener" href="${c.srcUrl}">${esc(c.srcName)} ↗</a>`; }
   $("sources").innerHTML = html;
 }
@@ -317,7 +327,7 @@ $("tab-news").onclick=()=>setView("news");
 $("tab-polls").onclick=()=>setView("polls");
 
 // ---------- Nachrichten ----------
-let newsItems=[], newsShown=15, newsReq=0;
+let newsItems=[], newsShown=15, newsReq=0, newsNote="";
 async function loadNews(){
   const id=++newsReq;
   $("newsHead").textContent = `Schlagzeilen · ${CATS[state.cat].label} · ${scopeName()}`;
@@ -326,15 +336,15 @@ async function loadNews(){
   try{
     const data = await api(`/api/news?q=${encodeURIComponent(newsQuery())}&when=${PERIODS[state.period].gn}`);
     if(id!==newsReq) return;
-    newsItems = data.items||[]; newsShown=15; renderNews();
+    newsItems = data.items||[]; newsShown=15; newsNote = [data.coverageNote, data.stale?"Die Datenquelle ist gerade nicht erreichbar, du siehst die zuletzt geladenen Meldungen.":null].filter(Boolean).join(" "); renderNews();
   }catch(e){
     if(id!==newsReq) return;
-    $("news").innerHTML = `<p class="empty">Die Nachrichten konnten nicht geladen werden (${esc(e.message)}). Sie erscheinen, sobald TrueScope auf Cloudflare läuft. Bis dahin findest du sie über den Link „Alle bei Google News“.</p>`;
+    $("news").innerHTML = `<p class="empty">Die Nachrichten konnten nicht geladen werden (${esc(e.message)}). Tippe auf „Aktualisieren“, um es noch einmal zu versuchen.</p>`;
   }
 }
 function renderNews(){
   if(!newsItems.length){ $("news").innerHTML = `<p class="empty">Für diese Auswahl wurden keine Meldungen gefunden. Probier einen längeren Zeitraum oder ein anderes Ressort.</p>`; return; }
-  $("news").innerHTML = `<div class="items">${newsItems.slice(0,newsShown).map(n=>`
+  $("news").innerHTML = (newsNote?`<p class="attr">${esc(newsNote)}</p>`:"") + `<div class="items">${newsItems.slice(0,newsShown).map(n=>`
     <a class="item" href="${esc(n.link)}" target="_blank" rel="noopener">
       <div class="d">${esc(ago(n.date))}</div>
       <div style="min-width:0">${n.source?`<span class="tag">${esc(n.source)}</span>`:""}<h4>${esc(n.title)}</h4></div>
@@ -371,7 +381,7 @@ async function loadPolls(){
 function renderPolls(){
   const box=$("pollList");
   if(!pollsLoaded){ box.innerHTML='<p class="empty"><span class="spin"></span>Abstimmungen werden geladen …</p>'; return; }
-  if(pollsErr && !polls.length){ box.innerHTML=`<div class="panel"><p class="empty">Abstimmungen konnten nicht geladen werden (${esc(pollsErr)}). Sie funktionieren, sobald TrueScope auf Cloudflare läuft.</p></div>`; return; }
+  if(pollsErr && !polls.length){ box.innerHTML=`<div class="panel"><p class="empty">Abstimmungen konnten nicht geladen werden (${esc(pollsErr)}). Bitte versuch es gleich noch einmal.</p></div>`; return; }
   if(!polls.length){
     box.innerHTML = `<div class="panel"><p class="empty">${pollFilter==="ALL"?"Noch keine Abstimmungen.":"Hier gibt es noch keine Abstimmung."} Starte oben die erste: Stell eine Frage zu einem Thema und lass andere abstimmen und kommentieren.</p></div>`;
     $("newPollBox").open = true; return;
@@ -389,7 +399,7 @@ function renderPolls(){
     const open = openComments.has(p.id), cs=p.comments;
     return `<article class="poll">
       <div class="meta"><span>${esc(ctry)}</span><span>·</span><span>von ${esc(p.author)}</span><span>·</span><span>${fmtDate(new Date(p.createdAt))}</span>
-        ${p.mine?`<button class="link" data-delpoll="${esc(p.id)}" style="margin-left:auto">Entfernen</button>`:""}</div>
+        ${p.mine?`<button class="link" data-delpoll="${esc(p.id)}" style="margin-left:auto">Entfernen</button>`:`<button class="link" data-report="poll" data-id="${esc(p.id)}" style="margin-left:auto">Melden</button>`}</div>
       <h4>${esc(p.question)}</h4>
       <div style="display:flex;flex-direction:column;gap:6px">${opts}</div>
       <div class="meta"><span>${total} ${total===1?"Stimme":"Stimmen"}</span><span>·</span>
@@ -397,11 +407,11 @@ function renderPolls(){
       <div class="row"><button class="btn small" data-togglec="${esc(p.id)}">${open?"Kommentare ausblenden":`Kommentare (${cs.length})`}</button></div>
       ${open?`<div class="comments">
         ${cs.length?cs.map(c=>`<div class="cmt"><b>${esc(c.author)}</b><span class="when">${fmtDate(new Date(c.createdAt))}</span>
-          ${c.mine?` <button class="link" data-delc="${esc(c.id)}">löschen</button>`:""}
+          ${c.mine?` <button class="link" data-delc="${esc(c.id)}">löschen</button>`:` <button class="link" data-report="comment" data-id="${esc(c.id)}">melden</button>`}
           <p>${esc(c.text)}</p></div>`).join(""):`<p class="empty">Noch keine Kommentare. Schreib als Erste:r deine Meinung.</p>`}
         <form data-cform="${esc(p.id)}" style="display:flex;flex-direction:column;gap:6px">
           <textarea id="c-${esc(p.id)}" maxlength="600" placeholder="Deine Meinung dazu …" required></textarea>
-          <div class="row"><button class="btn primary small" type="submit">Kommentar senden</button></div>
+          <div class="row"><button class="btn primary small" type="submit">Kommentar senden</button><span class="attr">Öffentlich sichtbar · <a href="/regeln.html" target="_blank">Regeln</a></span></div>
         </form></div>`:""}
     </article>`;
   }).join("");
@@ -419,6 +429,11 @@ $("pollList").addEventListener("click",e=>{
   if(dp){
     if(dp.dataset.confirm!=="1"){ dp.dataset.confirm="1"; dp.textContent="Wirklich entfernen?"; setTimeout(()=>{ if(dp.isConnected){dp.dataset.confirm="";dp.textContent="Entfernen";}},4000); return; }
     return act(()=>api(`/api/polls?id=${encodeURIComponent(dp.dataset.delpoll)}&client=${encodeURIComponent(CLIENT)}`,{method:"DELETE"}),"Abstimmung entfernt");
+  }
+  const rp=e.target.closest("[data-report]");
+  if(rp){
+    if(rp.dataset.confirm!=="1"){ rp.dataset.confirm="1"; rp.textContent="Wirklich melden? Nochmal tippen"; setTimeout(()=>{ if(rp.isConnected){rp.dataset.confirm="";rp.textContent=rp.dataset.report==="poll"?"Melden":"melden";}},4000); return; }
+    return act(()=>api("/api/report",{method:"POST",body:JSON.stringify({type:rp.dataset.report,id:rp.dataset.id,client:CLIENT})}),"Danke, wir prüfen den Beitrag.");
   }
   const dc=e.target.closest("[data-delc]");
   if(dc) return act(()=>api(`/api/comment?id=${encodeURIComponent(dc.dataset.delc)}&client=${encodeURIComponent(CLIENT)}`,{method:"DELETE"}),"Kommentar gelöscht");

@@ -26,6 +26,9 @@ export async function onRequestDelete({ request, env }) {
   const c = await env.DB.prepare("SELECT author_client FROM comments WHERE id = ?").bind(id).first();
   if (!c) return bad("Kommentar nicht gefunden.", 404);
   if (c.author_client !== client && !isAdmin(request, env)) return bad("Du kannst nur deine eigenen Kommentare löschen.", 403);
-  await env.DB.prepare("DELETE FROM comments WHERE id = ?").bind(id).run();
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM reports WHERE type = 'comment' AND target_id = ?").bind(id),
+    env.DB.prepare("DELETE FROM comments WHERE id = ?").bind(id),
+  ]);
   return json({ ok: true });
 }
