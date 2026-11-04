@@ -1,0 +1,36 @@
+/* Gemeinsames Aussehen der Rechtsseiten (gleiche Farben und Schriften wie die App) */
+@font-face{font-family:"Archivo";src:url("/fonts/archivo.woff") format("woff");font-weight:400 800;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"Literata";src:url("/fonts/literata.woff") format("woff");font-weight:400 700;font-display:swap}
+:root{
+  --bg:#F1F5F3; --surface:#FFFFFF; --line:#D3DDD9; --ink:#10242A; --ink-2:#33484D; --muted:#586C71;
+  --accent:#0B7A75; --marker:#FFE066; --marker-ink:#10242A;
+  --head:"Archivo","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --ui:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --read:"Literata",Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0A1517; --surface:#112124; --line:#1F3639; --ink:#E4EFED; --ink-2:#BDD0CD; --muted:#88A4A1;
+  --accent:#4FD1C5; --marker:#7A6414; --marker-ink:#E4EFED; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1517; --surface:#112124; --line:#1F3639; --ink:#E4EFED; --ink-2:#BDD0CD; --muted:#88A4A1;
+  --accent:#4FD1C5; --marker:#7A6414; --marker-ink:#E4EFED; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--ui)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:740px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.brand{display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink);font:800 1.34rem/1 var(--head);font-stretch:84%;letter-spacing:-.01em}
+.brand svg{width:26px;height:26px}
+.brand i{font-style:normal;color:var(--accent)}
+h1{font:800 clamp(2.4rem,7vw,3.4rem)/1.02 var(--head);font-stretch:78%;letter-spacing:-.012em;margin:38px 0 12px;text-wrap:balance}
+h2{font:800 1.4rem/1.2 var(--head);font-stretch:84%;margin:36px 0 8px}
+p,li{max-width:66ch;color:var(--ink-2);font:400 1.02rem/1.7 var(--read)}
+p{margin:0 0 12px}
+strong{color:var(--ink)}
+a{color:var(--accent)}
+.fill{background:var(--marker);color:var(--marker-ink);padding:1px 7px;border-radius:4px;font-weight:600;font-family:var(--ui)}
+.muted{font:400 .92rem/1.5 var(--ui);color:var(--muted)}
+footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px;display:flex;gap:18px;flex-wrap:wrap;font-size:.9rem}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--ink)}

@@ -5,8 +5,10 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 
 ## Aufbau
 
-- `public/index.html`: die App (eine Seite, ohne Build-Schritt)
-- `functions/api/news.js`: Recherche-Bot. Liest die RSS-Feeds von 2–5 Medien pro europäischem Land (`lib/feeds.js`, Leser in `lib/rss.js`), bündelt Artikel verschiedener Medien zum selben Ereignis (Doppelcheck: ab 2 Medien „bestätigt“) und lässt Workers AI eine eigene deutsche Schlagzeile schreiben. Angezeigt werden nur KI-Schlagzeile und Links zu den Originalen.
+- `public/index.html`: die App (eine Seite, ohne Build-Schritt): dunkle Filterleiste links, Meldungsliste rechts, Seitenfenster „Mehr lesen“. Schriften (Archivo, Literata, beide OFL) liegen selbst gehostet in `public/fonts/`, das Aussehen der Rechtsseiten steht in `public/legal.css`.
+- `functions/api/news.js`: Recherche-Bot. Liest die RSS-Feeds mehrerer Medien pro europäischem Land (`lib/feeds.js`, Leser in `lib/rss.js`), bündelt Artikel verschiedener Medien zum selben Ereignis (Doppelcheck: ab 2 Medien „bestätigt“) und lässt Workers AI eine eigene deutsche Schlagzeile schreiben. Angezeigt werden nur KI-Schlagzeile und Links zu den Originalen.
+- `functions/api/story.js`: Detailansicht („Mehr lesen“). Liefert die Quellen mit Originalschlagzeile und Link und schreibt beim ersten Öffnen einen kurzen KI-Überblick in eigenen Worten (wird gespeichert, höchstens 250 neue pro Tag). Die kurzen Feed-Anrisse (`articles.descr`) dienen nur als Eingabe für die KI und werden nie ausgeliefert.
+- `lib/bot.js`: gemeinsame Helfer für KI-Aufruf und Sperren
 - `functions/api/report.js`: Beiträge melden; ab 3 Meldungen automatisch ausgeblendet
 - `public/impressum.html`, `datenschutz.html`, `regeln.html`: rechtliche Seiten (Platzhalter im Impressum und in der Datenschutzerklärung ausfüllen!)
 - `functions/api/polls.js`, `vote.js`, `comment.js`: Abstimmungen, Stimmen, Kommentare
@@ -36,7 +38,7 @@ Einen gemeldeten Beitrag wieder freigeben:
 
 ## Rechtliches
 
-- Nachrichten: eigene KI-Schlagzeilen, keine Artikeltexte, nur Links zu den Originalartikeln (§ 76f UrhG erlaubt Hyperlinks und sehr kurze Auszüge). Medien können sich austragen lassen.
+- Nachrichten: eigene KI-Schlagzeilen und KI-Überblicke, keine Artikeltexte, nur Links (mit Namen des Mediums und Originalüberschrift als Linktext) zu den Originalartikeln (§ 76f UrhG erlaubt Hyperlinks und sehr kurze Auszüge). Medien können sich austragen lassen.
 - Keine Cookies, kein Tracking, keine externen Schriften.
 - Impressum und Datenschutzerklärung enthalten gelb markierte Platzhalter, die ausgefüllt werden müssen.
 

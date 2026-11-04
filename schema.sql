@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS articles (
   published  INTEGER NOT NULL,
   story_id   TEXT,                      -- NULL = noch nicht geprüft, '-' = keine Nachricht
   created_at INTEGER NOT NULL,
-  hint       TEXT                       -- Ressort-Hinweis aus dem Feed
+  hint       TEXT,                      -- Ressort-Hinweis aus dem Feed
+  descr      TEXT DEFAULT ''            -- kurzer Feed-Anriss, nur als Eingabe für die KI, wird nie angezeigt
 );
 CREATE INDEX IF NOT EXISTS articles_open ON articles (country, story_id, published);
 CREATE INDEX IF NOT EXISTS articles_story ON articles (story_id);
@@ -86,7 +87,10 @@ CREATE TABLE IF NOT EXISTS stories (
   first_seen INTEGER NOT NULL,
   last_seen  INTEGER NOT NULL,
   outlets    INTEGER NOT NULL,          -- Anzahl verschiedener Medien (Doppelcheck)
-  domestic   INTEGER NOT NULL DEFAULT 1 -- 1 = betrifft das Land selbst, 0 = Auslandsmeldung
+  domestic   INTEGER NOT NULL DEFAULT 1, -- 1 = betrifft das Land selbst, 0 = Auslandsmeldung
+  detail     TEXT DEFAULT '',           -- KI-Überblick für „Mehr lesen“ (wird beim ersten Öffnen erzeugt)
+  detail_n   INTEGER DEFAULT 0,         -- Anzahl Artikel, aus denen der Überblick entstand
+  detail_at  INTEGER DEFAULT 0          -- Zeitpunkt der Erzeugung (für die Tagesgrenze)
 );
 CREATE INDEX IF NOT EXISTS stories_q ON stories (country, cat, last_seen);
 

@@ -4,57 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Datenschutzerklärung · TrueScope</title>
-<style>
-@font-face{font-family:"Newsreader";src:url("/fonts/newsreader.woff") format("woff");font-weight:400 700;font-display:swap}
-@font-face{font-family:"Schibsted Grotesk";src:url("/fonts/schibsted-grotesk.woff") format("woff");font-weight:400 900;font-display:swap}
-@font-face{font-family:"JetBrains Mono";src:url("/fonts/jetbrains-mono.woff") format("woff");font-weight:400 600;font-display:swap}
-
-/* Layout: Instrumenten-Konzept „Scope“. Klebende Kopfzeile, eine Satz-Überschrift als Steuerung,
-   Top-Meldung + nach Tagen gruppierte Meldungen in einem 2-Spalten-Raster (1 Spalte auf dem Handy). */
-:root{
-  --bg:#F2F4F7; --surface:#FFFFFF; --sunk:#E9ECF1; --ink:#0B1220; --ink-2:#2A3345; --muted:#5D6678; --line:#DDE1E8;
-  --accent:#2448F5; --accent-ink:#FFFFFF; --accent-soft:#E6EBFF; --amber:#C77A12; --amber-soft:#FCEFD9;
-  --good:#0F8A5F; --danger:#C7362F;
-  --c-politik:#2448F5; --c-wirtschaft:#0E8A8A; --c-sport:#2E8B3E; --c-kultur:#B0328C; --c-wissenschaft:#6B3FD6;
-  --c-technik:#0A7FB8; --c-gesundheit:#C93D5A; --c-umwelt:#5C8A1E; --c-chronik:#5A6478;
-  --display:"Newsreader","Iowan Old Style","Palatino Linotype",Georgia,serif;
-  --body:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --radius:14px; --shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px -12px rgba(11,18,32,.12);
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#080C14; --surface:#10161F; --sunk:#0C1119; --ink:#EDF0F5; --ink-2:#C9CFDA; --muted:#8B94A7; --line:#1F2734;
-  --accent:#7B93FF; --accent-ink:#0B1220; --accent-soft:#18213D; --amber:#F2B25A; --amber-soft:#2A2110;
-  --good:#45C08D; --danger:#F06A63;
-  --c-politik:#7B93FF; --c-wirtschaft:#3CC2C2; --c-sport:#5BC46B; --c-kultur:#E46CC2; --c-wissenschaft:#A585FF;
-  --c-technik:#46B5EE; --c-gesundheit:#F27391; --c-umwelt:#9CCB4F; --c-chronik:#98A2B7;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#080C14; --surface:#10161F; --sunk:#0C1119; --ink:#EDF0F5; --ink-2:#C9CFDA; --muted:#8B94A7; --line:#1F2734;
-  --accent:#7B93FF; --accent-ink:#0B1220; --accent-soft:#18213D; --amber:#F2B25A; --amber-soft:#2A2110;
-  --good:#45C08D; --danger:#F06A63;
-  --c-politik:#7B93FF; --c-wirtschaft:#3CC2C2; --c-sport:#5BC46B; --c-kultur:#E46CC2; --c-wissenschaft:#A585FF;
-  --c-technik:#46B5EE; --c-gesundheit:#F27391; --c-umwelt:#9CCB4F; --c-chronik:#98A2B7;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6); color-scheme:dark}
-
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 var(--body)}
-.wrap{max-width:720px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:28px 64px}
-.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font:600 1.25rem/1 var(--display)}
-.brand svg{width:26px;height:26px}
-.brand i{font-style:normal;color:var(--accent)}
-h1{font:500 clamp(2.2rem,6vw,3.2rem)/1.08 var(--display);letter-spacing:-.02em;margin:40px 0 12px;text-wrap:balance}
-h2{font:500 1.35rem/1.25 var(--display);margin:34px 0 8px}
-p,li{max-width:65ch;color:var(--ink-2)}
-strong{color:var(--ink)}
-a{color:var(--accent)}
-.fill{background:var(--amber-soft);color:var(--amber);padding:1px 7px;border-radius:5px;font-weight:600}
-.muted{font:500 .78rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-footer{margin-top:56px;border-top:1px solid var(--line);padding-top:18px;display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
-footer a{color:var(--muted);text-decoration:none}
-footer a:hover{color:var(--ink)}
-</style>
+<link rel="stylesheet" href="/legal.css">
+<link rel="preload" href="/fonts/archivo.woff" as="font" type="font/woff" crossorigin>
+<script>try{var t=localStorage.getItem("ts-theme");if(t==='"light"'||t==='"dark"')document.documentElement.dataset.theme=JSON.parse(t)}catch(e){}</script>
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -74,11 +26,11 @@ footer a:hover{color:var(--ink)}
   <h2>Welche Daten verarbeitet werden</h2>
   <p><strong>Browser-Kennung.</strong> Damit du nur einmal pro Abstimmung abstimmen und deine eigenen Beiträge löschen kannst, legt die App eine zufällige Kennung im Speicher deines Browsers (localStorage) ab. Sie enthält keine Angaben über dich. Dort werden auch deine Auswahl (Land, Zeitraum, Ressort) und dein angegebener Name gespeichert. Diese Speicherung ist für die von dir gewünschte Funktion unbedingt erforderlich (§ 165 Abs. 3 TKG 2021). Du kannst sie jederzeit löschen, indem du die Website-Daten in deinem Browser löschst.</p>
   <p><strong>Beiträge.</strong> Wenn du eine Abstimmung erstellst, abstimmst, kommentierst oder einen Beitrag meldest, speichern wir den Inhalt, den von dir gewählten Namen (oder „Anonym“), die Browser-Kennung und den Zeitpunkt. Abstimmungen, Kommentare und Namen sind öffentlich sichtbar. Wer wie abgestimmt hat, ist nicht sichtbar. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Nutzung der von dir gewählten Funktion). Gib bitte keinen vollen Namen an, wenn du das nicht möchtest.</p>
-  <p><strong>Nachrichten.</strong> Für die Schlagzeilen ruft unser Server die RSS-Feeds von Nachrichtenmedien ab und lässt die Überschriften von Cloudflare Workers AI vergleichen und neu formulieren. Dabei werden keine Daten über dich übermittelt.</p>
+  <p><strong>Nachrichten.</strong> Für die Schlagzeilen ruft unser Server die RSS-Feeds von Nachrichtenmedien ab und lässt die Überschriften und kurzen Anrisse von Cloudflare Workers AI vergleichen und neu formulieren. Das gilt auch für den Überblick, der beim Öffnen einer Meldung entsteht. Dabei werden keine Daten über dich übermittelt.</p>
   <h2>Hosting</h2>
   <p>Die Website läuft bei Cloudflare, Inc. (101 Townsend St, San Francisco, CA 94107, USA). Beim Aufruf verarbeitet Cloudflare technisch notwendige Daten wie deine IP-Adresse, um die Seite auszuliefern und vor Angriffen zu schützen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (sicherer Betrieb der Website). Cloudflare ist unter dem EU-US Data Privacy Framework zertifiziert. Die App selbst speichert keine IP-Adressen.</p>
   <h2>Externe Links</h2>
-  <p>Wenn du auf eine Schlagzeile tippst, öffnet sich die Seite des jeweiligen Mediums. Ab dann gilt dessen Datenschutzerklärung.</p>
+  <p>Wenn du in der Detailansicht auf „Original lesen“ tippst, öffnet sich die Seite des jeweiligen Mediums. Ab dann gilt dessen Datenschutzerklärung.</p>
   <h2>Speicherdauer</h2>
   <p>Beiträge bleiben gespeichert, bis du sie löschst oder wir sie entfernen. Stimmen werden mit der Abstimmung gelöscht. Meldungen werden gelöscht, sobald der gemeldete Beitrag geprüft oder entfernt ist.</p>
   <h2>Deine Rechte</h2>

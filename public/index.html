@@ -4,285 +4,418 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TrueScope</title>
-<meta name="description" content="Nachrichten nach Land, Ressort und Zeitraum – mit Abstimmungen und Kommentaren.">
-<meta name="theme-color" content="#F2F4F7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#080C14" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Nachrichten aus 31 europäischen Ländern, von mehreren Medien gegengeprüft. Mit Abstimmungen und Kommentaren.">
+<meta name="theme-color" content="#F1F5F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A1517" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
-<link rel="preload" href="/fonts/newsreader.woff" as="font" type="font/woff" crossorigin>
-<link rel="preload" href="/fonts/schibsted-grotesk.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="/fonts/archivo.woff" as="font" type="font/woff" crossorigin>
+<script>try{var t=localStorage.getItem("ts-theme");if(t==='"light"'||t==='"dark"')document.documentElement.dataset.theme=JSON.parse(t)}catch(e){}</script>
 <style>
-@font-face{font-family:"Newsreader";src:url("/fonts/newsreader.woff") format("woff");font-weight:400 700;font-display:swap}
-@font-face{font-family:"Schibsted Grotesk";src:url("/fonts/schibsted-grotesk.woff") format("woff");font-weight:400 900;font-display:swap}
-@font-face{font-family:"JetBrains Mono";src:url("/fonts/jetbrains-mono.woff") format("woff");font-weight:400 600;font-display:swap}
+@font-face{font-family:"Archivo";src:url("/fonts/archivo.woff") format("woff");font-weight:400 800;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"Literata";src:url("/fonts/literata.woff") format("woff");font-weight:400 700;font-display:swap}
 
-/* Layout: Instrumenten-Konzept „Scope“. Klebende Kopfzeile, eine Satz-Überschrift als Steuerung,
-   Top-Meldung + nach Tagen gruppierte Meldungen in einem 2-Spalten-Raster (1 Spalte auf dem Handy). */
+/* Aufbau: dunkle Filterleiste links (Land, Zeitraum, Ressort), rechts eine Liste, die sich zeilenweise überblicken lässt.
+   Ein Klick auf eine Meldung öffnet ein Seitenfenster mit Überblick und den Originalquellen.
+   Auf dem Handy wird die Leiste zum Kopfband, die Ressorts kleben als Chips darunter, die Reiter liegen unten. */
 :root{
-  --bg:#F2F4F7; --surface:#FFFFFF; --sunk:#E9ECF1; --ink:#0B1220; --ink-2:#2A3345; --muted:#5D6678; --line:#DDE1E8;
-  --accent:#2448F5; --accent-ink:#FFFFFF; --accent-soft:#E6EBFF; --amber:#C77A12; --amber-soft:#FCEFD9;
-  --good:#0F8A5F; --danger:#C7362F;
-  --c-politik:#2448F5; --c-wirtschaft:#0E8A8A; --c-sport:#2E8B3E; --c-kultur:#B0328C; --c-wissenschaft:#6B3FD6;
-  --c-technik:#0A7FB8; --c-gesundheit:#C93D5A; --c-umwelt:#5C8A1E; --c-chronik:#5A6478;
-  --display:"Newsreader","Iowan Old Style","Palatino Linotype",Georgia,serif;
-  --body:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --radius:14px; --shadow:0 1px 2px rgba(11,18,32,.04),0 8px 24px -12px rgba(11,18,32,.12);
+  --bg:#F1F5F3; --surface:#FFFFFF; --sunk:#E3EAE7; --line:#D3DDD9; --ink:#10242A; --ink-2:#33484D; --muted:#586C71;
+  --rail:#0C2A2E; --rail-2:#143A3F; --rail-ink:#E8F3F1; --rail-muted:#8DB1AE; --rail-line:rgba(232,243,241,.14);
+  --accent:#0B7A75; --accent-ink:#FFFFFF; --accent-soft:#D6EEEA; --marker:#FFE066; --danger:#BE3A2F; --ring:var(--surface);
+  --c-politik:#4C6EF5; --c-wirtschaft:#12A594; --c-sport:#3FA34D; --c-kultur:#D6409F; --c-wissenschaft:#8B5CF6;
+  --c-technik:#1C9BD7; --c-gesundheit:#E5484D; --c-umwelt:#84A82B; --c-chronik:#8A97A8;
+  --head:"Archivo","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --ui:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --read:"Literata",Georgia,"Times New Roman",serif;
+  --hh:56px; --radius:10px;
+  color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#080C14; --surface:#10161F; --sunk:#0C1119; --ink:#EDF0F5; --ink-2:#C9CFDA; --muted:#8B94A7; --line:#1F2734;
-  --accent:#7B93FF; --accent-ink:#0B1220; --accent-soft:#18213D; --amber:#F2B25A; --amber-soft:#2A2110;
-  --good:#45C08D; --danger:#F06A63;
-  --c-politik:#7B93FF; --c-wirtschaft:#3CC2C2; --c-sport:#5BC46B; --c-kultur:#E46CC2; --c-wissenschaft:#A585FF;
-  --c-technik:#46B5EE; --c-gesundheit:#F27391; --c-umwelt:#9CCB4F; --c-chronik:#98A2B7;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6); color-scheme:dark}}
+  --bg:#0A1517; --surface:#112124; --sunk:#0E1C1F; --line:#1F3639; --ink:#E4EFED; --ink-2:#BDD0CD; --muted:#88A4A1;
+  --rail:#061113; --rail-2:#0F2326; --accent:#4FD1C5; --accent-ink:#06201E; --accent-soft:#12302F; --marker:#7A6414; --danger:#F06A63;
+  color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#080C14; --surface:#10161F; --sunk:#0C1119; --ink:#EDF0F5; --ink-2:#C9CFDA; --muted:#8B94A7; --line:#1F2734;
-  --accent:#7B93FF; --accent-ink:#0B1220; --accent-soft:#18213D; --amber:#F2B25A; --amber-soft:#2A2110;
-  --good:#45C08D; --danger:#F06A63;
-  --c-politik:#7B93FF; --c-wirtschaft:#3CC2C2; --c-sport:#5BC46B; --c-kultur:#E46CC2; --c-wissenschaft:#A585FF;
-  --c-technik:#46B5EE; --c-gesundheit:#F27391; --c-umwelt:#9CCB4F; --c-chronik:#98A2B7;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6); color-scheme:dark}
+  --bg:#0A1517; --surface:#112124; --sunk:#0E1C1F; --line:#1F3639; --ink:#E4EFED; --ink-2:#BDD0CD; --muted:#88A4A1;
+  --rail:#061113; --rail-2:#0F2326; --accent:#4FD1C5; --accent-ink:#06201E; --accent-soft:#12302F; --marker:#7A6414; --danger:#F06A63;
+  color-scheme:dark}
 
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);font-feature-settings:"ss01"}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--hh) + 60px)}
+html.locked{overflow:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--ui)}
 [hidden]{display:none!important}
 a{color:inherit}
-button{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
-.gutter{padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
-.shell{max-width:1120px;margin:0 auto}
-.narrow{max-width:760px;margin:0 auto}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3,h4,p,ol,ul{margin:0}
+ol,ul{padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:5px}
+.rail :focus-visible,.rail-top :focus-visible{outline-color:var(--rail-ink)}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hd{font-family:var(--head);font-stretch:80%;font-weight:700;letter-spacing:-.005em}
 
 /* Kopfzeile */
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:20;background:var(--bg)}
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
-.top .shell{display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
-.logo svg{width:28px;height:28px;flex:none}
-.logo b{font:600 1.32rem/1 var(--display);letter-spacing:-.01em}
+.top{position:sticky;top:0;z-index:20;height:var(--hh);background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:26px;height:100%;padding:0 max(20px,env(safe-area-inset-right)) 0 max(20px,env(safe-area-inset-left))}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.logo svg{width:26px;height:26px;flex:none}
+.logo b{font:800 1.34rem/1 var(--head);font-stretch:84%;letter-spacing:-.01em}
 .logo b i{font-style:normal;color:var(--accent)}
-.tabs{display:inline-flex;background:var(--sunk);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
-.tab{border:0;background:transparent;border-radius:999px;padding:7px 14px;font-weight:600;font-size:.88rem;color:var(--muted);cursor:pointer;white-space:nowrap}
-.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
-.tab .n{display:none}
-@media (max-width:480px){.logo b{font-size:1.12rem}.logo svg{width:24px;height:24px}.tab{padding:6px 10px;font-size:.8rem}.top .shell{gap:8px}}
-@media (min-width:520px){.tab .n{display:inline}}
+.grow{flex:1}
+.tabs{display:flex;gap:2px;height:100%}
+.tab{position:relative;display:flex;align-items:center;gap:8px;border:0;background:none;padding:0 14px;font-weight:600;font-size:.94rem;color:var(--muted)}
+.tab svg{display:none;width:22px;height:22px}
+.tab[aria-selected="true"]{color:var(--ink)}
+.tab[aria-selected="true"]::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:3px;background:var(--accent);border-radius:3px 3px 0 0}
+.iconbtn{display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--line);background:transparent;border-radius:50%;color:var(--ink-2)}
+.iconbtn:hover{border-color:var(--ink-2);color:var(--ink)}
+.iconbtn svg{width:18px;height:18px}
 
-/* Satz-Steuerung */
-.hero{padding-block:44px 18px}
-.kicker{font:500 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.kicker .live{display:inline-flex;align-items:center;gap:6px;color:var(--accent)}
-.kicker .live::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px var(--accent-soft)}
-.sentence{font:500 clamp(2rem,5.4vw,3.6rem)/1.08 var(--display);letter-spacing:-.022em;margin:16px 0 0;text-wrap:balance;color:var(--ink)}
-.pick{position:relative;display:inline-block;white-space:nowrap}
-.pick select{appearance:none;-webkit-appearance:none;font:inherit;letter-spacing:inherit;color:var(--accent);background:transparent;border:0;border-bottom:3px solid color-mix(in srgb,var(--accent) 35%,transparent);padding:.08em 1em 0 0;margin:0;cursor:pointer;border-radius:0;max-width:100%;line-height:1.2;height:auto;vertical-align:baseline}
-.pick select:hover{border-bottom-color:var(--accent)}
-.pick::after{content:"";position:absolute;right:.12em;top:50%;width:.32em;height:.32em;border-right:3px solid var(--accent);border-bottom:3px solid var(--accent);transform:translateY(-75%) rotate(45deg);pointer-events:none}
-.pick select option{font:16px var(--body);color:var(--ink);background:var(--surface)}
-.range{margin-top:14px;font:400 .82rem var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+/* Gerüst */
+.app{display:grid;grid-template-columns:minmax(272px,1fr) minmax(0,920px) minmax(0,1fr);align-items:start;min-height:calc(100dvh - var(--hh))}
+.rail{grid-column:1;position:sticky;top:var(--hh);height:calc(100dvh - var(--hh));overflow-y:auto;background:var(--rail);color:var(--rail-ink);display:flex;justify-content:flex-end;scrollbar-width:thin}
+.rail-in{width:272px;flex:none;padding:28px 20px 28px 24px;display:flex;flex-direction:column;gap:28px}
+.rail-top{display:grid;gap:22px}
+.rlabel{display:block;font-size:.82rem;font-weight:600;color:var(--rail-muted);margin-bottom:8px}
+.sel{position:relative}
+.sel select{appearance:none;-webkit-appearance:none;width:100%;border:1px solid var(--rail-line);background:var(--rail-2);color:var(--rail-ink);border-radius:8px;padding:10px 38px 10px 12px;font-weight:600;font-size:.98rem;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238DB1AE' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px}
+.sel select:hover{border-color:var(--rail-muted)}
+.sel select option,.sel select optgroup{color:#10242A;background:#fff;font-weight:400}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:rgba(232,243,241,.07);border-radius:8px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--rail-muted);border-radius:6px;padding:7px 4px;font-weight:600;font-size:.86rem;white-space:nowrap}
+.seg button:hover{color:var(--rail-ink)}
+.seg button[aria-pressed="true"]{background:var(--rail-ink);color:var(--rail)}
+.cats{display:grid;gap:2px}
+.cat{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:0;background:transparent;color:var(--rail-ink);padding:9px 10px;border-radius:8px;font-weight:500;font-size:.96rem}
+.cat i{width:10px;height:10px;border-radius:50%;background:var(--c,var(--rail-muted));flex:none;box-shadow:0 0 0 0 var(--c,transparent);transition:box-shadow .15s}
+.cat:hover{background:rgba(232,243,241,.07)}
+.cat[aria-pressed="true"]{background:rgba(232,243,241,.13);font-weight:700}
+.cat[aria-pressed="true"] i{box-shadow:0 0 0 3px color-mix(in srgb,var(--c,#fff) 35%,transparent)}
+.legend{display:grid;gap:9px;font-size:.84rem;color:var(--rail-muted);border-top:1px solid var(--rail-line);padding-top:16px;margin-top:auto}
+.legend div{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:center}
+.legend .dots{--ring:var(--rail)}
+.legend .dots.solo i{border-color:var(--rail-muted)}
+.legend .ki{background:transparent;border-color:var(--rail-line);color:var(--rail-muted);justify-self:start}
 
-/* Ressort-Leiste */
-.rail{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:none;margin-top:22px}
-.rail::-webkit-scrollbar{display:none}
-.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:8px 14px;font-weight:600;font-size:.88rem;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
-.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--c,var(--muted))}
-.chip:hover{border-color:color-mix(in srgb,var(--c,var(--accent)) 50%,var(--line))}
-.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.chip[aria-pressed="true"] .dot{background:var(--bg)}
+main{grid-column:2;min-width:0;padding:30px 32px 90px;--ring:var(--bg)}
 
-/* Nachrichten */
-.newsbar{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:2px solid var(--ink);padding-top:12px;margin-top:6px}
-.newsbar h2{margin:0;font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
-.ghost{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:.84rem;font-weight:600;cursor:pointer;color:var(--ink-2);display:inline-flex;gap:7px;align-items:center}
-.ghost:hover{border-color:var(--ink-2)}
-.ghost svg{width:14px;height:14px}
-.note{display:flex;gap:10px;align-items:flex-start;background:var(--amber-soft);color:var(--ink-2);border-radius:12px;padding:12px 14px;font-size:.9rem;margin-top:18px}
-.note b{color:var(--amber)}
+/* Kopf der Liste */
+.feedhead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.feedhead h1{font:800 clamp(2rem,4.2vw,3rem)/1.02 var(--head);font-stretch:78%;letter-spacing:-.012em;text-wrap:balance}
+.sub{margin-top:8px;color:var(--muted);font-size:.94rem}
+.ghost{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 12px;font-weight:600;font-size:.86rem;color:var(--ink-2);white-space:nowrap}
+.ghost:hover{border-color:var(--ink-2);color:var(--ink)}
+.ghost svg{width:15px;height:15px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:22px;padding:10px 0;border-block:1px solid var(--line)}
+.sort{display:inline-flex;gap:4px}
+.sort button{border:0;background:transparent;border-radius:6px;padding:6px 10px;font-weight:600;font-size:.88rem;color:var(--muted)}
+.sort button:hover{color:var(--ink)}
+.sort button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.switch{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:.88rem;color:var(--ink-2);cursor:pointer;user-select:none}
+.switch input{appearance:none;-webkit-appearance:none;width:34px;height:20px;border-radius:999px;background:var(--sunk);border:1px solid var(--line);position:relative;margin:0;cursor:pointer;transition:background .15s}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.switch input:checked{background:var(--accent);border-color:var(--accent)}
+.switch input:checked::after{transform:translateX(14px);background:var(--accent-ink)}
+.notice{margin-top:16px;padding:11px 14px;border-radius:8px;background:var(--accent-soft);color:var(--ink);font-size:.9rem}
 
-.lead{display:grid;grid-template-columns:1fr;gap:10px;padding:28px 0 30px;border-bottom:1px solid var(--line)}
-.lead .meta{order:-1}
-@media (min-width:900px){
-  .lead{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);column-gap:56px;align-items:end}
-  .lead .meta{grid-column:1/-1}
-  .lead h3{max-width:none}
-  .lead .aside{padding-bottom:6px;border-left:1px solid var(--line);padding-left:28px}
-}
-.lead .aside{display:grid;gap:12px}
-.lead h3{font:500 clamp(1.7rem,3.6vw,2.6rem)/1.12 var(--display);letter-spacing:-.018em;margin:0;text-wrap:balance;max-width:24ch}
-.lead p{font-size:1.12rem;color:var(--ink-2);margin:0;max-width:62ch}
-.meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:500 .74rem/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.meta .cat{color:var(--c,var(--accent));display:inline-flex;align-items:center;gap:6px}
-.meta .cat::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
-.src{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin-top:2px}
-.src a{text-decoration:none;border-bottom:1px solid var(--line);color:var(--ink-2)}
-.src a:hover{border-bottom-color:var(--ink-2)}
-.ok{display:inline-flex;align-items:center;gap:4px;font:600 .7rem/1 var(--mono);letter-spacing:.04em;color:var(--good);background:color-mix(in srgb,var(--good) 13%,transparent);border-radius:5px;padding:4px 7px}
-.single{display:inline-flex;align-items:center;font:600 .7rem/1 var(--mono);letter-spacing:.04em;color:var(--muted);border:1px dashed var(--line);border-radius:5px;padding:3px 7px}
-.ctry{font:600 .7rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-.filterbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
-.ai{display:inline-flex;align-items:center;gap:4px;font:600 .66rem/1 var(--mono);letter-spacing:.08em;color:var(--amber);background:var(--amber-soft);border-radius:5px;padding:4px 6px}
+/* Quellenpunkte: ein Punkt je Medium. Mehrere ausgefüllte Punkte = bestätigt, ein gestrichelter Ring = eine Quelle. */
+.dots{display:inline-flex;align-items:center;height:14px}
+.dots i{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--ring);margin-left:-5px;box-sizing:border-box}
+.dots i:first-child{margin-left:0}
+.dots b{font-size:.74rem;font-weight:700;color:var(--accent);margin-left:5px}
+.dots.solo i{background:transparent;border:1.5px dashed var(--muted)}
+mark{background:linear-gradient(transparent 56%,var(--marker) 56% 96%,transparent 96%);color:inherit;padding:0 2px;margin:0 -2px;font-weight:700}
+.ki{display:inline-flex;align-items:center;font-size:.68rem;font-weight:700;letter-spacing:.04em;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 5px;line-height:1.4}
 
-.day{display:flex;align-items:center;gap:14px;margin:34px 0 4px;font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
-.day::after{content:"";flex:1;height:1px;background:var(--line)}
-.day small{font-weight:400;color:var(--muted);letter-spacing:.06em}
-.grid{display:grid;grid-template-columns:1fr;column-gap:44px}
-@media (min-width:820px){.grid{grid-template-columns:1fr 1fr}}
-.story{display:flex;flex-direction:column;gap:7px;padding:20px 0;border-bottom:1px solid var(--line);min-width:0}
-.story h4{font:500 1.28rem/1.22 var(--display);letter-spacing:-.01em;margin:0;text-wrap:balance}
-.story p{margin:0;color:var(--ink-2);font-size:.96rem;line-height:1.55}
-.more{display:flex;justify-content:center;margin-top:26px}
-.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:11px 20px;font-weight:600;font-size:.92rem;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:var(--bg)}
+/* Top-Meldung */
+.lead{display:block;text-decoration:none;border-top:4px solid var(--ink);padding:18px 0 28px;border-bottom:1px solid var(--line);margin-top:22px}
+.lead .tag{font-weight:700;font-size:.86rem;color:var(--accent)}
+.lead h2{font:800 clamp(1.9rem,3.6vw,2.8rem)/1.05 var(--head);font-stretch:76%;letter-spacing:-.012em;margin-top:8px;text-wrap:balance;max-width:24ch}
+.lead p{font:400 1.06rem/1.6 var(--read);color:var(--ink-2);margin-top:12px;max-width:62ch}
+.lead .foot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px}
+.lead:hover h2{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px;text-decoration-color:var(--accent)}
+
+/* Zeilen */
+.dayh{display:flex;align-items:baseline;gap:12px;margin:30px 0 2px;font:800 1.15rem/1 var(--head);font-stretch:84%}
+.dayh span{font:400 .88rem var(--ui);color:var(--muted)}
+.rows{display:grid}
+.row{display:grid;grid-template-columns:50px minmax(0,1fr) 104px;grid-template-areas:"time body proof";column-gap:14px;padding:16px 8px 16px 0;border-bottom:1px solid var(--line);text-decoration:none;position:relative}
+.row:hover{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--surface) 70%,transparent) 12%)}
+.row:hover .rt{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
+.row time{grid-area:time;font-size:.84rem;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:3px}
+.rbody{grid-area:body;min-width:0}
+.rt{font:700 1.28rem/1.14 var(--head);font-stretch:82%;letter-spacing:-.003em;text-wrap:balance}
+.rs{font:400 .95rem/1.55 var(--read);color:var(--ink-2);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rm{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-top:9px;font-size:.84rem;color:var(--muted)}
+.rm .ctry{font-weight:700;color:var(--ink-2)}
+.rm .read{margin-left:auto;font-weight:600;color:var(--accent);display:inline-flex;align-items:center;gap:4px}
+.rm .read svg{width:13px;height:13px}
+.proof{grid-area:proof;display:grid;gap:5px;align-content:start;justify-items:start;padding-top:4px;font-size:.84rem;font-weight:600;color:var(--muted)}
+.more{display:flex;justify-content:center;margin-top:28px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:8px;padding:10px 18px;font-weight:700;font-size:.92rem;border:1px solid var(--ink);background:var(--ink);color:var(--bg)}
 .btn:hover{opacity:.9}
-.btn.line{background:transparent;color:var(--ink)}
+.btn.line{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.line:hover{border-color:var(--ink)}
 .btn.accent{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn.sm{padding:8px 14px;font-size:.84rem}
+.btn.sm{padding:7px 12px;font-size:.84rem}
 .btn:disabled{opacity:.5;cursor:default}
 
-/* Laden */
-.skel{display:grid;gap:26px;padding:28px 0}
-.skel i{display:block;height:14px;border-radius:7px;background:linear-gradient(90deg,var(--sunk) 0%,var(--line) 50%,var(--sunk) 100%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
-.skel .h{height:34px;width:78%}
-.skel .h2{height:34px;width:52%}
-.loadmsg{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.92rem;padding-top:22px}
-.loadmsg svg{width:22px;height:22px;animation:spin 2.4s linear infinite;flex:none}
+/* Laden und leere Zustände */
+.loadmsg{margin-top:20px;color:var(--muted);font-size:.94rem;display:flex;gap:10px;align-items:center}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite;flex:none}
+@keyframes pulse{0%,100%{transform:scale(.6);opacity:.5}50%{transform:scale(1);opacity:1}}
+.sk{display:grid;gap:10px;padding:20px 0;border-bottom:1px solid var(--line)}
+.sk i{display:block;height:13px;border-radius:6px;background:linear-gradient(90deg,var(--sunk) 0%,var(--line) 50%,var(--sunk) 100%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
+.sk i:first-child{height:22px;width:82%}
 @keyframes sh{0%{background-position:100% 0}100%{background-position:-100% 0}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.skel i,.loadmsg svg{animation:none}}
-.empty{padding:40px 0;color:var(--muted);max-width:56ch}
-.empty h3{font:500 1.6rem/1.2 var(--display);color:var(--ink);margin:0 0 8px}
-
-.how{margin-top:42px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:4px 18px}
-.how summary{cursor:pointer;padding:14px 0;font-weight:600;font-size:.94rem;display:flex;align-items:center;gap:10px;list-style:none}
+.empty{padding:36px 0;max-width:58ch;color:var(--ink-2)}
+.empty h3{font:800 1.6rem/1.1 var(--head);font-stretch:80%;color:var(--ink);margin-bottom:8px}
+.how{margin-top:44px;border-top:1px solid var(--line)}
+.how summary{cursor:pointer;padding:16px 0;font-weight:700;list-style:none;display:flex;align-items:center;gap:10px}
 .how summary::-webkit-details-marker{display:none}
-.how summary::after{content:"+";margin-left:auto;font:400 1.3rem/1 var(--mono);color:var(--muted)}
+.how summary::after{content:"+";margin-left:auto;font-size:1.3rem;line-height:1;color:var(--muted)}
 .how[open] summary::after{content:"–"}
-.how p{margin:0 0 14px;color:var(--ink-2);font-size:.92rem;max-width:70ch}
-.how a{color:var(--accent)}
+.how p{color:var(--ink-2);font-size:.94rem;max-width:68ch;margin:0 0 12px}
+
+/* Seitenfenster „Mehr lesen“ */
+dialog.drawer{--ring:var(--surface);border:0;padding:0;margin:0 0 0 auto;height:100dvh;max-height:none;width:min(580px,100vw);max-width:none;background:var(--surface);color:var(--ink);box-shadow:-24px 0 60px -24px rgba(0,0,0,.45);overflow:hidden}
+dialog.drawer[open]{display:flex;flex-direction:column;animation:slidein .24s cubic-bezier(.2,.8,.2,1) both}
+dialog.drawer::backdrop{background:rgba(5,16,18,.56);animation:fade .2s both}
+@keyframes slidein{from{transform:translateX(36px);opacity:0}to{transform:none;opacity:1}}
+@keyframes slideup{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.dbar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);flex:none}
+.dbody{overflow-y:auto;padding:22px 26px 36px;flex:1;overscroll-behavior:contain}
+.dmeta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.86rem;color:var(--muted)}
+.dmeta .ctry{font-weight:700;color:var(--ink-2)}
+.dtitle{font:800 clamp(1.7rem,4.4vw,2.3rem)/1.06 var(--head);font-stretch:78%;letter-spacing:-.01em;margin-top:10px;text-wrap:balance}
+.dproof{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;font-weight:600;font-size:.92rem}
+.dh{display:flex;align-items:center;gap:10px;font:800 1.08rem/1 var(--head);font-stretch:86%;margin:30px 0 12px}
+.dh .n{font:600 .84rem var(--ui);color:var(--muted)}
+.dread{font:400 1.06rem/1.7 var(--read);color:var(--ink);max-width:60ch}
+.dread.mute{color:var(--muted);font-size:.98rem}
+.dfine{font-size:.82rem;color:var(--muted);margin-top:10px;max-width:60ch}
+.dsk{display:grid;gap:9px}
+.dsk i{display:block;height:13px;border-radius:6px;background:linear-gradient(90deg,var(--sunk) 0%,var(--line) 50%,var(--sunk) 100%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
+.srcs{display:grid;gap:10px}
+.src{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;align-items:center;text-decoration:none;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.src:hover{border-color:var(--accent);background:var(--accent-soft)}
+.src .so{font-weight:700;font-size:.88rem;display:flex;gap:8px;align-items:baseline}
+.src .so small{font-weight:400;color:var(--muted);font-size:.8rem}
+.src .st{grid-column:1;font:400 .98rem/1.35 var(--ui);color:var(--ink-2);margin-top:2px}
+.src .go{grid-column:2;grid-row:1/3;display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:.84rem;color:var(--accent);white-space:nowrap}
+.src .go svg{width:14px;height:14px}
+.dact{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+@media (max-width:759px){
+  dialog.drawer{margin:auto 0 0;height:auto;max-height:92dvh;width:100%;border-radius:18px 18px 0 0}
+  dialog.drawer[open]{animation-name:slideup}
+  .dbody{padding:18px 18px 30px}
+  .src{grid-template-columns:1fr}
+  .src .go{grid-column:1;grid-row:auto;margin-top:6px}
+}
 
 /* Abstimmungen */
-.pollhead{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-top:6px}
-.pollhead .chips{display:flex;gap:8px;flex-wrap:wrap}
-.field label,.lbl{display:block;font:500 .7rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-input[type=text],textarea,.field select{width:100%;font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-input[type=text]:focus,textarea:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.pollrail{display:grid;gap:22px}
+.field label{display:block;font-size:.82rem;font-weight:600;color:var(--rail-muted);margin-bottom:8px}
+.rail input[type=text]{width:100%;border:1px solid var(--rail-line);background:var(--rail-2);color:var(--rail-ink);border-radius:8px;padding:10px 12px;font-size:.96rem}
+.rail input::placeholder{color:var(--rail-muted)}
+input[type=text],textarea,.fld select{width:100%;font-size:.96rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+input[type=text]:focus,textarea:focus,.fld select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
+.rail input[type=text]:focus{outline-color:var(--rail-ink);border-color:var(--rail-ink)}
 textarea{resize:vertical;min-height:76px}
-.namefield{width:min(240px,100%)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-.compose{margin-top:18px}
-.compose summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px 18px;font-weight:600}
+.fld label,.lbl{display:block;font-size:.86rem;font-weight:700;margin-bottom:7px}
+.compose{margin-top:22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.compose summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:14px 16px;font-weight:700}
 .compose summary::-webkit-details-marker{display:none}
-.compose summary .plus{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:500 1.2rem/1 var(--mono);flex:none}
+.compose summary .plus{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:500 1.3rem/1 var(--ui);flex:none;transition:transform .15s}
 .compose[open] summary .plus{transform:rotate(45deg)}
-.compose form{display:grid;gap:14px;padding:0 18px 18px}
+.compose form{display:grid;gap:14px;padding:0 16px 16px}
 .opts{display:grid;gap:8px}
 @media (min-width:600px){.opts{grid-template-columns:1fr 1fr}}
-.fine{font-size:.8rem;color:var(--muted);margin:0}
+.fine{font-size:.82rem;color:var(--muted)}
 .fine a{color:inherit}
-.polls{display:grid;gap:18px;margin-top:22px}
-.poll{padding:20px 20px 16px;display:flex;flex-direction:column;gap:14px}
-.poll .meta{justify-content:space-between}
-.poll h3{font:500 1.42rem/1.2 var(--display);letter-spacing:-.012em;margin:0;text-wrap:balance}
-.vote{position:relative;display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--sunk);border:1px solid var(--line);border-radius:11px;padding:12px 14px;cursor:pointer;overflow:hidden;font-weight:600;font-size:.94rem}
+.polls{display:grid;gap:16px;margin-top:22px}
+.poll{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:18px 18px 14px;display:flex;flex-direction:column;gap:14px}
+.poll .pm{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.84rem;color:var(--muted)}
+.poll .pm b{color:var(--ink-2)}
+.poll h3{font:800 1.5rem/1.1 var(--head);font-stretch:82%;text-wrap:balance}
+.vote{position:relative;display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:11px 14px;overflow:hidden;font-weight:600;font-size:.94rem}
 .vote:hover{border-color:var(--accent)}
 .vote .bar{position:absolute;inset:0 auto 0 0;background:var(--accent-soft);transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .vote.mine{border-color:var(--accent)}
-.vote.mine .bar{background:color-mix(in srgb,var(--accent) 22%,transparent)}
 .vote span{position:relative}
-.vote .pct{font:600 .82rem var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.vote .pct{font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .vote .check{color:var(--accent);margin-right:6px}
-.pollfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:.84rem;color:var(--muted)}
-.linkbtn{background:none;border:0;padding:0;cursor:pointer;font-size:.8rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.pollfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:.86rem;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;font-size:.82rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 .linkbtn:hover{color:var(--danger)}
 .thread{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:14px}
 .cmt{display:grid;grid-template-columns:32px 1fr;gap:10px}
-.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:600 .8rem var(--body);color:#fff;background:var(--c,var(--muted))}
-.cmt .who{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:.86rem}
-.cmt .who b{font-weight:600}
-.cmt .who time{font:400 .74rem var(--mono);color:var(--muted)}
-.cmt p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink-2);font-size:.94rem}
+.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:700 .8rem var(--ui);color:#fff;background:var(--c,var(--muted))}
+.cmt .who{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:.88rem}
+.cmt .who time{font-size:.78rem;color:var(--muted)}
+.cmt p{margin-top:2px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink-2);font-size:.95rem}
 .cform{display:grid;gap:8px}
-.cform .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cform .row2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 
-/* Fuß */
-footer.site{margin-top:72px;border-top:1px solid var(--line);padding-block:28px calc(28px + env(safe-area-inset-bottom,0px))}
-footer.site .shell{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center}
-footer.site nav{display:flex;gap:18px;flex-wrap:wrap;font-size:.86rem}
+footer.site{border-top:1px solid var(--line);background:var(--bg);padding:26px max(20px,env(safe-area-inset-left)) calc(26px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center}
+footer.site .claim{font-weight:700;font-size:.92rem;color:var(--muted)}
+footer.site nav{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
 footer.site nav a{color:var(--muted);text-decoration:none}
 footer.site nav a:hover{color:var(--ink)}
-footer.site .claim{font:italic 500 1rem var(--display);color:var(--muted)}
-.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:.9rem;font-weight:600;z-index:30;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:8px;font-size:.9rem;font-weight:600;z-index:60;max-width:calc(100% - 32px)}
+
+/* Tablet und Handy: Leiste wird zum Kopfband, Ressorts kleben darunter */
+@media (max-width:899px){
+  .app{display:block}
+  .rail,.rail-in{display:contents}
+  .rail-top{background:var(--rail);color:var(--rail-ink);padding:14px max(16px,env(safe-area-inset-left)) 16px;gap:14px}
+  .rail-top .rlabel{margin-bottom:6px}
+  #rail-news .rail-top .rlabel{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .rail-top .tworow{display:grid;gap:14px}
+  .rail-cats{position:sticky;top:var(--hh);z-index:8;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:9px 0 9px max(16px,env(safe-area-inset-left))}
+  .rail-cats .rlabel,.legend{display:none}
+  .rail-cats .cats{display:flex;overflow-x:auto;gap:8px;scrollbar-width:none;padding-right:16px}
+  .rail-cats .cats::-webkit-scrollbar{display:none}
+  .rail-cats .cat{width:auto;flex:none;white-space:nowrap;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 13px;border-radius:999px;font-size:.9rem}
+  .rail-cats .cat[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+  .rail-cats .cat:hover{background:var(--surface)}
+  .rail-cats .cat[aria-pressed="true"]:hover{background:var(--ink)}
+  main{padding:22px max(16px,env(safe-area-inset-left)) 40px}
+  .pollrail .cats{display:flex;flex-wrap:wrap;gap:8px}
+  .pollrail .cat{width:auto;border:1px solid var(--rail-line);padding:7px 13px;border-radius:999px;font-size:.9rem}
+}
+@media (min-width:900px){ .tworow{display:grid;gap:22px} }
+@media (max-width:759px){
+  .top-in{gap:12px}
+  .tabs{position:fixed;left:0;right:0;bottom:0;height:auto;z-index:25;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;padding-bottom:env(safe-area-inset-bottom)}
+  .tab{flex-direction:column;justify-content:center;gap:3px;padding:8px 0 7px;font-size:.76rem}
+  .tab svg{display:block}
+  .tab[aria-selected="true"]::after{left:28%;right:28%;top:-1px;bottom:auto;border-radius:0 0 3px 3px}
+  body{padding-bottom:calc(58px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(72px + env(safe-area-inset-bottom))}
+  .feedhead h1{font-size:1.95rem}
+  .ghost .t{display:none}
+  .ghost{padding:9px}
+  .sub{font-size:.88rem;margin-top:6px}
+  .toolbar{margin-top:16px}
+  .row{grid-template-columns:1fr auto;grid-template-areas:"time proof" "body body";row-gap:6px;padding:14px 0}
+  .row time{padding-top:0}
+  .proof{grid-auto-flow:column;align-items:center;gap:9px;padding-top:0}
+  .rt{font-size:1.24rem}
+  .rm .read{margin-left:0}
+  .lead h2{font-size:2rem}
+  .logo b{font-size:1.2rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important}
+}
 </style>
 </head>
 <body>
-<header class="top gutter">
-  <div class="shell">
+<header class="top">
+  <div class="top-in">
     <a class="logo" href="/" aria-label="TrueScope Startseite">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="var(--accent)"/><path d="M16 1.5v6M16 24.5v6M1.5 16h6M24.5 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="16" cy="16" r="4.2" fill="var(--accent)"/><path d="M16 1.5v6M16 24.5v6M1.5 16h6M24.5 16h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
       <b>True<i>Scope</i></b>
     </a>
     <nav class="tabs" role="tablist" aria-label="Bereich">
-      <button class="tab" role="tab" id="tab-news" aria-selected="true">Nachrichten</button>
-      <button class="tab" role="tab" id="tab-polls" aria-selected="false">Abstimmungen<span class="n" id="pollCount"></span></button>
+      <button class="tab" role="tab" id="tab-news" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M18 9h2v8a2 2 0 0 1-2 2M8.5 8h6M8.5 11.5h6M8.5 15h3.5"/></svg><span>Nachrichten</span></button>
+      <button class="tab" role="tab" id="tab-polls" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span>Abstimmungen</span></button>
     </nav>
+    <span class="grow"></span>
+    <button class="iconbtn" id="theme" aria-label="Hell oder dunkel wechseln" title="Hell oder dunkel wechseln"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
   </div>
 </header>
 
-<main>
-  <!-- NACHRICHTEN -->
-  <section id="view-news" class="gutter">
-    <div class="shell">
-      <div class="hero">
-        <div class="kicker"><span class="live">See beyond the headlines</span><span id="today"></span></div>
-        <h1 class="sentence">
-          <span id="catWord">Politik</span>
-          <span class="pick"><select id="country" aria-label="Land"></select></span>
-          in <span class="pick"><select id="period" aria-label="Zeitraum">
-            <option value="day">den letzten 24 Stunden</option>
-            <option value="week">der letzten Woche</option>
-            <option value="month">dem letzten Monat</option>
-            <option value="year">dem letzten Jahr</option>
-          </select></span>
-        </h1>
-        <div class="range" id="range"></div>
-        <div class="rail" id="cat" role="toolbar" aria-label="Ressort"></div>
-      </div>
-
-      <div class="newsbar">
-        <h2 id="newsHead">Schlagzeilen</h2>
-        <button class="ghost" id="reload"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Aktualisieren</button>
-      </div>
-      <div id="news"></div>
-      <div class="more"><button class="btn line" id="more" hidden>Weitere Meldungen</button></div>
-
-      <details class="how">
-        <summary><span class="ai">KI</span> Wie entstehen die Schlagzeilen und wie funktioniert der Doppelcheck?</summary>
-        <p>Ein Recherche-Bot liest laufend die öffentlichen RSS-Feeds von drei bis fünf Nachrichtenmedien pro Land, zum Beispiel ORF, Der Standard, Die Presse, Kurier und Salzburger Nachrichten für Österreich.</p>
-        <p><strong>Doppelcheck:</strong> Eine KI vergleicht jeden neuen Artikel mit den Artikeln der anderen Medien. Berichten mindestens zwei verschiedene Medien über dasselbe Ereignis, gilt die Meldung als <span class="ok">✓ Bestätigt</span>. Hat bisher nur ein Medium darüber berichtet, steht <span class="single">1 Quelle · nicht bestätigt</span> dabei.</p>
-        <p>Die Schlagzeile und den Satz darunter schreibt die KI in eigenen Worten. Sie werden nicht von Menschen geprüft und können Fehler enthalten. Die verlinkten Artikel gehören den jeweiligen Medien. Lies dort nach, bevor du etwas weitergibst.</p>
-      </details>
-    </div>
-  </section>
-
-  <!-- ABSTIMMUNGEN -->
-  <section id="view-polls" class="gutter" hidden>
-    <div class="narrow">
-      <div class="hero">
-        <div class="kicker"><span class="live">Deine Meinung zählt</span></div>
-        <h1 class="sentence">Worüber sollen wir abstimmen?</h1>
-      </div>
-      <div class="pollhead">
-        <div class="chips" id="pollFilter"></div>
-        <div class="field namefield">
-          <label for="myName">Dein Name</label>
-          <input type="text" id="myName" maxlength="40" placeholder="Anonym">
+<div class="app">
+  <!-- Filterleiste: Nachrichten -->
+  <aside class="rail" id="rail-news" aria-label="Filter">
+    <div class="rail-in">
+      <div class="rail-top">
+        <div class="tworow">
+          <div>
+            <label class="rlabel" for="country">Land</label>
+            <div class="sel"><select id="country"></select></div>
+          </div>
+          <div>
+            <span class="rlabel" id="plabel">Zeitraum</span>
+            <div class="seg" id="period" role="group" aria-labelledby="plabel">
+              <button data-p="day">24 Std.</button><button data-p="week">Woche</button><button data-p="month">Monat</button><button data-p="year">Jahr</button>
+            </div>
+          </div>
         </div>
       </div>
+      <div class="rail-cats">
+        <span class="rlabel" id="clabel">Ressort</span>
+        <div class="cats" id="cat" role="group" aria-labelledby="clabel"></div>
+      </div>
+      <div class="legend" aria-label="Legende">
+        <div><span class="dots"><i></i><i></i><i></i></span><span>Bestätigt: mehrere Medien</span></div>
+        <div><span class="dots solo"><i></i></span><span>Eine Quelle: nicht bestätigt</span></div>
+        <div><span class="ki">KI</span><span>Von einer KI geschrieben</span></div>
+      </div>
+    </div>
+  </aside>
 
-      <details class="card compose" id="newPollBox">
+  <!-- Filterleiste: Abstimmungen -->
+  <aside class="rail" id="rail-polls" aria-label="Filter" hidden>
+    <div class="rail-in">
+      <div class="rail-top pollrail">
+        <div>
+          <span class="rlabel" id="rlabel2">Region</span>
+          <div class="cats" id="pollFilter" role="group" aria-labelledby="rlabel2"></div>
+        </div>
+        <div class="field">
+          <label for="myName">Dein Name</label>
+          <input type="text" id="myName" maxlength="40" placeholder="Anonym" autocomplete="nickname">
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <!-- NACHRICHTEN -->
+    <section id="view-news">
+      <div class="feedhead">
+        <div>
+          <h1 id="title">Politik in Österreich</h1>
+          <p class="sub" id="sub"></p>
+        </div>
+        <button class="ghost" id="reload" type="button" aria-label="Aktualisieren"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Aktualisieren</span></button>
+      </div>
+      <div class="toolbar">
+        <div class="sort" role="group" aria-label="Sortierung">
+          <button type="button" data-s="new" aria-pressed="true">Neueste</button>
+          <button type="button" data-s="top" aria-pressed="false">Meiste Quellen</button>
+        </div>
+        <label class="switch"><input type="checkbox" id="onlyConf"><span>Nur bestätigte</span></label>
+      </div>
+      <div id="note"></div>
+      <div id="news" aria-live="polite"></div>
+      <div class="more"><button class="btn line" id="more" type="button" hidden>Weitere Meldungen</button></div>
+
+      <details class="how">
+        <summary>So entstehen die Meldungen</summary>
+        <p>Ein Recherche-Bot liest laufend die öffentlichen RSS-Feeds nationaler Nachrichtenmedien in 31 europäischen Ländern, zum Beispiel ORF, Der Standard und Die Presse für Österreich.</p>
+        <p><strong>Doppelcheck:</strong> Eine KI vergleicht jeden neuen Artikel mit den Artikeln anderer Medien. Berichten mindestens zwei verschiedene Medien über dasselbe Ereignis, gilt die Meldung als bestätigt. Hat bisher nur ein Medium darüber berichtet, steht „1 Quelle“ dabei.</p>
+        <p><strong>Mehr lesen:</strong> Ein Klick auf eine Meldung zeigt einen kurzen Überblick, den eine KI in eigenen Worten schreibt, und die Schlagzeilen der Medien mit Link zum Original. Die Artikel selbst gehören den Medien, darum zeigen wir sie nicht, sondern verlinken sie.</p>
+        <p>Schlagzeilen und Überblicke sind KI-Texte. Menschen prüfen sie nicht, sie können Fehler enthalten. Lies im Original nach, bevor du etwas weitergibst.</p>
+      </details>
+    </section>
+
+    <!-- ABSTIMMUNGEN -->
+    <section id="view-polls" hidden>
+      <div class="feedhead">
+        <div>
+          <h1>Abstimmungen</h1>
+          <p class="sub">Stimme ab, schreib deine Meinung dazu und starte eigene Fragen.</p>
+        </div>
+      </div>
+      <details class="compose" id="newPollBox">
         <summary><span class="plus">+</span>Neue Abstimmung starten</summary>
         <form id="newPoll">
-          <div class="field"><label for="pq">Frage</label><input type="text" id="pq" maxlength="200" placeholder="Soll das Wahlalter auf 16 Jahre gesenkt werden?" required></div>
+          <div class="fld"><label for="pq">Frage</label><input type="text" id="pq" maxlength="200" placeholder="Soll das Wahlalter auf 16 Jahre gesenkt werden?" required></div>
           <div><span class="lbl">Antworten (2 bis 4)</span>
             <div class="opts">
               <input type="text" id="po1" maxlength="60" value="Dafür" aria-label="Antwort 1">
@@ -291,26 +424,33 @@ footer.site .claim{font:italic 500 1rem var(--display);color:var(--muted)}
               <input type="text" id="po4" maxlength="60" placeholder="Optional" aria-label="Antwort 4">
             </div>
           </div>
-          <div class="field"><label for="pc">Thema gehört zu</label><select id="pc"></select></div>
+          <div class="fld"><label for="pc">Region</label><select id="pc"></select></div>
           <p class="fine">Dein Name und deine Frage sind öffentlich sichtbar. Es gelten die <a href="/regeln.html" target="_blank">Regeln für Beiträge</a>.</p>
           <div><button class="btn accent" type="submit">Abstimmung veröffentlichen</button></div>
         </form>
       </details>
       <div class="polls" id="pollList"></div>
-    </div>
-  </section>
-</main>
+    </section>
+  </main>
+</div>
 
-<footer class="site gutter">
-  <div class="shell">
-    <a class="logo" href="/"><svg viewBox="0 0 32 32" aria-hidden="true" style="width:22px;height:22px"><circle cx="16" cy="16" r="11.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="var(--accent)"/><path d="M16 1.5v6M16 24.5v6M1.5 16h6M24.5 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="claim">See beyond the headlines</span></a>
-    <nav>
-      <a href="/impressum.html">Impressum</a>
-      <a href="/datenschutz.html">Datenschutz</a>
-      <a href="/regeln.html">Regeln für Beiträge</a>
-    </nav>
-  </div>
+<footer class="site">
+  <span class="claim">See beyond the headlines</span>
+  <nav>
+    <a href="/impressum.html">Impressum</a>
+    <a href="/datenschutz.html">Datenschutz</a>
+    <a href="/regeln.html">Regeln für Beiträge</a>
+  </nav>
 </footer>
+
+<dialog class="drawer" id="drawer" aria-labelledby="dTitle">
+  <div class="dbar">
+    <button class="iconbtn" id="dClose" type="button" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <span class="grow"></span>
+    <button class="ghost" id="dShare" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.5l1-1a3 3 0 0 1 4.2 4.2l-1 1M9 11.5l-1 1a3 3 0 0 1-4.2-4.2l1-1"/></svg>Link kopieren</button>
+  </div>
+  <div class="dbody" id="dBody"></div>
+</dialog>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -326,18 +466,20 @@ const COUNTRIES = [
  .sort((a,b)=>a.name.localeCompare(b.name,"de"));
 const BY = Object.fromEntries(COUNTRIES.map(c=>[c.code,c]));
 const FROM = {NL:"aus den Niederlanden",CH:"aus der Schweiz",SK:"aus der Slowakei",UA:"aus der Ukraine",GB:"aus dem Vereinigten Königreich"};
+const IN = {NL:"den Niederlanden",CH:"der Schweiz",SK:"der Slowakei",UA:"der Ukraine",GB:"dem Vereinigten Königreich"};
 const CATS = {
   politik:{label:"Politik"}, wirtschaft:{label:"Wirtschaft"}, sport:{label:"Sport"}, kultur:{label:"Kultur"},
   wissenschaft:{label:"Wissenschaft"}, technik:{label:"Technik"}, gesundheit:{label:"Gesundheit"},
   umwelt:{label:"Umwelt & Klima"}, chronik:{label:"Chronik"}
 };
-const PERIODS = {day:{gn:"1d",days:1}, week:{gn:"7d",days:7}, month:{gn:"30d",days:30}, year:{gn:"1y",days:365}};
+const PERIODS = {
+  day:{gn:"1d",days:1,label:"in den letzten 24 Stunden"}, week:{gn:"7d",days:7,label:"in der letzten Woche"},
+  month:{gn:"30d",days:30,label:"im letzten Monat"}, year:{gn:"1y",days:365,label:"im letzten Jahr"}
+};
 const $ = id=>document.getElementById(id);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fmtDate = d=>d.toLocaleDateString("de-AT",{day:"numeric",month:"long",year:"numeric"});
-const TODAY = new Date();
-$("today").textContent = TODAY.toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-const RETICLE = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/><circle cx="16" cy="16" r="4" fill="var(--accent)"/></svg>`;
+const safeUrl = u=>/^https?:\/\//i.test(u)?u:"#";
+const ICON_OUT = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5H3.5v9h9V10M9 3h4v4M13 3L7.5 8.5"/></svg>`;
 
 const store = {
   get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
@@ -345,8 +487,9 @@ const store = {
 };
 const pref = store.get("ts-pref",{});
 const state = { country: BY[pref.country]?pref.country:"AT", intl: !!pref.intl,
-  period: PERIODS[pref.period]?pref.period:"week", cat: CATS[pref.cat]?pref.cat:"politik", view:"news" };
-const savePref = ()=>store.set("ts-pref",{country:state.country,intl:state.intl,period:state.period,cat:state.cat});
+  period: PERIODS[pref.period]?pref.period:"week", cat: CATS[pref.cat]?pref.cat:"politik",
+  sort: pref.sort==="top"?"top":"new", view:"news" };
+const savePref = ()=>store.set("ts-pref",{country:state.country,intl:state.intl,period:state.period,cat:state.cat,sort:state.sort});
 
 let CLIENT = store.get("ts-client",null);
 if(!CLIENT){ CLIENT = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36)+Math.random().toString(36).slice(2)); store.set("ts-client",CLIENT); }
@@ -354,7 +497,7 @@ const ADMIN = store.get("ts-admin",null);
 $("myName").value = store.get("ts-name","");
 $("myName").addEventListener("change",e=>store.set("ts-name",e.target.value.trim()));
 
-function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2600); }
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2800); }
 async function api(path, opts={}){
   const headers = {"Content-Type":"application/json"};
   if(ADMIN) headers["X-Admin-Key"]=ADMIN;
@@ -364,44 +507,37 @@ async function api(path, opts={}){
   return data;
 }
 
+// ---------- Hell / Dunkel ----------
+$("theme").onclick=()=>{
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+  const next = cur==="dark"?"light":"dark";
+  document.documentElement.dataset.theme = next; store.set("ts-theme",next);
+};
+
 // ---------- Auswahl ----------
 const optHtml = COUNTRIES.map(c=>`<option value="${c.code}">${c.flag} ${esc(c.name)}</option>`).join("");
-$("country").innerHTML = `<option value="EU">aus ganz Europa</option><optgroup label="Länder">` +
-  COUNTRIES.map(c=>`<option value="${c.code}">${esc(FROM[c.code]||"aus "+c.name)}</option>`).join("") + `</optgroup>`;
+$("country").innerHTML = `<option value="EU">🇪🇺 Ganz Europa</option><optgroup label="Länder">${optHtml}</optgroup>`;
 $("pc").innerHTML = `<option value="INT">🇪🇺 Ganz Europa</option>` + optHtml;
 const scopeCode = ()=> state.intl ? "EU" : state.country;
 const pollScope = ()=> state.intl ? "INT" : state.country;
-const scopeName = ()=> state.intl ? "Europa" : BY[state.country].name;
-
-// Auswahlfelder in der Überschrift so breit wie der gewählte Text
-const measurer = document.createElement("span");
-measurer.style.cssText = "position:absolute;visibility:hidden;white-space:pre;left:-9999px";
-document.body.appendChild(measurer);
-function fit(sel){
-  measurer.style.font = getComputedStyle(sel).font;
-  measurer.style.letterSpacing = getComputedStyle(sel).letterSpacing;
-  measurer.textContent = sel.options[sel.selectedIndex]?.text || "";
-  sel.style.width = `calc(${Math.ceil(measurer.getBoundingClientRect().width)}px + 1.05em)`;
-}
-const fitAll = ()=>{ fit($("country")); fit($("period")); };
-window.addEventListener("resize", fitAll);
-document.fonts && document.fonts.ready.then(fitAll);
+const scopeIn = ()=> state.intl ? "ganz Europa" : (IN[state.country] || BY[state.country].name);
 
 function renderControls(){
   $("country").value = scopeCode();
-  $("period").value = state.period;
-  $("catWord").textContent = CATS[state.cat].label;
-  $("cat").innerHTML = Object.entries(CATS).map(([k,c])=>`<button class="chip" data-c="${k}" style="--c:var(--c-${k})" aria-pressed="${state.cat===k}"><span class="dot"></span>${c.label}</button>`).join("");
-  const from = new Date(TODAY.getTime()-PERIODS[state.period].days*864e5);
-  $("range").textContent = `${fmtDate(from)} – ${fmtDate(TODAY)}`;
+  $("period").querySelectorAll("[data-p]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.p===state.period));
+  $("cat").innerHTML = Object.entries(CATS).map(([k,c])=>`<button class="cat" type="button" data-c="${k}" style="--c:var(--c-${k})" aria-pressed="${state.cat===k}"><i></i>${c.label}</button>`).join("");
+  document.querySelectorAll("#toolbarSort,.sort [data-s]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.s===state.sort));
+  $("onlyConf").checked = onlyConfirmed;
+  $("title").textContent = `${CATS[state.cat].label} in ${scopeIn()}`;
   $("pc").value = pollScope();
-  fitAll();
 }
-
 function changed(){ savePref(); renderControls(); if(state.view==="news") loadNews(); else { pollFilter=pollScope(); loadPolls(); } }
 $("country").addEventListener("change",e=>{ const v=e.target.value; if(v==="EU"){ state.intl=true; } else { state.intl=false; state.country=v; } changed(); });
-$("period").addEventListener("change",e=>{ state.period=e.target.value; changed(); });
+$("period").addEventListener("click",e=>{ const b=e.target.closest("[data-p]"); if(!b) return; state.period=b.dataset.p; changed(); });
 $("cat").addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(!b) return; state.cat=b.dataset.c; changed(); });
+document.querySelector(".sort").addEventListener("click",e=>{ const b=e.target.closest("[data-s]"); if(!b) return; state.sort=b.dataset.s; savePref(); renderControls(); renderNews(); });
+let onlyConfirmed = store.get("ts-confirmed",false);
+$("onlyConf").addEventListener("change",e=>{ onlyConfirmed=e.target.checked; store.set("ts-confirmed",onlyConfirmed); renderNews(); });
 
 function setView(v){
   state.view=v;
@@ -409,6 +545,8 @@ function setView(v){
   $("tab-polls").setAttribute("aria-selected", v==="polls");
   $("view-news").hidden = v!=="news";
   $("view-polls").hidden = v!=="polls";
+  $("rail-news").hidden = v!=="news";
+  $("rail-polls").hidden = v!=="polls";
   window.scrollTo({top:0});
   renderControls();
   if(v==="polls") loadPolls(); else loadNews();
@@ -416,36 +554,89 @@ function setView(v){
 $("tab-news").onclick=()=>setView("news");
 $("tab-polls").onclick=()=>setView("polls");
 
-// ---------- Nachrichten ----------
-let newsItems=[], newsShown=13, newsReq=0, newsNote="", onlyConfirmed=store.get("ts-confirmed",false), newsFeeds=[];
-function skeleton(){
-  return `<div class="loadmsg">${RETICLE}Der Bot liest die Nachrichtendienste, vergleicht die Artikel miteinander und schreibt Schlagzeilen. Beim ersten Mal dauert das bis zu 30 Sekunden.</div>
-  <div class="skel"><i class="h"></i><i class="h2"></i><i style="width:64%"></i></div>
-  <div class="grid"><div class="skel"><i class="h" style="height:22px"></i><i></i><i style="width:70%"></i></div><div class="skel"><i class="h" style="height:22px"></i><i></i><i style="width:60%"></i></div></div>`;
+// ---------- Zeit ----------
+const dkey = ms=>new Date(ms).toLocaleDateString("sv-SE");
+const fmtTime = ms=>new Date(ms).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"});
+const fmtShort = ms=>new Date(ms).toLocaleDateString("de-AT",{day:"numeric",month:"numeric"});
+function dayTitle(key){
+  const d = new Date(key+"T12:00:00");
+  const long = d.toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"});
+  if(key===dkey(Date.now())) return ["Heute", long];
+  if(key===dkey(Date.now()-864e5)) return ["Gestern", long];
+  return [d.toLocaleDateString("de-AT",{weekday:"long"}), d.toLocaleDateString("de-AT",{day:"numeric",month:"long"})];
 }
-// Stilles Nachladen, ohne die Liste zu leeren
-async function refreshNews(){
+function ago(ms){
+  const m = Math.round((Date.now()-ms)/60000);
+  if(m<1) return "gerade eben";
+  if(m<60) return `vor ${m} Min.`;
+  const h = Math.round(m/60);
+  if(h<24) return `vor ${h} Std.`;
+  return new Date(ms).toLocaleDateString("de-AT",{day:"numeric",month:"short"});
+}
+
+// ---------- Bausteine ----------
+function dots(k, confirmed){
+  if(!confirmed) return `<span class="dots solo" aria-hidden="true"><i></i></span>`;
+  const n = Math.min(Math.max(k,2),5);
+  return `<span class="dots" aria-hidden="true">${"<i></i>".repeat(n)}${k>5?`<b>+${k-5}</b>`:""}</span>`;
+}
+function proof(n){
+  const k = n.sources.length;
+  return n.confirmed
+    ? `<div class="proof">${dots(k,true)}<span><mark>${Math.max(k,2)} Medien</mark><span class="vh"> bestätigen die Meldung</span></span></div>`
+    : `<div class="proof">${dots(1,false)}<span>1 Quelle<span class="vh">, nicht bestätigt</span></span></div>`;
+}
+function countryTag(n){
+  if(n.europe) return `<span class="ctry">${esc(BY[n.country]?.name||"Europa")}</span>`;
+  if(n.foreign) return `<span class="ctry" title="Meldung von Medien aus ${esc(state.intl?"Europa":BY[state.country].name)} über das Ausland">Ausland</span>`;
+  if(state.intl) return n.country==="EU" ? `<span class="ctry">Europa</span>` : (BY[n.country] ? `<span class="ctry">${esc(BY[n.country].name)}</span>` : "");
+  return "";
+}
+function outletLine(n){
+  const names = n.sources.map(s=>s.outlet);
+  const shown = names.slice(0,3).join(", ");
+  return esc(shown) + (names.length>3?` und ${names.length-3} weitere`:"");
+}
+function rowHtml(n, flat){
+  const when = flat ? fmtShort(n.last) : fmtTime(n.last);
+  const tag = countryTag(n);
+  return `<li><a class="row" href="#s=${esc(n.id)}" data-open="${esc(n.id)}">
+    <time datetime="${new Date(n.last).toISOString()}">${esc(when)}</time>
+    <div class="rbody">
+      <h4 class="rt">${esc(n.title)}</h4>
+      ${n.summary?`<p class="rs">${esc(n.summary)}</p>`:""}
+      <div class="rm">${tag}<span>${outletLine(n)}</span><span class="ki" title="Schlagzeile von einer KI formuliert">KI</span><span class="read">Mehr lesen${ICON_OUT}</span></div>
+    </div>
+    ${proof(n)}
+  </a></li>`;
+}
+
+// ---------- Nachrichten ----------
+let newsItems=[], newsShown=20, newsReq=0, newsNote="", newsFeeds=[];
+function skeleton(){
+  return `<div class="loadmsg"><span class="pulse"></span>Der Bot liest die Nachrichtendienste und vergleicht die Artikel. Beim ersten Mal dauert das bis zu 30 Sekunden.</div>
+  ${[78,64,86,58].map(w=>`<div class="sk"><i style="width:${w}%"></i><i></i><i style="width:46%"></i></div>`).join("")}`;
+}
+async function fetchNews(){ return api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`); }
+function applyNews(data){
+  newsItems = data.items||[]; newsFeeds = data.feeds||[];
+  newsNote = data.pending ? `Der Bot vergleicht gerade noch ${data.pending} Artikel mit anderen Medien. Die Liste aktualisiert sich selbst.` : "";
+}
+async function refreshNews(){ // stilles Nachladen, ohne die Liste zu leeren
   const id=newsReq;
   try{
-    const data = await api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
-    if(id!==newsReq) return;
-    newsItems = data.items||[];
-    newsNote = data.pending ? `Der Bot vergleicht gerade noch ${data.pending} Artikel mit anderen Medien. Die Liste aktualisiert sich automatisch.` : "";
-    renderNews();
+    const data = await fetchNews(); if(id!==newsReq) return;
+    applyNews(data); renderNews();
     if(data.pending && (loadNews._n = (loadNews._n||0)+1) <= 8) loadNews._t = setTimeout(()=>{ if(id===newsReq) refreshNews(); }, 12000);
   }catch(e){}
 }
 async function loadNews(){
   const id=++newsReq; loadNews._n=0; clearTimeout(loadNews._t);
-  $("newsHead").textContent = `${CATS[state.cat].label} · ${scopeName()}`;
-  $("news").innerHTML = skeleton();
-  $("more").hidden = true;
+  $("sub").textContent = `${PERIODS[state.period].label[0].toUpperCase()+PERIODS[state.period].label.slice(1)}`;
+  $("note").innerHTML = ""; $("news").innerHTML = skeleton(); $("more").hidden = true;
   try{
-    const data = await api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
-    if(id!==newsReq) return;
-    newsItems = data.items||[]; newsShown=13; newsFeeds = data.feeds||[];
-    newsNote = data.pending ? `Der Bot vergleicht gerade noch ${data.pending} Artikel mit anderen Medien. Die Liste aktualisiert sich automatisch.` : "";
-    renderNews();
+    const data = await fetchNews(); if(id!==newsReq) return;
+    newsShown=20; applyNews(data); renderNews();
     clearTimeout(loadNews._t);
     if(data.pending && (loadNews._n = (loadNews._n||0)+1) <= 8) loadNews._t = setTimeout(()=>{ if(id===newsReq) refreshNews(); }, 12000);
   }catch(e){
@@ -453,73 +644,167 @@ async function loadNews(){
     $("news").innerHTML = `<div class="empty"><h3>Das hat nicht geklappt.</h3>Die Nachrichten konnten nicht geladen werden (${esc(e.message)}). Tippe auf „Aktualisieren“, um es noch einmal zu versuchen.</div>`;
   }
 }
-const isoToday = ()=>new Date().toISOString().slice(0,10);
-function dayTitle(day){
-  const y = new Date(Date.now()-864e5).toISOString().slice(0,10);
-  const d = new Date(day+"T12:00:00Z");
-  const long = d.toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"});
-  if(day===isoToday()) return ["Heute", long];
-  if(day===y) return ["Gestern", long];
-  return [d.toLocaleDateString("de-AT",{weekday:"long"}), d.toLocaleDateString("de-AT",{day:"numeric",month:"long"})];
-}
-function check(n){
-  const k=n.sources.length;
-  return n.confirmed
-    ? `<span class="ok" title="Mehrere unabhängige Medien berichten darüber">✓ Bestätigt · ${k} Quellen</span>`
-    : `<span class="single" title="Bisher berichtet nur ein Medium darüber">1 Quelle · nicht bestätigt</span>`;
-}
-function srcLine(n){
-  const shown = n.sources.slice(0,5);
-  return `<div class="src">${check(n)}<span class="ai" title="Schlagzeile von einer KI formuliert">KI</span>
-    ${shown.map(s=>`<a href="${esc(s.link)}" target="_blank" rel="noopener">${esc(s.outlet)} ↗</a>`).join("")}${n.sources.length>5?`<span>+${n.sources.length-5}</span>`:""}</div>`;
-}
-function countryTag(n){
-  if(n.europe) return `<span class="ctry">${esc(BY[n.country]?.name||"Europa")}</span>`;
-  if(n.foreign) return `<span class="ctry" title="Meldung von Medien aus ${esc(scopeName())} über das Ausland">Ausland</span>`;
-  return state.intl && BY[n.country] ? `<span class="ctry">${esc(BY[n.country].name)}</span>` : (state.intl && n.country==="EU" ? `<span class="ctry">Europa</span>` : "");
-}
 function renderNews(){
-  const all = onlyConfirmed ? newsItems.filter(n=>n.confirmed) : newsItems;
-  const toggle = `<div class="filterbar"><button class="chip" id="onlyConf" aria-pressed="${onlyConfirmed}"><span class="dot" style="--c:var(--good)"></span>Nur bestätigte Meldungen</button>
-    <span class="fine">${newsItems.filter(n=>n.confirmed).length} von ${newsItems.length} Meldungen von mehreren Medien bestätigt</span></div>`;
-  if(!all.length){
-    $("news").innerHTML = (newsItems.length?toggle:"") + `<div class="empty"><h3>${newsItems.length?"Keine bestätigten Meldungen.":"Noch keine Meldungen."}</h3>${newsItems.length
-      ? "In diesem Zeitraum hat noch kein Ereignis mehrere Quellen. Zeig alle Meldungen oder wähle einen längeren Zeitraum."
-      : `TrueScope sammelt die Meldungen laufend${newsFeeds.length?` (Quellen: ${esc(newsFeeds.join(", "))})`:""}. Ältere Zeiträume füllen sich mit der Zeit. Versuch ein anderes Ressort oder tippe später auf „Aktualisieren“.`}</div>`;
-    bindToggle(); return;
+  const ownAll = newsItems.filter(n=>!n.europe), europeAll = newsItems.filter(n=>n.europe);
+  const base = ownAll.length ? ownAll : europeAll;
+  const conf = base.filter(n=>n.confirmed).length;
+  const p = PERIODS[state.period].label; const per = p[0].toUpperCase()+p.slice(1);
+  $("sub").textContent = base.length
+    ? `${per}: ${base.length} ${base.length===1?"Meldung":"Meldungen"}, davon ${conf} bestätigt${ownAll.length&&europeAll.length?`, dazu ${europeAll.length} aus anderen Ländern`:""}.`
+    : per + ".";
+  $("note").innerHTML = newsNote ? `<div class="notice">${esc(newsNote)}</div>` : "";
+
+  const pool = (onlyConfirmed ? newsItems.filter(n=>n.confirmed) : newsItems);
+  if(!pool.length){
+    $("news").innerHTML = `<div class="empty"><h3>${newsItems.length?"Keine bestätigten Meldungen.":"Noch keine Meldungen."}</h3>${newsItems.length
+      ? "In diesem Zeitraum hat noch kein Ereignis mehrere Quellen. Schalte „Nur bestätigte“ aus oder wähle einen längeren Zeitraum."
+      : `TrueScope sammelt die Meldungen laufend${newsFeeds.length?` (Quellen: ${esc(newsFeeds.join(", "))})`:""}. Wähle ein anderes Ressort oder tippe später auf „Aktualisieren“.`}</div>`;
+    $("more").hidden = true; return;
   }
-  const own = all.filter(n=>!n.europe), europe = all.filter(n=>n.europe);
-  const sorted = [...(own.length?own:europe)].sort((a,b)=>b.last-a.last);
-  const lead = [...sorted].sort((a,b)=> b.sources.length-a.sources.length || b.last-a.last)[0];
-  const rest = sorted.filter(n=>n!==lead).slice(0,newsShown-1);
+  const own = pool.filter(n=>!n.europe), europe = pool.filter(n=>n.europe);
+  const main = own.length ? own : europe;
   const extra = own.length ? europe : [];
-  const [l1] = dayTitle(lead.day);
-  let html = toggle + (newsNote ? `<div class="note"><b>Hinweis</b><span>${esc(newsNote)}</span></div>` : "");
-  html += `<article class="lead">
-    <h3>${esc(lead.title)}</h3>
-    <div class="aside">${lead.summary?`<p>${esc(lead.summary)}</p>`:""}${srcLine(lead)}</div>
-    <div class="meta"><span class="cat" style="--c:var(--c-${state.cat})">Top-Meldung</span><span>·</span><span>${esc(l1)}</span>${countryTag(lead)}</div>
-  </article>`;
-  const groups = [];
-  for(const n of rest){ const g = groups[groups.length-1]; if(g && g.day===n.day) g.items.push(n); else groups.push({day:n.day, items:[n]}); }
-  for(const g of groups){
-    g.items.sort((a,b)=>b.sources.length-a.sources.length || b.last-a.last);
-    const [a,b] = dayTitle(g.day);
-    html += `<div class="day">${esc(a)} <small>${esc(b)}</small></div><div class="grid">` +
-      g.items.map(n=>`<article class="story">${countryTag(n)?`<div class="meta">${countryTag(n)}</div>`:""}<h4>${esc(n.title)}</h4>${n.summary?`<p>${esc(n.summary)}</p>`:""}${srcLine(n)}</article>`).join("") +
-      `</div>`;
+  const flat = state.sort==="top";
+  let html = "";
+  let list;
+  if(flat){
+    list = [...main].sort((a,b)=> b.sources.length-a.sources.length || b.last-a.last);
+  } else {
+    const byNew = [...main].sort((a,b)=>b.last-a.last);
+    const lead = main.length>=4 ? [...byNew].sort((a,b)=> b.sources.length-a.sources.length || b.last-a.last)[0] : null;
+    list = byNew.filter(n=>n!==lead);
+    if(lead){
+      html += `<a class="lead" href="#s=${esc(lead.id)}" data-open="${esc(lead.id)}">
+        <span class="tag">Top-Meldung</span>
+        <h2>${esc(lead.title)}</h2>
+        ${lead.summary?`<p>${esc(lead.summary)}</p>`:""}
+        <div class="foot">${proof(lead)}<span class="rm" style="margin:0">${countryTag(lead)}<span>${outletLine(lead)}</span><span class="ki">KI</span><span class="read">Mehr lesen${ICON_OUT}</span></span></div>
+      </a>`;
+    }
+  }
+  const slice = list.slice(0,newsShown);
+  if(flat){
+    html += `<ol class="rows" style="margin-top:6px">${slice.map(n=>rowHtml(n,true)).join("")}</ol>`;
+  } else {
+    const groups = [];
+    for(const n of slice){ const k=dkey(n.last); const g=groups[groups.length-1]; if(g && g.key===k) g.items.push(n); else groups.push({key:k,items:[n]}); }
+    for(const g of groups){
+      const [a,b] = dayTitle(g.key);
+      html += `<h3 class="dayh">${esc(a)}<span>${esc(b)}</span></h3><ol class="rows">${g.items.map(n=>rowHtml(n,false)).join("")}</ol>`;
+    }
   }
   if(extra.length){
-    html += `<div class="day">Mehr aus Europa <small>${esc(CATS[state.cat].label)} · andere Länder</small></div><div class="grid">` +
-      extra.map(n=>`<article class="story"><div class="meta"><span class="ctry">${esc(BY[n.country]?.name||"Europa")}</span></div><h4>${esc(n.title)}</h4>${n.summary?`<p>${esc(n.summary)}</p>`:""}${srcLine(n)}</article>`).join("") + `</div>`;
+    html += `<h3 class="dayh">Mehr aus Europa<span>${esc(CATS[state.cat].label)} aus anderen Ländern</span></h3><ol class="rows">${extra.map(n=>rowHtml(n,true)).join("")}</ol>`;
   }
   $("news").innerHTML = html;
-  $("more").hidden = newsShown >= own.length;
-  bindToggle();
+  $("more").hidden = newsShown >= list.length;
 }
-function bindToggle(){ const t=$("onlyConf"); if(t) t.onclick=()=>{ onlyConfirmed=!onlyConfirmed; store.set("ts-confirmed",onlyConfirmed); renderNews(); }; }
-$("more").onclick=()=>{ newsShown+=12; renderNews(); };
+$("more").onclick=()=>{ newsShown+=20; renderNews(); };
 $("reload").onclick=loadNews;
+
+// ---------- Mehr lesen (Seitenfenster) ----------
+const drawer = $("drawer");
+let dReq=0, dPushed=false, dId=null;
+const findItem = id=>newsItems.find(n=>n.id===id)||null;
+function head(item, d){
+  const src = d||item||{};
+  const k = d ? (d.articles?.length || 0) : (item?.sources.length||0);
+  const confirmed = !!src.confirmed;
+  const outs = d ? d.outlets : (item?.sources.length||0);
+  const tag = item ? countryTag(item) : (d && BY[d.country] ? `<span class="ctry">${esc(BY[d.country].name)}</span>` : "");
+  const when = src.last ? `${new Date(src.last).toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"})}, ${fmtTime(src.last)}` : "";
+  return `<div class="dmeta">${tag}<span>${esc(when)}</span></div>
+    <h2 class="dtitle" id="dTitle">${esc(src.title||"")}</h2>
+    <div class="dproof">${confirmed
+      ? `${dots(Math.max(outs,2),true)}<span><mark>Bestätigt von ${Math.max(outs,2)} Medien</mark></span>`
+      : `${dots(1,false)}<span>Nur eine Quelle, nicht bestätigt</span>`}<span class="ki" title="Schlagzeile von einer KI formuliert">KI</span></div>`;
+}
+function overviewHtml(d, mode){
+  let body;
+  if(mode==="loading") body = `<div class="dsk"><i></i><i></i><i style="width:70%"></i></div>`;
+  else if(d.detail) body = `<p class="dread">${esc(d.detail)}</p>`;
+  else if(d.status==="busy") body = `<div class="dsk"><i></i><i></i><i style="width:60%"></i></div><p class="dfine">Der Überblick wird gerade geschrieben.</p>`;
+  else if(d.status==="limit") body = `<p class="dread mute">Für heute sind alle Überblicke geschrieben, die das Gratis-Kontingent der KI hergibt. Morgen geht es weiter. Die Originalartikel findest du unten.</p>`;
+  else body = `<p class="dread mute">Für diese Meldung gibt es gerade keinen Überblick. Die Originalartikel findest du unten.</p>`;
+  return `<h3 class="dh">Überblick <span class="ki">KI</span></h3>${body}
+    ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten geschrieben. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}`;
+}
+function sourcesHtml(item, d){
+  if(d && d.articles?.length){
+    return `<h3 class="dh">Das berichten die Medien <span class="n">${d.articles.length}</span></h3><ul class="srcs">${d.articles.map(a=>`<li><a class="src" href="${esc(safeUrl(a.link))}" target="_blank" rel="noopener noreferrer">
+      <span class="so">${esc(a.outlet)}<small>${esc(ago(a.published))}</small></span>
+      <span class="st">${esc(a.title)}</span>
+      <span class="go">Original lesen${ICON_OUT}</span></a></li>`).join("")}</ul>`;
+  }
+  if(item && item.sources.length){
+    return `<h3 class="dh">Das berichten die Medien <span class="n">${item.sources.length}</span></h3><ul class="srcs">${item.sources.map(s=>`<li><a class="src" href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer">
+      <span class="so">${esc(s.outlet)}</span><span class="go">Original lesen${ICON_OUT}</span></a></li>`).join("")}</ul>`;
+  }
+  return "";
+}
+function renderDrawer(item, d, mode){
+  const keepScroll = $("dBody").scrollTop;
+  $("dBody").innerHTML = head(item,d) + overviewHtml(d||{}, mode) + sourcesHtml(item,d) +
+    `<div class="dact"><button class="btn line sm" type="button" id="dPoll">Dazu abstimmen</button></div>
+     <p class="dfine">Ein Fehler in der Meldung oder ein Medium, das nicht verlinkt werden möchte? Melde dich über das <a href="/impressum.html">Impressum</a>.</p>`;
+  $("dBody").scrollTop = keepScroll;
+}
+function openStory(id, item, fromHash){
+  const req = ++dReq; dId = id; item = item || findItem(id);
+  renderDrawer(item, null, "loading");
+  if(!drawer.open){ drawer.showModal(); document.documentElement.classList.add("locked"); }
+  $("dBody").scrollTop = 0;
+  if(!fromHash && location.hash !== "#s="+id){ history.pushState({s:id},"","#s="+id); dPushed = true; }
+  else if(fromHash) dPushed = false;
+  loadStory(id, item, req, 0);
+}
+async function loadStory(id, item, req, tries){
+  try{
+    const d = await api(`/api/story?id=${encodeURIComponent(id)}`);
+    if(req!==dReq) return;
+    renderDrawer(item || {sources:[],confirmed:d.confirmed}, d, "done");
+    if(d.status==="busy" && tries<3) setTimeout(()=>{ if(req===dReq && drawer.open) loadStory(id, item, req, tries+1); }, 4000);
+  }catch(e){
+    if(req!==dReq) return;
+    $("dBody").innerHTML = `<div class="empty"><h3>Das hat nicht geklappt.</h3>${esc(e.message)}</div>`;
+  }
+}
+drawer.addEventListener("close",()=>{
+  document.documentElement.classList.remove("locked"); dReq++;
+  if(location.hash.startsWith("#s=")){
+    if(dPushed){ dPushed=false; history.back(); }
+    else history.replaceState(null,"",location.pathname+location.search);
+  }
+});
+drawer.addEventListener("click",e=>{ if(e.target===drawer) drawer.close(); });
+$("dClose").onclick=()=>drawer.close();
+$("dShare").onclick=async()=>{
+  const url = location.origin+"/#s="+dId;
+  try{
+    if(navigator.share){ await navigator.share({title:"TrueScope",url}); return; }
+    await navigator.clipboard.writeText(url); toast("Link kopiert");
+  }catch(e){ if(e&&e.name!=="AbortError") toast("Der Link konnte nicht kopiert werden."); }
+};
+$("dBody").addEventListener("click",e=>{
+  if(!e.target.closest("#dPoll")) return;
+  const it = findItem(dId); const title = $("dBody").querySelector(".dtitle")?.textContent || "";
+  drawer.close();
+  setTimeout(()=>{
+    setView("polls");
+    $("pq").value = `Wie siehst du das? ${title}`.slice(0,200);
+    if(it && BY[it.country]) $("pc").value = it.country;
+    $("newPollBox").open = true; $("pq").focus();
+  }, 30);
+});
+$("news").addEventListener("click",e=>{
+  const a = e.target.closest("[data-open]"); if(!a) return;
+  if(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1) return;
+  e.preventDefault(); openStory(a.dataset.open, findItem(a.dataset.open));
+});
+window.addEventListener("popstate",()=>{
+  if(location.hash.startsWith("#s=")) openStory(decodeURIComponent(location.hash.slice(3)), null, true);
+  else if(drawer.open){ dPushed=false; drawer.close(); }
+});
 
 // ---------- Abstimmungen ----------
 let polls=[], pollFilter="ALL", pollsLoaded=false, pollsErr=null, pollTimer=null;
@@ -530,10 +815,10 @@ const initials = s=>String(s||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).j
 
 function renderFilter(){
   const cur = pollScope();
-  const chips = [["ALL","Alle"],[cur, cur==="INT"?"🇪🇺 Ganz Europa":`${BY[cur].flag} ${BY[cur].name}`]];
+  const chips = [["ALL","Alle Regionen"],[cur, cur==="INT"?"🇪🇺 Ganz Europa":`${BY[cur].flag} ${BY[cur].name}`]];
   if(cur!=="INT") chips.push(["INT","🇪🇺 Ganz Europa"]);
   if(!chips.some(c=>c[0]===pollFilter)) pollFilter="ALL";
-  $("pollFilter").innerHTML = chips.map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${pollFilter===k}">${esc(l)}</button>`).join("");
+  $("pollFilter").innerHTML = chips.map(([k,l])=>`<button class="cat" type="button" data-f="${k}" aria-pressed="${pollFilter===k}">${esc(l)}</button>`).join("");
 }
 $("pollFilter").addEventListener("click",e=>{ const b=e.target.closest("[data-f]"); if(!b) return; pollFilter=b.dataset.f; loadPolls(); });
 
@@ -551,7 +836,7 @@ async function loadPolls(){
 
 function renderPolls(){
   const box=$("pollList");
-  if(!pollsLoaded){ box.innerHTML=`<div class="loadmsg">${RETICLE}Abstimmungen werden geladen …</div>`; return; }
+  if(!pollsLoaded){ box.innerHTML=`<div class="loadmsg"><span class="pulse"></span>Abstimmungen werden geladen …</div>`; return; }
   if(pollsErr && !polls.length){ box.innerHTML=`<div class="empty"><h3>Das hat nicht geklappt.</h3>Abstimmungen konnten nicht geladen werden (${esc(pollsErr)}). Bitte versuch es gleich noch einmal.</div>`; return; }
   if(!polls.length){
     box.innerHTML = `<div class="empty"><h3>${pollFilter==="ALL"?"Noch keine Abstimmungen.":"Hier ist es noch still."}</h3>Starte die erste: Stell eine Frage zu einem Thema und lass andere abstimmen und kommentieren.</div>`;
@@ -563,31 +848,30 @@ function renderPolls(){
     const ctry = p.country==="INT"?"Ganz Europa":(BY[p.country]?BY[p.country].name:p.country);
     const opts = p.options.map((o,i)=>{
       const n=p.counts[i]||0, pct= total? Math.round(n*100/total):0;
-      return `<button class="vote${p.myVote===i?" mine":""}" data-vote="${esc(p.id)}" data-i="${i}" aria-pressed="${p.myVote===i}">
+      return `<button class="vote${p.myVote===i?" mine":""}" type="button" data-vote="${esc(p.id)}" data-i="${i}" aria-pressed="${p.myVote===i}">
         <span class="bar" style="width:${voted?pct:0}%"></span>
         <span>${p.myVote===i?`<span class="check">✓</span>`:""}${esc(o)}</span>${voted?`<span class="pct">${pct}%</span>`:""}</button>`;
     }).join("");
     const open = openComments.has(p.id), cs=p.comments;
-    return `<article class="card poll">
-      <div class="meta"><span class="cat" style="--c:var(--c-politik)">${esc(ctry)}</span>
-        <span>von ${esc(p.author)} · ${new Date(p.createdAt).toLocaleDateString("de-AT",{day:"numeric",month:"short"})}</span></div>
+    return `<article class="poll">
+      <div class="pm"><b>${esc(ctry)}</b><span>von ${esc(p.author)}, ${new Date(p.createdAt).toLocaleDateString("de-AT",{day:"numeric",month:"short"})}</span></div>
       <h3>${esc(p.question)}</h3>
       <div style="display:grid;gap:8px">${opts}</div>
       <div class="pollfoot">
-        <span>${total} ${total===1?"Stimme":"Stimmen"} · ${voted?"Tippe eine andere Antwort, um zu wechseln":"Stimme ab, um das Ergebnis zu sehen"}</span>
+        <span>${total} ${total===1?"Stimme":"Stimmen"}. ${voted?"Tippe eine andere Antwort, um zu wechseln.":"Stimme ab, um das Ergebnis zu sehen."}</span>
         <span style="display:flex;gap:14px;align-items:center">
-          <button class="btn line sm" data-togglec="${esc(p.id)}">${open?"Kommentare schließen":`Kommentare · ${cs.length}`}</button>
-          ${p.mine?`<button class="linkbtn" data-delpoll="${esc(p.id)}">Entfernen</button>`:`<button class="linkbtn" data-report="poll" data-id="${esc(p.id)}">Melden</button>`}
+          <button class="btn line sm" type="button" data-togglec="${esc(p.id)}">${open?"Kommentare schließen":`Kommentare (${cs.length})`}</button>
+          ${p.mine?`<button class="linkbtn" type="button" data-delpoll="${esc(p.id)}">Entfernen</button>`:`<button class="linkbtn" type="button" data-report="poll" data-id="${esc(p.id)}">Melden</button>`}
         </span>
       </div>
       ${open?`<div class="thread">
         ${cs.length?cs.map(c=>`<div class="cmt"><span class="avatar" style="--c:${colorFor(c.author)}">${esc(initials(c.author))}</span><div>
           <div class="who"><b>${esc(c.author)}</b><time>${new Date(c.createdAt).toLocaleDateString("de-AT",{day:"numeric",month:"short"})}</time>
-          ${c.mine?`<button class="linkbtn" data-delc="${esc(c.id)}">löschen</button>`:`<button class="linkbtn" data-report="comment" data-id="${esc(c.id)}">melden</button>`}</div>
+          ${c.mine?`<button class="linkbtn" type="button" data-delc="${esc(c.id)}">löschen</button>`:`<button class="linkbtn" type="button" data-report="comment" data-id="${esc(c.id)}">melden</button>`}</div>
           <p>${esc(c.text)}</p></div></div>`).join(""):`<p class="fine">Noch keine Kommentare. Schreib als Erste:r deine Meinung.</p>`}
         <form class="cform" data-cform="${esc(p.id)}">
           <textarea id="c-${esc(p.id)}" maxlength="600" placeholder="Deine Meinung dazu …" required></textarea>
-          <div class="row"><span class="fine">Öffentlich sichtbar · <a href="/regeln.html" target="_blank">Regeln</a></span><button class="btn accent sm" type="submit">Kommentar senden</button></div>
+          <div class="row2"><span class="fine">Öffentlich sichtbar. <a href="/regeln.html" target="_blank">Regeln</a></span><button class="btn accent sm" type="submit">Kommentar senden</button></div>
         </form></div>`:""}
     </article>`;
   }).join("");
@@ -633,6 +917,7 @@ $("newPoll").addEventListener("submit",e=>{
 
 renderControls();
 loadNews();
+if(location.hash.startsWith("#s=")) openStory(decodeURIComponent(location.hash.slice(3)), null, true);
 </script>
 </body>
 </html>

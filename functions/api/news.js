@@ -5,6 +5,7 @@
 
 import { FEEDS } from "../../lib/feeds.js";
 import { parseFeed } from "../../lib/rss.js";
+import { ask, clean, lock, unlock } from "../../lib/bot.js";
 
 const UA = "TrueScope/1.0 (+https://truescope-49p.pages.dev; RSS-Leser)";
 const FEED_TTL = 20 * 60 * 1000;          // Feeds höchstens alle 20 Minuten abrufen
@@ -12,7 +13,6 @@ const KEEP_MS = 4 * 864e5;                // nur Artikel der letzten 4 Tage aufn
 const STORY_WINDOW = 3 * 864e5;           // neue Artikel mit Ereignissen der letzten 3 Tage vergleichen
 const AI_BATCH = 40;
 const MIN_PER_CAT = 10;
-const MODELS = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"];
 const CATS = ["politik", "wirtschaft", "sport", "kultur", "wissenschaft", "technik", "gesundheit", "umwelt", "chronik"];
 const STRICT = new Set(["politik", "wirtschaft", "chronik"]); // hier zählen zuerst nur Inlandsmeldungen
 const DAYS = { "1d": 1, "7d": 7, "30d": 30, "1y": 365 };
@@ -29,7 +29,6 @@ async function hashId(s) {
   return [...new Uint8Array(b)].slice(0, 8).map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 const rid = () => crypto.randomUUID().replace(/-/g, "").slice(0, 12);
-const clean = (s, n) => String(s || "").replace(/\s+/g, " ").replace(/\|/g, "/").trim().slice(0, n);
 
 // 1) Feeds abrufen und neue Artikel speichern. Feeds: [Land, Medium, URL, Ressort-Hinweis]
 async function ingest(env, country, cat, max, log) {
@@ -61,40 +60,13 @@ async function ingest(env, country, cat, max, log) {
   const fresh = items.filter((a) => !a.published || now - a.published < KEEP_MS);
   const withIds = await Promise.all(fresh.map(async (a) => ({ ...a, id: await hashId(a.link) })));
   const stmts = withIds.map((a) => env.DB.prepare(
-    "INSERT OR IGNORE INTO articles (id, country, outlet, title, link, published, created_at, hint) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-  ).bind(a.id, a.country, a.outlet, a.title, a.link, Math.min(a.published || now, now), now, a.hint));
+    "INSERT OR IGNORE INTO articles (id, country, outlet, title, link, published, created_at, hint, descr) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  ).bind(a.id, a.country, a.outlet, a.title, a.link, Math.min(a.published || now, now), now, a.hint, a.descr || ""));
   due.forEach((f) => stmts.push(env.DB.prepare(
     "INSERT INTO feed_state (url, fetched_at) VALUES (?, ?) ON CONFLICT(url) DO UPDATE SET fetched_at = excluded.fetched_at"
   ).bind(f[2], now)));
   for (let i = 0; i < stmts.length; i += 90) await env.DB.batch(stmts.slice(i, i + 90));
   return due.length;
-}
-
-function aiText(out) {
-  if (!out) return "";
-  if (typeof out === "string") return out;
-  if (typeof out.response === "string") return out.response;
-  const c = out.choices?.[0]?.message?.content;
-  if (typeof c === "string") return c;
-  if (Array.isArray(c)) return c.map((p) => p.text || "").join("");
-  return "";
-}
-async function ask(env, system, user, maxTokens, log) {
-  for (const model of MODELS) {
-    try {
-      const out = await env.AI.run(model, {
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
-        max_tokens: maxTokens, temperature: 0.1, chat_template_kwargs: { enable_thinking: false },
-      });
-      const txt = aiText(out);
-      if (txt && txt.length > 3) return txt;
-      log.push(model + ": leere Antwort");
-    } catch (e) {
-      log.push(model + " Fehler: " + String(e).slice(0, 160));
-      if (/3036|daily free allocation/i.test(String(e))) return null; // Tageskontingent aufgebraucht
-    }
-  }
-  return null;
 }
 
 // 2) Doppelcheck: neue Artikel bekannten Ereignissen zuordnen oder neue Ereignisse anlegen.
@@ -203,18 +175,6 @@ async function summarize(env, country, log) {
     if (m && ids.has(m[1])) stmts.push(env.DB.prepare("UPDATE stories SET summary = ? WHERE id = ?").bind(clean(m[2], 300), m[1]));
   }
   if (stmts.length) await env.DB.batch(stmts);
-}
-
-// Verhindert, dass mehrere Anfragen gleichzeitig dieselben Artikel prüfen
-async function lock(env, name, ms) {
-  const now = Date.now();
-  const r = await env.DB.prepare(
-    "INSERT INTO locks (name, until) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET until = excluded.until WHERE locks.until < ?"
-  ).bind(name, now + ms, now).run();
-  return (r.meta?.changes ?? r.changes ?? 0) > 0;
-}
-async function unlock(env, name) {
-  await env.DB.prepare("UPDATE locks SET until = 0 WHERE name = ?").bind(name).run();
 }
 
 export async function work(env, country, { cat = null, maxFeeds = 8, rounds = 2, log = [] } = {}) {
