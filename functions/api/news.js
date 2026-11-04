@@ -10,7 +10,7 @@ const UA = "TrueScope/1.0 (+https://truescope-49p.pages.dev; RSS-Leser)";
 const FEED_TTL = 20 * 60 * 1000;          // Feeds höchstens alle 20 Minuten abrufen
 const KEEP_MS = 4 * 864e5;                // nur Artikel der letzten 4 Tage aufnehmen
 const STORY_WINDOW = 3 * 864e5;           // neue Artikel mit Ereignissen der letzten 3 Tage vergleichen
-const AI_BATCH = 50;
+const AI_BATCH = 40;
 const MIN_PER_CAT = 10;
 const MODELS = ["@cf/google/gemma-4-26b-a4b-it", "@cf/zai-org/glm-4.7-flash", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"];
 const CATS = ["politik", "wirtschaft", "sport", "kultur", "wissenschaft", "technik", "gesundheit", "umwelt", "chronik"];
@@ -109,8 +109,8 @@ const ASSIGN_SYSTEM =
   "Für jede neue Gruppe: Ressort (" + CATS.join(", ") + "; der Ressort-Hinweis ist meist richtig), " +
   "i wenn das Ereignis im Land LAND stattfindet oder es direkt betrifft, sonst a, " +
   "und eine eigene, neutrale deutsche Schlagzeile (höchstens 12 Wörter, keine wörtliche Übersetzung, keine Wertung, nur Fakten aus den Titeln).\n" +
-  "Antworte NUR mit Zeilen in genau diesem Format, ohne weiteren Text:\n" +
-  "1=<id>\n2=A\n3=-\nA|politik|i|Schlagzeile";
+  "Antworte NUR mit Zeilen in genau diesem Format, ohne weiteren Text. ZUERST alle neuen Gruppen, DANACH die Zuordnung jedes Artikels:\n" +
+  "A|politik|i|Schlagzeile\nB|sport|a|Schlagzeile\n1=<bekannte id>\n2=A\n3=B\n4=-";
 
 async function assign(env, country, rounds, log) {
   if (!env.AI) { log.push("keine KI-Bindung"); return 0; }
@@ -127,7 +127,7 @@ async function assign(env, country, rounds, log) {
     const user = `LAND: ${COUNTRY_DE[country]}\nBEKANNT:\n` +
       stories.map((s) => `${s.id}|${clean(s.headline, 90)}`).join("\n") +
       `\nNEU:\n` + arts.map((a, i) => `${i + 1}|${a.outlet}|${a.hint || "?"}|${clean(a.title, 140)}`).join("\n");
-    const txt = await ask(env, ASSIGN_SYSTEM, user, 2500, log);
+    const txt = await ask(env, ASSIGN_SYSTEM, user, 3500, log);
     if (!txt) { log.push("keine KI-Antwort"); break; }
 
     const known = new Set(stories.map((s) => s.id));
