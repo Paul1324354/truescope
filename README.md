@@ -6,7 +6,7 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 ## Aufbau
 
 - `public/index.html`: die App (eine Seite, ohne Build-Schritt)
-- `functions/api/news.js`: holt Schlagzeilen über die [Guardian Open Platform](https://open-platform.theguardian.com) (Gratis-Schlüssel, nicht kommerziell, mit Quellenangabe), 30 Minuten zwischengespeichert
+- `functions/api/news.js` + `lib/wiki.js`: Schlagzeilen-Bot. Liest Wikipedia „Portal:Current events“ (CC BY-SA 4.0), ordnet Land und Ressort zu und lässt Workers AI eigene deutsche Schlagzeilen schreiben. Kein Schlüssel nötig.
 - `functions/api/report.js`: Beiträge melden; ab 3 Meldungen automatisch ausgeblendet
 - `public/impressum.html`, `datenschutz.html`, `regeln.html`: rechtliche Seiten (Platzhalter im Impressum und in der Datenschutzerklärung ausfüllen!)
 - `functions/api/polls.js`, `vote.js`, `comment.js`: Abstimmungen, Stimmen, Kommentare
@@ -22,13 +22,6 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 
 Danach wird jede Änderung auf GitHub automatisch veröffentlicht.
 
-### Guardian-Schlüssel eintragen
-
-1. Gratis-Schlüssel holen: https://open-platform.theguardian.com/access/ → „Register developer key“.
-2. Cloudflare → Workers & Pages → truescope → Einstellungen → Variablen und geheime Schlüssel → Hinzufügen:
-   Typ **Geheim**, Name `GUARDIAN_API_KEY`, Wert = dein Schlüssel. Für **Produktion** speichern.
-3. Unter Bereitstellungen die neueste Version erneut bereitstellen.
-
 ## Moderation
 
 Unter Einstellungen → Variablen eine geheime Variable `ADMIN_KEY` anlegen. Im Browser einmal in der Konsole
@@ -43,7 +36,7 @@ Einen gemeldeten Beitrag wieder freigeben:
 
 ## Rechtliches
 
-- Nachrichten: nur Überschrift, Quelle und Link (§ 76f UrhG erlaubt Hyperlinks und sehr kurze Auszüge). Quelle: The Guardian Open Platform, „Powered by The Guardian“ mit Link ist Pflicht.
+- Nachrichten: eigene KI-Schlagzeilen aus frei lizenzierten Wikipedia-Texten, Links zu den Originalquellen. Quelle: Wikipedia (CC BY-SA 4.0), Nennung mit Link und Lizenz ist Pflicht; die KI-Schlagzeilen sind als solche gekennzeichnet (Art. 50 KI-Verordnung) und stehen ebenfalls unter CC BY-SA 4.0.
 - Keine Cookies, kein Tracking, keine externen Schriften.
 - Impressum und Datenschutzerklärung enthalten gelb markierte Platzhalter, die ausgefüllt werden müssen.
 

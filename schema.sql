@@ -37,3 +37,27 @@ CREATE TABLE IF NOT EXISTS reports (
   created_at INTEGER NOT NULL,
   PRIMARY KEY (type, target_id, client)
 );
+
+-- Schlagzeilen-Bot: Ereignisse aus Wikipedia "Portal:Current events" (CC BY-SA 4.0)
+CREATE TABLE IF NOT EXISTS events (
+  id           TEXT PRIMARY KEY,
+  day          TEXT NOT NULL,          -- YYYY-MM-DD
+  ord          INTEGER NOT NULL,
+  section      TEXT,
+  cats         TEXT NOT NULL,          -- ,politik,wirtschaft,
+  countries    TEXT NOT NULL,          -- ,AT,DE,
+  context      TEXT,
+  text_en      TEXT NOT NULL,
+  source_url   TEXT,
+  source_label TEXT,
+  headline_de  TEXT,                   -- KI-formulierte Schlagzeile
+  summary_de   TEXT,
+  created_at   INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS events_day ON events (day);
+
+CREATE TABLE IF NOT EXISTS wiki_days (
+  day        TEXT PRIMARY KEY,
+  fetched_at INTEGER NOT NULL,
+  n          INTEGER NOT NULL
+);
