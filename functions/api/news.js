@@ -107,7 +107,7 @@ export async function onRequestGet({ request }) {
   }
 
   const out = Response.json(
-    { query: q, when, provider, fetchedAt: new Date().toISOString(), items },
+    { query: q, when, provider, notes: errors, fetchedAt: new Date().toISOString(), items },
     { headers: { "Cache-Control": "public, max-age=600" } }
   );
   if (items.length) await cache.put(cacheKey, out.clone());
