@@ -23,17 +23,16 @@ export const COUNTRY_DE = {
   IE: "Irland", DK: "Dänemark", SE: "Schweden", NO: "Norwegen", FI: "Finnland", EE: "Estland", LV: "Lettland", LT: "Litauen",
   UA: "Ukraine", EU: "Europa",
 };
-const DEBUG = [];
 
 async function hashId(s) {
   const b = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(s));
   return [...new Uint8Array(b)].slice(0, 8).map((x) => x.toString(16).padStart(2, "0")).join("");
 }
-const rid = () => Date.now().toString(36).slice(-6) + Math.random().toString(36).slice(2, 5);
+const rid = () => crypto.randomUUID().replace(/-/g, "").slice(0, 12);
 const clean = (s, n) => String(s || "").replace(/\s+/g, " ").replace(/\|/g, "/").trim().slice(0, n);
 
 // 1) Feeds abrufen und neue Artikel speichern. Feeds: [Land, Medium, URL, Ressort-Hinweis]
-async function ingest(env, country, cat, max) {
+async function ingest(env, country, cat, max, log) {
   const feeds = FEEDS.filter((f) => f[0] === country && (!cat || !f[3] || f[3] === cat));
   if (!feeds.length) return 0;
   const state = new Map((await env.DB.prepare(
@@ -80,7 +79,7 @@ function aiText(out) {
   if (Array.isArray(c)) return c.map((p) => p.text || "").join("");
   return "";
 }
-async function ask(env, system, user, maxTokens) {
+async function ask(env, system, user, maxTokens, log) {
   for (const model of MODELS) {
     try {
       const out = await env.AI.run(model, {
@@ -89,9 +88,9 @@ async function ask(env, system, user, maxTokens) {
       });
       const txt = aiText(out);
       if (txt && txt.length > 3) return txt;
-      DEBUG.push(model + ": leere Antwort");
+      log.push(model + ": leere Antwort");
     } catch (e) {
-      DEBUG.push(model + " Fehler: " + String(e).slice(0, 160));
+      log.push(model + " Fehler: " + String(e).slice(0, 160));
       if (/3036|daily free allocation/i.test(String(e))) return null; // Tageskontingent aufgebraucht
     }
   }
@@ -113,8 +112,8 @@ const ASSIGN_SYSTEM =
   "Antworte NUR mit Zeilen in genau diesem Format, ohne weiteren Text:\n" +
   "1=<id>\n2=A\n3=-\nA|politik|i|Schlagzeile";
 
-async function assign(env, country, rounds) {
-  if (!env.AI) { DEBUG.push("keine KI-Bindung"); return 0; }
+async function assign(env, country, rounds, log) {
+  if (!env.AI) { log.push("keine KI-Bindung"); return 0; }
   let done = 0;
   for (let round = 0; round < rounds; round++) {
     const arts = (await env.DB.prepare(
@@ -128,8 +127,8 @@ async function assign(env, country, rounds) {
     const user = `LAND: ${COUNTRY_DE[country]}\nBEKANNT:\n` +
       stories.map((s) => `${s.id}|${clean(s.headline, 90)}`).join("\n") +
       `\nNEU:\n` + arts.map((a, i) => `${i + 1}|${a.outlet}|${a.hint || "?"}|${clean(a.title, 140)}`).join("\n");
-    const txt = await ask(env, ASSIGN_SYSTEM, user, 2500);
-    if (!txt) break;
+    const txt = await ask(env, ASSIGN_SYSTEM, user, 2500, log);
+    if (!txt) { log.push("keine KI-Antwort"); break; }
 
     const known = new Set(stories.map((s) => s.id));
     const groups = {};
@@ -166,7 +165,7 @@ async function assign(env, country, rounds) {
       stmts.push(env.DB.prepare("UPDATE articles SET story_id = ? WHERE id = ?").bind(sid, a.id));
       if (sid !== "-") touched.add(sid);
     }
-    if (handled.size === 0) { DEBUG.push("Antwort nicht lesbar: " + txt.slice(0, 200)); break; }
+    if (handled.size === 0) { log.push("Antwort nicht lesbar: " + txt.slice(0, 200)); break; }
     for (const sid of touched) {
       stmts.push(env.DB.prepare(
         `UPDATE stories SET
@@ -184,7 +183,7 @@ async function assign(env, country, rounds) {
 }
 
 // 3) Kurzfassung nur für bestätigte Meldungen (spart KI-Kontingent)
-async function summarize(env, country) {
+async function summarize(env, country, log) {
   if (!env.AI) return;
   const rows = (await env.DB.prepare(
     `SELECT s.id, s.headline, (SELECT group_concat(title, ' / ') FROM (SELECT title FROM articles WHERE story_id = s.id LIMIT 3)) AS titles
@@ -195,7 +194,7 @@ async function summarize(env, country) {
   const txt = await ask(env,
     "Schreibe zu jeder Meldung einen sachlichen deutschen Satz (höchstens 25 Wörter), nur mit Fakten aus den Titeln, " +
     "ohne Wertung und ohne wörtliche Übernahme. Antworte NUR mit Zeilen: id|Satz",
-    rows.map((r) => `${r.id}|${clean(r.headline, 100)}|${clean(r.titles, 300)}`).join("\n"), 1500);
+    rows.map((r) => `${r.id}|${clean(r.headline, 100)}|${clean(r.titles, 300)}`).join("\n"), 1500, log);
   if (!txt) return;
   const ids = new Set(rows.map((r) => r.id));
   const stmts = [];
@@ -218,13 +217,13 @@ async function unlock(env, name) {
   await env.DB.prepare("UPDATE locks SET until = 0 WHERE name = ?").bind(name).run();
 }
 
-export async function work(env, country, { cat = null, maxFeeds = 8, rounds = 2 } = {}) {
+export async function work(env, country, { cat = null, maxFeeds = 8, rounds = 2, log = [] } = {}) {
   if (!(await lock(env, "bot:" + country, 120000))) return { busy: true };
   const res = { feeds: 0, assigned: 0 };
   try {
-    try { res.feeds = await ingest(env, country, cat, maxFeeds); } catch (e) { DEBUG.push("ingest: " + String(e).slice(0, 200)); }
-    try { res.assigned = await assign(env, country, rounds); } catch (e) { DEBUG.push("assign: " + String(e).slice(0, 200)); }
-    try { await summarize(env, country); } catch (e) { DEBUG.push("summary: " + String(e).slice(0, 200)); }
+    try { res.feeds = await ingest(env, country, cat, maxFeeds, log); } catch (e) { log.push("ingest: " + String(e).slice(0, 200)); }
+    try { res.assigned = await assign(env, country, rounds, log); } catch (e) { log.push("assign: " + String(e).slice(0, 200)); }
+    try { await summarize(env, country, log); } catch (e) { log.push("summary: " + String(e).slice(0, 200)); }
   } finally { await unlock(env, "bot:" + country); }
   return res;
 }
@@ -236,20 +235,20 @@ export async function onRequestGet(context) {
   const cat = CATS.includes(url.searchParams.get("cat")) ? url.searchParams.get("cat") : "politik";
   const when = DAYS[url.searchParams.get("when")] ? url.searchParams.get("when") : "7d";
   if (!COUNTRY_DE[country]) return Response.json({ error: "Dieses Land wird nicht unterstützt." }, { status: 400 });
-  DEBUG.length = 0;
+  const log = [];
 
   // Bot-Lauf für den Zeitplan: alle Feeds des Landes, mehrere Prüfrunden, synchron
   if (url.searchParams.get("bot") === "1") {
-    const res = await work(env, country, { maxFeeds: 14, rounds: 4 });
+    const res = await work(env, country, { maxFeeds: 14, rounds: 4, log });
     const pending = (await env.DB.prepare("SELECT COUNT(*) AS n FROM articles WHERE country = ? AND story_id IS NULL").bind(country).first())?.n || 0;
-    return Response.json({ country, ...res, pending, debug: DEBUG }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ country, ...res, pending, debug: log }, { headers: { "Cache-Control": "no-store" } });
   }
 
   // Normale Anfrage: sofort antworten, Bot arbeitet im Hintergrund weiter.
   const has = await env.DB.prepare(
     `SELECT 1 FROM stories WHERE ${country === "EU" ? "" : "country = ? AND"} last_seen > ? LIMIT 1`
   ).bind(...(country === "EU" ? [] : [country]), Date.now() - 864e5).first();
-  const job = work(env, country, { cat });
+  const job = work(env, country, { cat, log });
   if (has) context.waitUntil(job);
   else await Promise.race([job, new Promise((r) => setTimeout(r, 25000))]).then(() => context.waitUntil(job));
 
@@ -304,7 +303,7 @@ export async function onRequestGet(context) {
   items.sort((a, b) => b.last - a.last);
   const outlets = [...new Set(FEEDS.filter((f) => f[0] === country).map((f) => f[1]))];
   return Response.json(
-    { country, cat, when, items, pending, debug: url.searchParams.get("debug") ? DEBUG : undefined, feeds: outlets },
+    { country, cat, when, items, pending, debug: url.searchParams.get("debug") ? log : undefined, feeds: outlets },
     { headers: { "Cache-Control": "public, max-age=60" } }
   );
 }
