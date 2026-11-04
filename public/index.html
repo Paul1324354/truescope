@@ -703,8 +703,13 @@ function overviewHtml(d, mode){
     extra = `<span class="n">Lesezeit ca. ${readMin(d.detail)} Min.</span>`;
   }
   else if(d.status==="busy") body = `<div class="dsk"><i></i><i></i><i style="width:60%"></i></div><p class="dfine">Der Überblick wird gerade geschrieben.</p>`;
-  else if(d.status==="limit") body = `<p class="dread mute">Für heute sind alle Überblicke geschrieben, die das Gratis-Kontingent der KI hergibt. Morgen geht es weiter. Die Originalartikel findest du unten.</p>`;
-  else body = `<p class="dread mute">Für diese Meldung gibt es gerade keinen Überblick. Die Originalartikel findest du unten.</p>`;
+  else {
+    // ohne ausführlichen Überblick: die kurze KI-Zusammenfassung der Meldung, falls es sie gibt
+    const note = txt=> d.summary ? `<p class="dread">${esc(d.summary)}</p><p class="dfine">${txt}</p>` : `<p class="dread mute">${txt}</p>`;
+    body = d.status==="limit"
+      ? note("Der ausführliche Überblick ist für heute nicht mehr möglich: Das Gratis-Kontingent der KI ist aufgebraucht. Morgen geht es weiter. Die Originalartikel findest du unten.")
+      : note("Für diese Meldung gibt es gerade keinen ausführlichen Überblick. Die Originalartikel findest du unten.");
+  }
   return `<h3 class="dh">Überblick <span class="ki">KI</span>${extra}</h3>${body}
     ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten aus den Angaben der Medien geschrieben. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}`;
 }
@@ -750,7 +755,7 @@ function rankHtml(){
   const more = (d?.articles||[]).filter(a=>!have.has(a.link));
   let note = "";
   if(rank.status==="busy") note = `<p class="dfine">Das Ranking wird gerade erstellt …</p>`;
-  else if(rank.status==="basic") note = `<p class="dfine">Die KI-Bewertung ist gerade nicht verfügbar. Die Reihenfolge richtet sich nur nach Tempo und Umfang der Artikel.</p>`;
+  else if(rank.status==="basic") note = `<p class="dfine">${rank.quota?"Das Gratis-Kontingent der KI ist für heute aufgebraucht, deshalb fehlt die KI-Bewertung. Morgen geht es weiter. ":"Die KI-Bewertung ist gerade nicht verfügbar. "}Die Reihenfolge richtet sich nur nach Tempo und Umfang der Artikel.</p>`;
   return `<h3 class="dh">${single?"Quelle":"Ranking der Quellen"} <span class="n">${list.length}</span></h3>
     ${single?"":`<p class="dsub">Welche Quelle liefert am meisten? Verglichen werden Faktendichte, Sachlichkeit, Tempo und Umfang der Artikel.</p>`}
     <ol class="rk">${list.map(x=>rankCard(x,single)).join("")}</ol>${note}

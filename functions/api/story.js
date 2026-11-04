@@ -9,7 +9,7 @@
 // Mediums es erlaubt (siehe lib/readtime.js). Artikeltexte werden nie gespeichert oder angezeigt; gespeichert
 // wird nur eine Zahl.
 
-import { ask, clean, lock, unlock } from "../../lib/bot.js";
+import { ask, clean, isQuotaLog, lock, unlock } from "../../lib/bot.js";
 import { measure, minutesOf } from "../../lib/readtime.js";
 import { COUNTRY_DE } from "./news.js";
 
@@ -89,12 +89,14 @@ async function detailPart(env, story, rows, arts) {
         for (const a of arts) if (pick.length < 10 && !pick.includes(a)) pick.push(a);
         const user = `Schlagzeile: ${clean(story.headline, 160)}\nLand: ${COUNTRY_DE[story.country] || story.country}\nAngaben:\n` +
           pick.slice(0, 10).map((a) => `${clean(a.outlet, 40)}|${clean(a.title, 170)}|${clean(a.descr, 400)}`).join("\n");
-        const txt = await ask(env, SYSTEM, user, 900, []);
+        const log = [];
+        const txt = await ask(env, SYSTEM, user, 900, log);
         const out = tidy(txt);
+        if (!out && !detail && isQuotaLog(log)) { status = "limit"; }
         if (out.length > 60) {
           await env.DB.prepare("UPDATE stories SET detail = ?, detail_n = ?, detail_at = ? WHERE id = ?").bind(out, rows.length, now, id).run();
           detail = out; status = "ready";
-        } else if (!detail) status = "unavailable";
+        } else if (!detail && status !== "limit") status = "unavailable";
       } catch (e) {
         if (!detail) status = "unavailable";
       } finally { await unlock(env, "detail:" + id); }
@@ -184,7 +186,7 @@ async function rankPart(env, story, rows) {
   const stale = computed && rows.length >= (story.rank_n || 0) + 2 && now - story.rank_at > REFRESH_MIN;
   let needAi = sel.length >= 2 && (!computed || stale) && !!env.AI;
   const needMeasure = sel.filter((a) => !a.measured_at || (!a.words && !a.paywall && now - a.measured_at > RETRY_MEASURE));
-  let busy = false;
+  let busy = false, quota = false;
 
   if (needAi || needMeasure.length) {
     if (needAi) {
@@ -199,7 +201,8 @@ async function rankPart(env, story, rows) {
         if (needAi) {
           const user = `Ereignis: ${clean(story.headline, 160)}\nArtikel:\n` +
             sel.map((a, i) => `${i + 1}|${clean(a.outlet, 40)}|${clean(a.title, 170)}|${clean(a.descr, 300)}`).join("\n");
-          aiJob = ask(env, RANK_SYSTEM, user, 260, []).then((txt) => parseScores(txt, sel.length)).catch(() => ({}));
+          const log = [];
+          aiJob = ask(env, RANK_SYSTEM, user, 260, log).then((txt) => { if (isQuotaLog(log)) quota = true; return parseScores(txt, sel.length); }).catch(() => ({}));
           jobs.push(aiJob);
         }
         await Promise.all(jobs);
@@ -232,7 +235,7 @@ async function rankPart(env, story, rows) {
   }));
   const status = busy && !rated ? "busy" : rated || sel.length < 2 ? "ranked" : "basic"; // basic = ohne KI-Werte
   const done = status === "ranked" && sel.every((a) => a.measured_at);
-  return Response.json({ id, status, sources }, { headers: { "Cache-Control": done ? "public, max-age=120" : "no-store" } });
+  return Response.json({ id, status, quota: quota && status === "basic", sources }, { headers: { "Cache-Control": done ? "public, max-age=120" : "no-store" } });
 }
 
 // ---------- Anfrage ----------
