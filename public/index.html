@@ -422,8 +422,20 @@ function skeleton(){
   <div class="skel"><i class="h"></i><i class="h2"></i><i style="width:64%"></i></div>
   <div class="grid"><div class="skel"><i class="h" style="height:22px"></i><i></i><i style="width:70%"></i></div><div class="skel"><i class="h" style="height:22px"></i><i></i><i style="width:60%"></i></div></div>`;
 }
+// Stilles Nachladen, ohne die Liste zu leeren
+async function refreshNews(){
+  const id=newsReq;
+  try{
+    const data = await api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
+    if(id!==newsReq) return;
+    newsItems = data.items||[];
+    newsNote = data.pending ? `Der Bot vergleicht gerade noch ${data.pending} Artikel mit anderen Medien. Die Liste aktualisiert sich automatisch.` : "";
+    renderNews();
+    if(data.pending && (loadNews._n = (loadNews._n||0)+1) <= 8) loadNews._t = setTimeout(()=>{ if(id===newsReq) refreshNews(); }, 12000);
+  }catch(e){}
+}
 async function loadNews(){
-  const id=++newsReq;
+  const id=++newsReq; loadNews._n=0; clearTimeout(loadNews._t);
   $("newsHead").textContent = `${CATS[state.cat].label} · ${scopeName()}`;
   $("news").innerHTML = skeleton();
   $("more").hidden = true;
@@ -431,8 +443,10 @@ async function loadNews(){
     const data = await api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
     if(id!==newsReq) return;
     newsItems = data.items||[]; newsShown=13; newsFeeds = data.feeds||[];
-    newsNote = data.pending ? `Der Bot prüft noch ${data.pending} weitere Artikel. Tippe gleich auf „Aktualisieren“, um mehr zu sehen.` : "";
+    newsNote = data.pending ? `Der Bot vergleicht gerade noch ${data.pending} Artikel mit anderen Medien. Die Liste aktualisiert sich automatisch.` : "";
     renderNews();
+    clearTimeout(loadNews._t);
+    if(data.pending && (loadNews._n = (loadNews._n||0)+1) <= 8) loadNews._t = setTimeout(()=>{ if(id===newsReq) refreshNews(); }, 12000);
   }catch(e){
     if(id!==newsReq) return;
     $("news").innerHTML = `<div class="empty"><h3>Das hat nicht geklappt.</h3>Die Nachrichten konnten nicht geladen werden (${esc(e.message)}). Tippe auf „Aktualisieren“, um es noch einmal zu versuchen.</div>`;

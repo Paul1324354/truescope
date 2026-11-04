@@ -105,7 +105,7 @@ async function assign(env, country) {
         content:
           "Du bist ein sorgfältiger Nachrichtenredakteur und prüfst Meldungen gegen andere Medien. " +
           "Ordne jeden neuen Artikel einem bekannten Ereignis zu, wenn er eindeutig über dasselbe konkrete Ereignis berichtet " +
-          "(nicht nur dasselbe Thema). Artikel, die zu keinem bekannten Ereignis passen, fasst du zu neuen Ereignissen zusammen; " +
+          "(gleiche Handlung, gleiche Beteiligte, gleicher Ort und Zeitpunkt – nicht nur dasselbe Thema; im Zweifel ein neues Ereignis). Artikel, die zu keinem bekannten Ereignis passen, fasst du zu neuen Ereignissen zusammen; " +
           "mehrere neue Artikel über dasselbe Ereignis bekommen dieselbe Gruppe. Für jede neue Gruppe schreibst du eine eigene, " +
           "neutrale deutsche Schlagzeile (höchstens 12 Wörter, keine wörtliche Übersetzung, keine Wertung), einen sachlichen Satz " +
           "(höchstens 30 Wörter) nur mit Fakten aus den Titeln, und ein Ressort aus: " + CATS.join(", ") + ". " +
@@ -176,16 +176,44 @@ async function assign(env, country) {
   return done;
 }
 
-export async function onRequestGet({ request, env }) {
+// Verhindert, dass mehrere Anfragen gleichzeitig dieselben Artikel prüfen
+async function lock(env, name, ms) {
+  const now = Date.now();
+  const r = await env.DB.prepare(
+    "INSERT INTO locks (name, until) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET until = excluded.until WHERE locks.until < ?"
+  ).bind(name, now + ms, now).run();
+  return (r.meta?.changes ?? r.changes ?? 0) > 0;
+}
+async function unlock(env, name) {
+  await env.DB.prepare("UPDATE locks SET until = 0 WHERE name = ?").bind(name).run();
+}
+
+async function work(env, country) {
+  if (!(await lock(env, "bot:" + country, 90000))) return false;
+  try {
+    try { await ingest(env, country); } catch (e) { DEBUG.push("ingest: " + String(e).slice(0, 200)); }
+    try { await assign(env, country); } catch (e) { DEBUG.push("assign: " + String(e).slice(0, 200)); }
+  } finally { await unlock(env, "bot:" + country); }
+  return true;
+}
+
+export async function onRequestGet(context) {
+  const { request, env } = context;
   const url = new URL(request.url);
   const country = url.searchParams.get("country") || "EU";
   const cat = CATS.includes(url.searchParams.get("cat")) ? url.searchParams.get("cat") : "politik";
   const when = DAYS[url.searchParams.get("when")] ? url.searchParams.get("when") : "7d";
   if (!COUNTRY_DE[country]) return Response.json({ error: "Dieses Land wird nicht unterstützt." }, { status: 400 });
 
-  try { await ingest(env, country); } catch (e) { /* Feeds nicht erreichbar: Gespeichertes zeigen */ }
   DEBUG.length = 0;
-  try { await assign(env, country); } catch (e) { DEBUG.push("assign: " + String(e).slice(0, 200)); }
+  // Gibt es für dieses Land schon geprüfte Meldungen, antworten wir sofort und der Bot arbeitet im Hintergrund.
+  // Beim allerersten Aufruf warten wir bis zu 25 Sekunden auf erste Ergebnisse.
+  const has = await env.DB.prepare(
+    `SELECT 1 FROM stories WHERE ${country === "EU" ? "" : "country = ? AND"} last_seen > ? LIMIT 1`
+  ).bind(...(country === "EU" ? [] : [country]), Date.now() - 864e5).first();
+  const job = work(env, country);
+  if (has) context.waitUntil(job);
+  else await Promise.race([job, new Promise((r) => setTimeout(r, 25000))]).then(() => context.waitUntil(job));
 
   const since = Date.now() - DAYS[when] * 864e5;
   const where = country === "EU" ? "" : "country = ? AND";
@@ -224,7 +252,7 @@ export async function onRequestGet({ request, env }) {
   // Top-Meldung: am meisten bestätigt
   items.sort((a, b) => b.last - a.last);
   return Response.json(
-    { country, cat, when, items, pending, debug: url.searchParams.get("debug") ? DEBUG : undefined, feeds: FEEDS.filter(([c]) => c === country).map((f) => f[1]) },
+    { country, cat, when, items, pending, working: !!has && pending > 0, debug: url.searchParams.get("debug") ? DEBUG : undefined, feeds: FEEDS.filter(([c]) => c === country).map((f) => f[1]) },
     { headers: { "Cache-Control": "public, max-age=60" } }
   );
 }

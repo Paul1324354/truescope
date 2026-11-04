@@ -92,3 +92,8 @@ CREATE TABLE IF NOT EXISTS feed_state (
   url        TEXT PRIMARY KEY,
   fetched_at INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS locks (
+  name  TEXT PRIMARY KEY,
+  until INTEGER NOT NULL
+);
