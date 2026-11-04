@@ -25,6 +25,15 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 
 Danach wird jede Änderung auf GitHub automatisch veröffentlicht.
 
+## KI-Kontingent
+
+Workers AI ist bis 10.000 Neurons pro Tag kostenlos (Tageswechsel 0 Uhr UTC, also 1 Uhr österreichischer Winterzeit). Damit es reicht:
+
+- **Reserve für „Mehr lesen“:** `lib/bot.js` schätzt den Verbrauch jedes KI-Aufrufs (Tabelle `ai_usage`). Der Recherche-Bot hört bei `BOT_BUDGET` (7.000 Neurons) auf; der Rest bleibt für Zusammenfassung, Quellenvergleich und Ranking.
+- Nur günstige Modelle (Gemma, GLM); das teure Llama 3.3 70B ist gestrichen.
+- Der automatische Bot läuft alle 6 Stunden und nur für Österreich, Deutschland, Schweiz und International (`.github/workflows/bot.yml`). Alle anderen Länder werden aufgefüllt, sobald jemand sie auswählt.
+- Artikel, die nach 24 Stunden noch nicht zugeordnet sind, werden verworfen statt nachgearbeitet.
+
 ## Ranking der Quellen und Lesezeit
 
 Beim Öffnen einer Meldung wird je Medium der früheste Artikel bewertet (höchstens 10 Medien):

@@ -4,7 +4,7 @@ name: Recherche-Bot
 # Kostet nichts (öffentliches Repo). Die KI-Arbeit läuft im kostenlosen Kontingent von Cloudflare.
 on:
   schedule:
-    - cron: "17 */3 * * *"   # alle 3 Stunden
+    - cron: "17 */6 * * *"   # alle 6 Stunden (spart KI-Kontingent)
   workflow_dispatch: {}
 
 jobs:
@@ -14,7 +14,8 @@ jobs:
     steps:
       - name: Alle Länder abarbeiten
         run: |
-          for c in AT DE CH FR IT ES GB NL BE LU PL CZ SK HU SI HR RS BA RO BG GR PT IE DK SE NO FI EE LV LT UA EU; do
+          # Nur die wichtigsten Länder automatisch; alle anderen werden aufgefüllt, sobald jemand sie auswählt.
+          for c in AT DE CH EU; do
             echo "== $c"
             curl -sS --max-time 120 "https://truescope-49p.pages.dev/api/news?country=$c&bot=1" | head -c 400 || true
             echo

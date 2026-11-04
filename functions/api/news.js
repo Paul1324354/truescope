@@ -10,6 +10,7 @@ import { ask, clean, lock, unlock } from "../../lib/bot.js";
 const UA = "TrueScope/1.0 (+https://truescope-49p.pages.dev; RSS-Leser)";
 const FEED_TTL = 20 * 60 * 1000;          // Feeds höchstens alle 20 Minuten abrufen
 const KEEP_MS = 4 * 864e5;                // nur Artikel der letzten 4 Tage aufnehmen
+const STALE_MS = 864e5;                   // nicht zugeordnete Artikel nach 24 Stunden verwerfen statt nachzuarbeiten
 const STORY_WINDOW = 3 * 864e5;           // neue Artikel mit Ereignissen der letzten 3 Tage vergleichen
 const AI_BATCH = 40;
 const MIN_PER_CAT = 10;
@@ -99,7 +100,7 @@ async function assign(env, country, rounds, log) {
     const user = `LAND: ${COUNTRY_DE[country]}\nBEKANNT:\n` +
       stories.map((s) => `${s.id}|${clean(s.headline, 90)}`).join("\n") +
       `\nNEU:\n` + arts.map((a, i) => `${i + 1}|${a.outlet}|${a.hint || "?"}|${clean(a.title, 140)}`).join("\n");
-    const txt = await ask(env, ASSIGN_SYSTEM, user, 3500, log);
+    const txt = await ask(env, ASSIGN_SYSTEM, user, 3500, log, { kind: "bot" });
     if (!txt) { log.push("keine KI-Antwort"); break; }
 
     const known = new Set(stories.map((s) => s.id));
@@ -166,7 +167,7 @@ async function summarize(env, country, log) {
   const txt = await ask(env,
     "Schreibe zu jeder Meldung einen sachlichen deutschen Satz (höchstens 25 Wörter), nur mit Fakten aus den Titeln, " +
     "ohne Wertung und ohne wörtliche Übernahme. Antworte NUR mit Zeilen: id|Satz",
-    rows.map((r) => `${r.id}|${clean(r.headline, 100)}|${clean(r.titles, 300)}`).join("\n"), 1500, log);
+    rows.map((r) => `${r.id}|${clean(r.headline, 100)}|${clean(r.titles, 300)}`).join("\n"), 1500, log, { kind: "bot" });
   if (!txt) return;
   const ids = new Set(rows.map((r) => r.id));
   const stmts = [];
@@ -182,6 +183,10 @@ export async function work(env, country, { cat = null, maxFeeds = 8, rounds = 2,
   const res = { feeds: 0, assigned: 0 };
   try {
     try { res.feeds = await ingest(env, country, cat, maxFeeds, log); } catch (e) { log.push("ingest: " + String(e).slice(0, 200)); }
+    // Rückstau: was nach 24 Stunden noch nicht zugeordnet ist, ist veraltet und kostet nur Kontingent
+    try {
+      await env.DB.prepare("UPDATE articles SET story_id = '-' WHERE country = ? AND story_id IS NULL AND published < ?").bind(country, Date.now() - STALE_MS).run();
+    } catch (e) { log.push("cleanup: " + String(e).slice(0, 200)); }
     try { res.assigned = await assign(env, country, rounds, log); } catch (e) { log.push("assign: " + String(e).slice(0, 200)); }
     try { await summarize(env, country, log); } catch (e) { log.push("summary: " + String(e).slice(0, 200)); }
   } finally { await unlock(env, "bot:" + country); }

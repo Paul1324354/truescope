@@ -76,6 +76,12 @@ CREATE TABLE IF NOT EXISTS official (
 );
 CREATE INDEX IF NOT EXISTS official_q ON official (country, published);
 
+-- Geschätzter KI-Verbrauch je Tag (UTC) in Neurons, für die Reserve von „Mehr lesen“
+CREATE TABLE IF NOT EXISTS ai_usage (
+  day     TEXT PRIMARY KEY,
+  neurons REAL NOT NULL DEFAULT 0
+);
+
 -- Bestehende Datenbank erweitern (einmalig, falls die Spalten fehlen):
 -- ALTER TABLE stories ADD COLUMN detail_v INTEGER DEFAULT 0;
 -- ALTER TABLE stories ADD COLUMN compare_json TEXT DEFAULT '';
