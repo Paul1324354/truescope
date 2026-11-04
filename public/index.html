@@ -217,37 +217,51 @@ dialog.drawer::backdrop{background:rgba(5,16,18,.56);animation:fade .2s both}
 .src .go svg{width:14px;height:14px}
 .dread + .dread{margin-top:14px}
 .dsub{font-size:.9rem;color:var(--muted);max-width:60ch;margin:-4px 0 14px}
-.rk{display:grid;gap:12px}
-.rcard{position:relative;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 14px 64px;background:var(--surface)}
-.rcard.single{padding-left:16px}
+.rk{display:grid;gap:8px}
+.rcard{position:relative;border:1px solid var(--line);border-radius:8px;padding:9px 12px 9px 40px;background:var(--surface)}
+.rcard.single{padding-left:12px}
 .rcard.best{border-color:var(--accent);background:var(--accent-soft)}
 .rcard:hover{border-color:var(--accent)}
-.rpos{position:absolute;left:12px;top:11px;width:40px;text-align:center;font:800 2.1rem/1 var(--head);font-stretch:75%;color:var(--muted)}
+.rpos{position:absolute;left:8px;top:9px;width:24px;text-align:center;font:800 1.25rem/1 var(--head);font-stretch:75%;color:var(--muted)}
 .rcard.best .rpos{color:var(--accent)}
 .rtop{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap}
-.rtop b{font-weight:700;font-size:.98rem}
-.rtop small{color:var(--muted);font-size:.8rem}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-.chip{display:inline-flex;align-items:center;gap:5px;font:600 .74rem/1 var(--ui);padding:5px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface);white-space:nowrap}
-.chip svg{width:12px;height:12px;flex:none}
+.rtop b{font-weight:700;font-size:.84rem}
+.rtop small{color:var(--muted);font-size:.74rem}
+.rcard .chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;font:600 .66rem/1 var(--ui);padding:3px 7px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface);white-space:nowrap}
+.chip svg{width:10px;height:10px;flex:none}
 .chip.best{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .chip.first{border-color:var(--accent);color:var(--accent);background:transparent}
 .chip.pw{border-color:var(--danger);color:var(--danger);background:transparent}
-.rt{display:block;font:400 .98rem/1.38 var(--ui);color:var(--ink-2);margin-top:9px;text-decoration:none}
+.rcard .rt{display:block;font:400 .82rem/1.35 var(--ui);color:var(--ink-2);margin-top:5px;text-decoration:none;letter-spacing:0;text-wrap:pretty}
 .rt::after{content:"";position:absolute;inset:0;border-radius:var(--radius)}
 .rt:focus-visible{outline:none}
 .rcard:has(.rt:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
-.meters{display:grid;grid-template-columns:auto minmax(80px,170px) auto;justify-content:start;gap:6px 12px;align-items:center;margin-top:11px;font-size:.78rem;color:var(--muted)}
-.meter{height:6px;border-radius:3px;background:var(--sunk);position:relative;overflow:hidden}
+.meters{display:grid;grid-template-columns:auto minmax(60px,110px) auto;justify-content:start;gap:3px 8px;align-items:center;margin-top:6px;font-size:.68rem;color:var(--muted)}
+.meter{height:4px;border-radius:2px;background:var(--sunk);position:relative;overflow:hidden}
 .rcard.best .meter{background:var(--surface)}
 .meter i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
 .meters em{font-style:normal;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.rgo{display:inline-flex;align-items:center;gap:5px;margin-top:11px;font-weight:700;font-size:.84rem;color:var(--accent)}
-.rgo svg{width:14px;height:14px}
-.rsk{height:112px;border-radius:var(--radius);border:1px solid var(--line);background:linear-gradient(90deg,var(--sunk) 0%,var(--line) 50%,var(--sunk) 100%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
+.rgo{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-weight:600;font-size:.72rem;color:var(--muted)}
+.rcard:hover .rgo{color:var(--accent)}
+.rgo svg{width:11px;height:11px}
+.rsk{height:70px;border-radius:var(--radius);border:1px solid var(--line);background:linear-gradient(90deg,var(--sunk) 0%,var(--line) 50%,var(--sunk) 100%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
 .dhow{margin-top:14px;font-size:.84rem;color:var(--muted);max-width:60ch}
 .dhow summary{cursor:pointer;font-weight:600;color:var(--ink-2);padding:4px 0}
 .dhow ul{margin:8px 0 0;padding-left:18px;list-style:disc;display:grid;gap:5px}
+.dh.sm{font-size:.9rem;margin:34px 0 8px;color:var(--ink-2)}
+.dh.sm .n{font-size:.76rem}
+.dsub.sm{font-size:.78rem;margin:-2px 0 10px}
+.cmp{display:grid;gap:10px}
+.cmpi{border:1px solid var(--line);border-left:3px solid var(--marker);border-radius:8px;padding:11px 14px;background:var(--surface)}
+.cmpi h4{font:700 .8rem/1.2 var(--ui);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 7px}
+.cmpi ul{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.cmpi li{display:grid;grid-template-columns:minmax(90px,34%) minmax(0,1fr);gap:10px;font-size:.95rem;line-height:1.4}
+.cmpi li b{font-weight:700;color:var(--ink-2)}
+.cmpi li span{color:var(--ink)}
+.cmpi li.none span{color:var(--muted);font-style:italic}
+.cmpok{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:11px 14px;font-size:.92rem;color:var(--ink-2)}
+.cmpok svg{width:16px;height:16px;flex:none;margin-top:2px;color:var(--accent)}
 .dh2{font:700 .92rem/1 var(--head);font-stretch:90%;color:var(--ink-2);margin:22px 0 10px}
 @media (max-width:759px){
   dialog.drawer{margin:auto 0 0;height:auto;max-height:92dvh;width:100%;border-radius:18px 18px 0 0}
@@ -255,9 +269,9 @@ dialog.drawer::backdrop{background:rgba(5,16,18,.56);animation:fade .2s both}
   .dbody{padding:18px 18px 30px}
   .src{grid-template-columns:1fr}
   .src .go{grid-column:1;grid-row:auto;margin-top:6px}
-  .rcard{padding:13px 14px 13px 54px}
-  .rcard.single{padding-left:14px}
-  .rpos{left:8px;width:36px;font-size:1.8rem}
+  .rcard{padding:9px 11px 9px 36px}
+  .rcard.single{padding-left:11px}
+  .rpos{left:6px;width:22px;font-size:1.15rem}
 }
 
 footer.site{border-top:1px solid var(--line);background:var(--bg);padding:26px max(20px,env(safe-area-inset-left)) calc(26px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center}
@@ -375,7 +389,7 @@ footer.site nav a:hover{color:var(--ink)}
         <summary>So entstehen die Meldungen</summary>
         <p>Ein Recherche-Bot liest laufend die öffentlichen RSS-Feeds nationaler Nachrichtenmedien in 31 europäischen Ländern, zum Beispiel ORF, Der Standard und Die Presse für Österreich.</p>
         <p><strong>Doppelcheck:</strong> Eine KI vergleicht jeden neuen Artikel mit den Artikeln anderer Medien. Berichten mindestens zwei verschiedene Medien über dasselbe Ereignis, gilt die Meldung als bestätigt. Hat bisher nur ein Medium darüber berichtet, steht „1 Quelle“ dabei.</p>
-        <p><strong>Mehr lesen:</strong> Ein Klick auf eine Meldung zeigt einen kurzen Überblick, den eine KI in eigenen Worten schreibt, und die Schlagzeilen der Medien mit Link zum Original. Die Artikel selbst gehören den Medien, darum zeigen wir sie nicht, sondern verlinken sie.</p>
+        <p><strong>Mehr lesen:</strong> Ein Klick auf eine Meldung zeigt eine ausführliche Zusammenfassung (1–2 Minuten Lesezeit), die eine KI in eigenen Worten schreibt, einen Quellenvergleich – wo die Medien Unterschiedliches angeben, etwa verschiedene Zahlen – und die Schlagzeilen der Medien mit Link zum Original. Die Artikel selbst gehören den Medien, darum zeigen wir sie nicht, sondern verlinken sie.</p>
         <p><strong>Bewertungen:</strong> Mit Daumen hoch oder runter bewertest du jede Meldung. Dafür speichert TrueScope eine zufällige Kennung deines Browsers, aber keinen Namen und keine Texte. Pro Browser zählt eine Bewertung je Meldung.</p>
         <p>Schlagzeilen und Überblicke sind KI-Texte. Menschen prüfen sie nicht, sie können Fehler enthalten. Lies im Original nach, bevor du etwas weitergibst.</p>
       </details>
@@ -711,8 +725,21 @@ function overviewHtml(d, mode){
       ? note("Der ausführliche Überblick ist für heute nicht mehr möglich: Das Gratis-Kontingent der KI ist aufgebraucht. Morgen geht es weiter. Die Originalartikel findest du unten.")
       : note("Für diese Meldung gibt es gerade keinen ausführlichen Überblick. Die Originalartikel findest du unten.");
   }
-  return `<h3 class="dh">Überblick <span class="ki">KI</span>${extra}</h3>${body}
+  return `<h3 class="dh">Zusammenfassung <span class="ki">KI</span>${extra}</h3>${body}
     ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten aus den Angaben der Medien geschrieben. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}`;
+}
+
+const ICON_CHECK = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 8.4l3 3 6.6-6.8"/></svg>`;
+// Quellenvergleich: was die Medien unterschiedlich angeben (z. B. verschiedene Opferzahlen)
+function compareHtml(d, mode){
+  if(mode!=="done" || !d || !d.detail || !Array.isArray(d.compare)) return "";
+  const n = new Set((d.articles||[]).map(a=>a.outlet)).size;
+  if(n < 2) return "";
+  const head = `<h3 class="dh">Quellenvergleich <span class="ki">KI</span><span class="n">${n} Medien</span></h3>`;
+  if(!d.compare.length) return head + `<div class="cmpok">${ICON_CHECK}<span>Die Medien berichten in den wesentlichen Punkten übereinstimmend – die KI hat keine abweichenden Angaben gefunden.</span></div>`;
+  return head + `<p class="dsub">Hier unterscheiden sich die Angaben der Medien:</p><div class="cmp">${d.compare.map(c=>`<div class="cmpi"><h4>${esc(c.topic)}</h4><ul>${
+    c.items.map(x=>`<li${x.says==="keine Angabe"?' class="none"':""}><b>${esc(x.outlet)}</b><span>${esc(x.says)}</span></li>`).join("")}</ul></div>`).join("")}</div>
+    <p class="dfine">Die KI hat die Angaben aus Titel und Anriss der Artikel verglichen und in eigenen Worten zusammengefasst. Unterschiede können auch entstehen, weil Medien zu verschiedenen Zeitpunkten berichtet haben.</p>`;
 }
 
 // flache Liste der Originalartikel (Ersatz, falls das Ranking fehlt; außerdem „Weitere Artikel“)
@@ -749,7 +776,7 @@ function rankCard(s, single){
 }
 function rankHtml(){
   const {d, rank, rmode} = dSt;
-  if(rmode==="loading") return `<h3 class="dh">Ranking der Quellen</h3><div class="rk"><div class="rsk"></div><div class="rsk"></div></div>`;
+  if(rmode==="loading") return `<h3 class="dh sm">Ranking der Quellen</h3><div class="rk"><div class="rsk"></div><div class="rsk"></div></div>`;
   if(rmode==="error" || !rank || !rank.sources?.length) return sourcesHtml(dSt.item, d);
   const list = rank.sources, single = list.length===1;
   const have = new Set(list.map(x=>x.link));
@@ -757,8 +784,8 @@ function rankHtml(){
   let note = "";
   if(rank.status==="busy") note = `<p class="dfine">Das Ranking wird gerade erstellt …</p>`;
   else if(rank.status==="basic") note = `<p class="dfine">${rank.quota?"Das Gratis-Kontingent der KI ist für heute aufgebraucht, deshalb fehlt die KI-Bewertung. Morgen geht es weiter. ":"Die KI-Bewertung ist gerade nicht verfügbar. "}Die Reihenfolge richtet sich nur nach Tempo und Umfang der Artikel.</p>`;
-  return `<h3 class="dh">${single?"Quelle":"Ranking der Quellen"} <span class="n">${list.length}</span></h3>
-    ${single?"":`<p class="dsub">Welche Quelle liefert am meisten? Verglichen werden Faktendichte, Sachlichkeit, Tempo und Umfang der Artikel.</p>`}
+  return `<h3 class="dh sm">${single?"Quelle":"Ranking der Quellen"} <span class="n">${list.length}</span></h3>
+    ${single?"":`<p class="dsub sm">Verglichen werden Faktendichte, Sachlichkeit, Tempo und Umfang der Artikel.</p>`}
     <ol class="rk">${list.map(x=>rankCard(x,single)).join("")}</ol>${note}
     <details class="dhow"><summary>So entsteht das Ranking</summary><ul>
       <li>Faktendichte und Sachlichkeit schätzt eine KI aus Titel und Anriss des jeweiligen Artikels. Das ist eine Einschätzung des einzelnen Artikels, nicht des ganzen Mediums.</li>
@@ -772,7 +799,7 @@ function rankHtml(){
 function renderDrawer(){
   const {item, d, mode} = dSt;
   const keepScroll = $("dBody").scrollTop;
-  $("dBody").innerHTML = head(item,d) + overviewHtml(d||{}, mode) + rankHtml() +
+  $("dBody").innerHTML = head(item,d) + overviewHtml(d||{}, mode) + compareHtml(d, mode) + rankHtml() +
     `<p class="dfine" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--line)">Ein Fehler in der Meldung oder ein Medium, das nicht verlinkt werden möchte? Melde dich über das <a href="/impressum.html">Impressum</a>.</p>`;
   $("dBody").scrollTop = keepScroll;
 }

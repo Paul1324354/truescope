@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS stories (
   detail     TEXT DEFAULT '',           -- KI-Überblick für „Mehr lesen“ (wird beim ersten Öffnen erzeugt)
   detail_n   INTEGER DEFAULT 0,         -- Anzahl Artikel, aus denen der Überblick entstand
   detail_at  INTEGER DEFAULT 0,         -- Zeitpunkt der Erzeugung (für die Tagesgrenze)
+  detail_v   INTEGER DEFAULT 0,         -- Version des Überblicks (2 = lange Zusammenfassung mit Quellenvergleich)
+  compare_json TEXT DEFAULT '',         -- Quellenvergleich: [{topic, items:[{outlet, says}]}], [] = keine Unterschiede
   rank_json  TEXT DEFAULT '',           -- KI-Bewertung je Artikel: [{i: Artikel-ID, f: Faktendichte, s: Sachlichkeit}]
   rank_n     INTEGER DEFAULT 0,         -- Anzahl Artikel zum Zeitpunkt der Bewertung
   rank_at    INTEGER DEFAULT 0          -- Zeitpunkt der Bewertung (0 = noch nicht bewertet)
@@ -61,3 +63,7 @@ CREATE TABLE IF NOT EXISTS robots (
   body       TEXT,                      -- NULL = nicht abrufbar (dann wird nichts abgerufen)
   fetched_at INTEGER NOT NULL
 );
+
+-- Bestehende Datenbank erweitern (einmalig, falls die Spalten fehlen):
+-- ALTER TABLE stories ADD COLUMN detail_v INTEGER DEFAULT 0;
+-- ALTER TABLE stories ADD COLUMN compare_json TEXT DEFAULT '';
