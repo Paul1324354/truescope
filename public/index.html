@@ -199,7 +199,9 @@ dialog.drawer::backdrop{background:rgba(5,16,18,.56);animation:fade .2s both}
 .dmeta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.86rem;color:var(--muted)}
 .dmeta .ctry{font-weight:700;color:var(--ink-2)}
 .dtitle{font:800 clamp(1.7rem,4.4vw,2.3rem)/1.06 var(--head);font-stretch:78%;letter-spacing:-.01em;margin-top:10px;text-wrap:balance}
-.dproof{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;font-weight:600;font-size:.92rem}
+.dsum{margin-top:18px}
+.dlabel{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;color:var(--muted);margin:0 0 10px}
+.dproof{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);font-weight:600;font-size:.92rem}
 .dh{display:flex;align-items:center;gap:10px;font:800 1.08rem/1 var(--head);font-stretch:86%;margin:30px 0 12px}
 .dh .n{font:600 .84rem var(--ui);color:var(--muted)}
 .dread{font:400 1.06rem/1.7 var(--read);color:var(--ink);max-width:60ch}
@@ -697,8 +699,13 @@ function head(item, d){
   const tag = item ? countryTag(item) : (d && BY[d.country] ? `<span class="ctry">${esc(BY[d.country].name)}</span>` : "");
   const when = src.last ? `${new Date(src.last).toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"})}, ${fmtTime(src.last)}` : "";
   return `<div class="dmeta">${tag}<span>${esc(when)}</span></div>
-    <h2 class="dtitle" id="dTitle">${esc(src.title||"")}</h2>
-    <div class="dproof">${confirmed
+    <h2 class="dtitle" id="dTitle">${esc(src.title||"")}</h2>`;
+}
+function headProof(item, d){
+  const src = d||item||{};
+  const confirmed = !!src.confirmed;
+  const outs = d ? d.outlets : (item?.sources.length||0);
+  return `<div class="dproof">${confirmed
       ? `${dots(Math.max(outs,2),true)}<span><mark>Bestätigt von ${Math.max(outs,2)} Medien</mark></span>`
       : `${dots(1,false)}<span>Nur eine Quelle, nicht bestätigt</span>`}<span class="ki" title="Schlagzeile von einer KI formuliert">KI</span></div>
     ${thumbsBox(dId,true)}`;
@@ -715,7 +722,7 @@ function overviewHtml(d, mode){
   if(mode==="loading") body = `<div class="dsk"><i></i><i></i><i style="width:70%"></i><i></i><i style="width:55%"></i></div>`;
   else if(d.detail){
     body = d.detail.split(/\n\n+/).map(p=>`<p class="dread">${esc(p)}</p>`).join("");
-    extra = `<span class="n">Lesezeit ca. ${readMin(d.detail)} Min.</span>`;
+    extra = `Lesezeit ca. ${readMin(d.detail)} Min.`;
   }
   else if(d.status==="busy") body = `<div class="dsk"><i></i><i></i><i style="width:60%"></i></div><p class="dfine">Der Überblick wird gerade geschrieben.</p>`;
   else {
@@ -725,8 +732,8 @@ function overviewHtml(d, mode){
       ? note("Der ausführliche Überblick ist für heute nicht mehr möglich: Das Gratis-Kontingent der KI ist aufgebraucht. Morgen geht es weiter. Die Originalartikel findest du unten.")
       : note("Für diese Meldung gibt es gerade keinen ausführlichen Überblick. Die Originalartikel findest du unten.");
   }
-  return `<h3 class="dh">Zusammenfassung <span class="ki">KI</span>${extra}</h3>${body}
-    ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten aus den Angaben der Medien geschrieben und Hintergrund aus Wikipedia und Mitteilungen offizieller Stellen ergänzt. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}`;
+  return `<div class="dsum"><p class="dlabel"><span class="ki">KI</span>Zusammenfassung${extra?` · ${extra}`:""}</p>${body}
+    ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten aus den Angaben der Medien geschrieben und Hintergrund aus Wikipedia und Mitteilungen offizieller Stellen ergänzt. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}</div>`;
 }
 
 const ICON_CHECK = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 8.4l3 3 6.6-6.8"/></svg>`;
@@ -799,7 +806,7 @@ function rankHtml(){
 function renderDrawer(){
   const {item, d, mode} = dSt;
   const keepScroll = $("dBody").scrollTop;
-  $("dBody").innerHTML = head(item,d) + overviewHtml(d||{}, mode) + compareHtml(d, mode) + rankHtml() +
+  $("dBody").innerHTML = head(item,d) + overviewHtml(d||{}, mode) + headProof(item,d) + compareHtml(d, mode) + rankHtml() +
     `<p class="dfine" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--line)">Ein Fehler in der Meldung oder ein Medium, das nicht verlinkt werden möchte? Melde dich über das <a href="/impressum.html">Impressum</a>.</p>`;
   $("dBody").scrollTop = keepScroll;
 }
