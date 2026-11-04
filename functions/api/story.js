@@ -147,12 +147,14 @@ const parseJson = (s) => { try { const a = JSON.parse(s); return Array.isArray(a
 export function compose(sel, scores) {
   const t0 = Math.min(...sel.map((a) => a.published));
   const anyRated = sel.some((a) => scores[a.id]);
+  const anyDepth = sel.some((a) => !a.paywall && a.words);
   const items = sel.map((a) => {
     // Artikel ohne KI-Werte (z. B. später dazugekommen) gelten als durchschnittlich, damit der Vergleich fair bleibt
     const sc = scores[a.id] || (anyRated ? { f: 5, s: 5, guess: true } : null);
     const late = Math.max(0, (a.published - t0) / 36e5);
     const tempo = Math.max(1, 10 * Math.exp(-late / 8));
-    const depth = a.paywall || !a.words ? null : Math.min(10, 1 + a.words / 110);
+    // Umfang: unbekannt (nicht gemessen, gesperrt, Bezahlschranke) zählt als durchschnittlich, damit fehlende Daten nicht belohnen
+    const depth = !anyDepth ? null : a.paywall || !a.words ? 5 : Math.min(10, 1 + a.words / 110);
     const parts = [[sc?.f, 0.4], [sc?.s, 0.25], [tempo, 0.15], [depth, 0.2]].filter(([v]) => v != null);
     let total = parts.reduce((x, [v, w]) => x + v * w, 0) / parts.reduce((x, [, w]) => x + w, 0);
     if (a.paywall) total -= 1;
