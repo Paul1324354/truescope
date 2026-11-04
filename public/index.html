@@ -153,7 +153,7 @@ a.item:hover h4{text-decoration:underline}
         <button class="btn small" id="more" hidden>Mehr anzeigen</button>
         <div class="sources" id="sources"></div>
       </div>
-      <p class="attr" id="attr">Schlagzeilen und Links zu den Originalartikeln: <a href="https://www.gdeltproject.org" target="_blank" rel="noopener">The GDELT Project</a>. Die Artikel gehören den jeweiligen Medien.</p>
+      <p class="attr" id="attr">Powered by <a href="https://www.theguardian.com" target="_blank" rel="noopener">The Guardian</a>. Schlagzeilen auf Englisch, verlinkt mit den Originalartikeln. Alle Rechte an den Artikeln liegen bei Guardian News &amp; Media.</p>
     </div>
   </main>
 
@@ -334,9 +334,9 @@ async function loadNews(){
   $("news").innerHTML = `<p class="empty"><span class="spin"></span>Nachrichten werden geladen …</p>`;
   $("more").hidden = true;
   try{
-    const data = await api(`/api/news?q=${encodeURIComponent(newsQuery())}&when=${PERIODS[state.period].gn}`);
+    const data = await api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
     if(id!==newsReq) return;
-    newsItems = data.items||[]; newsShown=15; newsNote = [data.coverageNote, data.stale?"Die Datenquelle ist gerade nicht erreichbar, du siehst die zuletzt geladenen Meldungen.":null].filter(Boolean).join(" "); renderNews();
+    newsItems = data.items||[]; newsShown=15; newsNote = [data.stale?"Die Datenquelle ist gerade nicht erreichbar, du siehst die zuletzt geladenen Meldungen.":null].filter(Boolean).join(" "); renderNews();
   }catch(e){
     if(id!==newsReq) return;
     $("news").innerHTML = `<p class="empty">Die Nachrichten konnten nicht geladen werden (${esc(e.message)}). Tippe auf „Aktualisieren“, um es noch einmal zu versuchen.</p>`;

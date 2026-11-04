@@ -1,60 +1,77 @@
-// GET /api/news?q=Politik%20Österreich&when=7d
-// Holt Schlagzeilen aus der GDELT-Datenbank (https://www.gdeltproject.org).
-// GDELT erlaubt die Nutzung ausdrücklich, auch kommerziell, unter der Bedingung,
-// dass GDELT genannt und verlinkt wird. Die App zeigt nur Überschrift, Quelle und Link
-// zum Originalartikel – keine Artikeltexte.
+// GET /api/news?country=AT|INT&cat=politik&when=7d
+// Holt Schlagzeilen über die offizielle Schnittstelle von The Guardian (Open Platform).
+// Der Schlüssel liegt als geheime Variable GUARDIAN_API_KEY in Cloudflare.
+// Die App zeigt nur Überschrift, Rubrik und Link zum Originalartikel, mit Quellenangabe.
 
-const TIMESPAN = { "1d": "1d", "7d": "1week", "30d": "1month", "1y": "3months" };
-const FRESH_MS = 15 * 60 * 1000; // 15 Minuten frisch
-const KEEP_S = 24 * 60 * 60;     // ältere Kopie 24 h als Reserve behalten
+const DAYS = { "1d": 1, "7d": 7, "30d": 30, "1y": 365 };
+const FRESH_MS = 30 * 60 * 1000;   // 30 Minuten frisch (Schont das Tageslimit)
+const KEEP_S = 2 * 24 * 60 * 60;   // ältere Kopie 2 Tage als Reserve
 
-function decodeEntities(str) {
-  return str
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&quot;/g, '"').replace(/&apos;|&#39;/g, "'")
-    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
+const COUNTRY_EN = {
+  AT: "Austria", DE: "Germany", CH: "Switzerland", FR: "France", IT: "Italy", ES: "Spain",
+  GB: "UK", US: "US", NL: "Netherlands", BE: "Belgium", LU: "Luxembourg", PL: "Poland",
+  CZ: "Czech", SK: "Slovakia", HU: "Hungary", SI: "Slovenia", HR: "Croatia", RS: "Serbia",
+  BA: "Bosnia", RO: "Romania", BG: "Bulgaria", GR: "Greece", TR: "Turkey", PT: "Portugal",
+  IE: "Ireland", DK: "Denmark", SE: "Sweden", NO: "Norway", FI: "Finland", EE: "Estonia",
+  LV: "Latvia", LT: "Lithuania", UA: "Ukraine", RU: "Russia", IL: "Israel", CA: "Canada",
+  MX: "Mexico", BR: "Brazil", AR: "Argentina", CN: "China", JP: "Japan", KR: "South Korea",
+  IN: "India", AU: "Australia", ZA: "South Africa", EG: "Egypt", NG: "Nigeria", IR: "Iran",
+};
+
+// Rubriken der App -> Guardian-Bereiche (section) bzw. Schlagwörter (tag)
+const CATS = {
+  politik:      { section: "world|politics|us-news|uk-news|australia-news" },
+  wirtschaft:   { section: "business|money" },
+  sport:        { section: "sport|football" },
+  kultur:       { section: "culture|music|film|books|stage|artanddesign|tv-and-radio" },
+  wissenschaft: { section: "science" },
+  technik:      { section: "technology" },
+  gesundheit:   { tag: "society/health" },
+  umwelt:       { section: "environment" },
+  chronik:      { section: "world|uk-news|us-news|australia-news|global-development" },
+};
+
+export function parseGuardian(data) {
+  const results = data?.response?.results || [];
+  return results
+    .filter((r) => r.type === "article" || r.type === "liveblog")
+    .map((r) => ({
+      title: String(r.webTitle || "").trim().slice(0, 220),
+      link: String(r.webUrl || ""),
+      source: "The Guardian" + (r.sectionName ? " · " + r.sectionName : ""),
+      date: r.webPublicationDate || null,
+    }))
+    .filter((i) => i.title && /^https:\/\/www\.theguardian\.com\//.test(i.link));
 }
 
-export function parseGdelt(data) {
-  const seen = new Set();
-  return (data.articles || []).map((a) => {
-    const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(a.seendate || "");
-    return {
-      title: decodeEntities(String(a.title || "")).replace(/\s+/g, " ").trim().slice(0, 200),
-      link: String(a.url || ""),
-      source: String(a.domain || ""),
-      date: m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}.000Z` : null,
-    };
-  }).filter((i) => {
-    const key = i.title.toLowerCase();
-    if (!i.title || !/^https?:\/\//.test(i.link) || seen.has(key)) return false;
-    seen.add(key);
-    return true;
+export function buildQuery({ country, cat, when, key }) {
+  const from = new Date(Date.now() - DAYS[when] * 864e5).toISOString().slice(0, 10);
+  const p = new URLSearchParams({
+    "from-date": from,
+    "order-by": "newest",
+    "page-size": "50",
+    "api-key": key,
   });
+  const c = CATS[cat];
+  if (c.section) p.set("section", c.section);
+  if (c.tag) p.set("tag", c.tag);
+  if (country !== "INT") p.set("q", `"${COUNTRY_EN[country]}"`);
+  return "https://content.guardianapis.com/search?" + p.toString();
 }
 
-async function fromGdelt(q, when) {
-  const terms = q.split(/\s+/).filter((w) => w.length >= 3).join(" ");
-  const api = "https://api.gdeltproject.org/api/v2/doc/doc?query=" +
-    encodeURIComponent(terms + " sourcelang:german") +
-    `&mode=artlist&format=json&maxrecords=60&sort=datedesc&timespan=${TIMESPAN[when]}`;
-  const res = await fetch(api, { headers: { "User-Agent": "TrueScope (https://truescope-49p.pages.dev)" } });
-  if (!res.ok) throw new Error(`GDELT antwortet mit ${res.status}`);
-  const text = await res.text();
-  let data;
-  try { data = JSON.parse(text); } catch { throw new Error("GDELT ist gerade ausgelastet"); }
-  return parseGdelt(data);
-}
-
-export async function onRequestGet({ request }) {
+export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
-  const q = (url.searchParams.get("q") || "").trim().slice(0, 120);
-  const when = TIMESPAN[url.searchParams.get("when")] ? url.searchParams.get("when") : "7d";
-  if (!q) return Response.json({ error: "Parameter q fehlt." }, { status: 400 });
+  const country = url.searchParams.get("country") === "INT" ? "INT"
+    : COUNTRY_EN[url.searchParams.get("country")] ? url.searchParams.get("country") : null;
+  const cat = CATS[url.searchParams.get("cat")] ? url.searchParams.get("cat") : "politik";
+  const when = DAYS[url.searchParams.get("when")] ? url.searchParams.get("when") : "7d";
+  if (!country) return Response.json({ error: "Unbekanntes Land." }, { status: 400 });
+  if (!env.GUARDIAN_API_KEY) {
+    return Response.json({ error: "Die Nachrichtenquelle ist noch nicht eingerichtet (GUARDIAN_API_KEY fehlt)." }, { status: 503 });
+  }
 
   const cache = caches.default;
-  const cacheKey = new Request(`https://cache.truescope/gdelt?q=${encodeURIComponent(q)}&when=${when}`);
+  const cacheKey = new Request(`https://cache.truescope/guardian?c=${country}&k=${cat}&w=${when}`);
   const hit = await cache.match(cacheKey);
   const cached = hit ? await hit.json() : null;
   if (cached && Date.now() - Date.parse(cached.fetchedAt) < FRESH_MS) {
@@ -62,18 +79,20 @@ export async function onRequestGet({ request }) {
   }
 
   try {
-    const items = await fromGdelt(q, when);
+    const res = await fetch(buildQuery({ country, cat, when, key: env.GUARDIAN_API_KEY }), {
+      headers: { "User-Agent": "TrueScope (https://truescope-49p.pages.dev)" },
+    });
+    if (res.status === 401 || res.status === 403) throw new Error("Der Guardian-Schlüssel ist ungültig.");
+    if (res.status === 429) throw new Error("Das Tageslimit der Nachrichtenquelle ist erreicht.");
+    if (!res.ok) throw new Error(`Die Nachrichtenquelle antwortet mit ${res.status}.`);
+    const items = parseGuardian(await res.json());
     const body = {
-      query: q, when, fetchedAt: new Date().toISOString(), items,
-      coverageNote: when === "1y" ? "Die Datenquelle reicht nur 3 Monate zurück." : null,
-      attribution: { name: "The GDELT Project", url: "https://www.gdeltproject.org" },
+      country, cat, when, fetchedAt: new Date().toISOString(), items,
+      attribution: { name: "The Guardian", url: "https://www.theguardian.com" },
     };
-    if (items.length) {
-      await cache.put(cacheKey, Response.json(body, { headers: { "Cache-Control": `public, max-age=${KEEP_S}` } }));
-    }
+    await cache.put(cacheKey, Response.json(body, { headers: { "Cache-Control": `public, max-age=${KEEP_S}` } }));
     return Response.json(body, { headers: { "Cache-Control": "public, max-age=300" } });
   } catch (e) {
-    // Bei Ausfall die letzte gespeicherte Version zeigen, falls vorhanden.
     if (cached) return Response.json({ ...cached, stale: true }, { headers: { "Cache-Control": "no-store" } });
     return Response.json({ error: String(e.message || e) }, { status: 502 });
   }
