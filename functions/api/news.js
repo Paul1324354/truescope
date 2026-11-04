@@ -22,16 +22,30 @@ function tag(block, name) {
   return m ? decodeEntities(m[1]).trim() : "";
 }
 
+const DAYS = { "1d": 1, "7d": 7, "30d": 30, "1y": 365 };
+
+// Bing verpackt den Artikel-Link in eine Weiterleitung: echte Adresse aus dem url-Parameter holen.
+function realLink(link) {
+  try {
+    const u = new URL(link);
+    if (u.hostname.endsWith("bing.com")) {
+      const inner = u.searchParams.get("url");
+      if (inner && /^https?:\/\//.test(inner)) return inner;
+    }
+  } catch {}
+  return link;
+}
+
 export function parseRss(xml, limit = 40) {
   const items = [];
   const re = /<item>([\s\S]*?)<\/item>/gi;
   let m;
   while ((m = re.exec(xml)) && items.length < limit) {
     const block = m[1];
-    const source = tag(block, "source");
+    const source = tag(block, "source") || tag(block, "News:Source");
     let title = tag(block, "title");
     if (source && title.endsWith(" - " + source)) title = title.slice(0, -(source.length + 3));
-    const link = tag(block, "link");
+    const link = realLink(tag(block, "link"));
     const pub = tag(block, "pubDate");
     const date = pub ? new Date(pub) : null;
     if (!title || !/^https?:\/\//.test(link)) continue;
@@ -46,6 +60,25 @@ export function parseRss(xml, limit = 40) {
   return items;
 }
 
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
+async function fromGoogle(q, when) {
+  const feed = `https://news.google.com/rss/search?q=${encodeURIComponent(q + " when:" + when)}&hl=de&gl=AT&ceid=AT:de`;
+  const res = await fetch(feed, { headers: { "User-Agent": BROWSER_UA, "Accept-Language": "de-AT,de;q=0.9" } });
+  if (!res.ok) throw new Error(`Google News ${res.status}`);
+  return parseRss(await res.text());
+}
+
+async function fromBing(q, when) {
+  const freshness = { "1d": "Day", "7d": "Week", "30d": "Month" }[when];
+  const feed = `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&setmkt=de-AT&setlang=de${freshness ? "&qft=interval%3d%22" + { Day: 7, Week: 8, Month: 9 }[freshness] + "%22" : ""}`;
+  const res = await fetch(feed, { headers: { "User-Agent": BROWSER_UA, "Accept-Language": "de-AT,de;q=0.9" } });
+  if (!res.ok) throw new Error(`Bing News ${res.status}`);
+  const since = Date.now() - DAYS[when] * 864e5;
+  return parseRss(await res.text()).filter((i) => !i.date || Date.parse(i.date) >= since);
+}
+
 export async function onRequestGet({ request }) {
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") || "").trim().slice(0, 120);
@@ -57,20 +90,26 @@ export async function onRequestGet({ request }) {
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
-  const feed = `https://news.google.com/rss/search?q=${encodeURIComponent(q + " when:" + when)}&hl=de&gl=AT&ceid=AT:de`;
-  let res;
-  try {
-    res = await fetch(feed, { headers: { "User-Agent": "TrueScope/1.0 (news reader)" } });
-  } catch (e) {
-    return Response.json({ error: "Nachrichtenquelle nicht erreichbar." }, { status: 502 });
+  const errors = [];
+  let items = null, provider = null;
+  for (const [name, fn] of [["Google News", fromGoogle], ["Bing News", fromBing]]) {
+    try {
+      const r = await fn(q, when);
+      if (r.length) { items = r; provider = name; break; }
+      errors.push(`${name}: keine Treffer`);
+      if (!items) items = r;
+    } catch (e) {
+      errors.push(String(e.message || e));
+    }
   }
-  if (!res.ok) return Response.json({ error: `Nachrichtenquelle antwortet mit ${res.status}.` }, { status: 502 });
+  if (items === null) {
+    return Response.json({ error: "Nachrichtenquellen nicht erreichbar (" + errors.join(", ") + ")." }, { status: 502 });
+  }
 
-  const items = parseRss(await res.text());
   const out = Response.json(
-    { query: q, when, fetchedAt: new Date().toISOString(), items },
+    { query: q, when, provider, fetchedAt: new Date().toISOString(), items },
     { headers: { "Cache-Control": "public, max-age=600" } }
   );
-  await cache.put(cacheKey, out.clone());
+  if (items.length) await cache.put(cacheKey, out.clone());
   return out;
 }
