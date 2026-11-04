@@ -9,9 +9,8 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 - `functions/api/news.js`: Recherche-Bot. Liest die RSS-Feeds mehrerer Medien pro europäischem Land (`lib/feeds.js`, Leser in `lib/rss.js`), bündelt Artikel verschiedener Medien zum selben Ereignis (Doppelcheck: ab 2 Medien „bestätigt“) und lässt Workers AI eine eigene deutsche Schlagzeile schreiben. Angezeigt werden nur KI-Schlagzeile und Links zu den Originalen.
 - `functions/api/story.js`: Detailansicht („Mehr lesen“). Liefert die Quellen mit Originalschlagzeile und Link und schreibt beim ersten Öffnen einen kurzen KI-Überblick in eigenen Worten (wird gespeichert, höchstens 250 neue pro Tag). Die kurzen Feed-Anrisse (`articles.descr`) dienen nur als Eingabe für die KI und werden nie ausgeliefert.
 - `lib/bot.js`: gemeinsame Helfer für KI-Aufruf und Sperren
-- `functions/api/report.js`: Beiträge melden; ab 3 Meldungen automatisch ausgeblendet
-- `public/impressum.html`, `datenschutz.html`, `regeln.html`: rechtliche Seiten (Platzhalter im Impressum und in der Datenschutzerklärung ausfüllen!)
-- `functions/api/polls.js`, `vote.js`, `comment.js`: Abstimmungen, Stimmen, Kommentare
+- `functions/api/react.js`: Daumen hoch / runter für Meldungen (eine Bewertung pro Browser-Kennung, umschaltbar; Zählung für viele Meldungen auf einmal)
+- `public/impressum.html`, `datenschutz.html`: rechtliche Seiten (Platzhalter im Impressum und in der Datenschutzerklärung ausfüllen!)
 - `schema.sql`: Tabellen der D1-Datenbank
 - `wrangler.toml`: Cloudflare-Einstellungen (Datenbank-Bindung `DB`)
 
@@ -24,17 +23,10 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 
 Danach wird jede Änderung auf GitHub automatisch veröffentlicht.
 
-## Moderation
+## Bewertungen
 
-Unter Einstellungen → Variablen eine geheime Variable `ADMIN_KEY` anlegen. Im Browser einmal in der Konsole
-`localStorage.setItem("ts-admin", JSON.stringify("DEIN_KEY"))` ausführen: Dann siehst du auch ausgeblendete Beiträge
-und kannst alle Abstimmungen und Kommentare löschen.
-
-Gemeldete Beiträge ansehen (in der Konsole auf der Seite):
-`await fetch("/api/report",{headers:{"X-Admin-Key":"DEIN_KEY"}}).then(r=>r.json())`
-
-Einen gemeldeten Beitrag wieder freigeben:
-`await fetch("/api/report",{method:"POST",headers:{"X-Admin-Key":"DEIN_KEY"},body:JSON.stringify({action:"approve",type:"comment",id:"…"})})`
+Die Daumen speichern nur Meldung, Wert (1 oder -1), zufällige Browser-Kennung und Zeitpunkt in der Tabelle `reactions`. Es gibt keine Namen, Texte oder Konten und damit nichts zu moderieren.
+Der frühere Bereich „Abstimmungen“ (mit Kommentaren) wurde entfernt. Seine Tabellen (`polls`, `votes`, `comments`, `reports`, `events`, `wiki_days`) stehen in einer bestehenden Datenbank noch, werden aber nicht mehr benutzt und stehen nicht mehr in `schema.sql`. Eine vorhandene Variable `ADMIN_KEY` wird nicht mehr gebraucht.
 
 ## Rechtliches
 
