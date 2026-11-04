@@ -84,7 +84,8 @@ CREATE TABLE IF NOT EXISTS stories (
   summary    TEXT,
   first_seen INTEGER NOT NULL,
   last_seen  INTEGER NOT NULL,
-  outlets    INTEGER NOT NULL           -- Anzahl verschiedener Medien (Doppelcheck)
+  outlets    INTEGER NOT NULL,          -- Anzahl verschiedener Medien (Doppelcheck)
+  domestic   INTEGER NOT NULL DEFAULT 1 -- 1 = betrifft das Land selbst, 0 = Auslandsmeldung
 );
 CREATE INDEX IF NOT EXISTS stories_q ON stories (country, cat, last_seen);
 

@@ -108,11 +108,13 @@ async function assign(env, country) {
           "(gleiche Handlung, gleiche Beteiligte, gleicher Ort und Zeitpunkt – nicht nur dasselbe Thema; im Zweifel ein neues Ereignis). Artikel, die zu keinem bekannten Ereignis passen, fasst du zu neuen Ereignissen zusammen; " +
           "mehrere neue Artikel über dasselbe Ereignis bekommen dieselbe Gruppe. Für jede neue Gruppe schreibst du eine eigene, " +
           "neutrale deutsche Schlagzeile (höchstens 12 Wörter, keine wörtliche Übersetzung, keine Wertung), einen sachlichen Satz " +
-          "(höchstens 30 Wörter) nur mit Fakten aus den Titeln, und ein Ressort aus: " + CATS.join(", ") + ". " +
+          "(höchstens 30 Wörter) nur mit Fakten aus den Titeln, ein Ressort aus: " + CATS.join(", ") + ", und \"inland\": true, " +
+          "wenn das Ereignis hauptsächlich im angegebenen Land stattfindet oder dieses Land direkt betrifft, sonst false " +
+          "(bei Land Europa: true, wenn es Europa oder die EU betrifft). " +
           "Werbung, Horoskope, Rätsel, Liveticker-Hinweise, Rezepte und reine Service-Texte markierst du mit \"skip\". " +
           "Antworte nur mit JSON in dieser Form: " +
           "{\"zuordnung\":[{\"n\":1,\"id\":\"<bekannte id>\"},{\"n\":2,\"neu\":\"A\"},{\"n\":3,\"skip\":true}]," +
-          "\"neu\":{\"A\":{\"titel\":\"…\",\"satz\":\"…\",\"ressort\":\"politik\"}}}",
+          "\"neu\":{\"A\":{\"titel\":\"…\",\"satz\":\"…\",\"ressort\":\"politik\",\"inland\":true}}}",
       },
       { role: "user", content: JSON.stringify(prompt) },
     ];
@@ -140,9 +142,9 @@ async function assign(env, country) {
       const id = rid() + key.toString().slice(0, 3).replace(/\W/g, "");
       groups[key] = id;
       stmts.push(env.DB.prepare(
-        "INSERT INTO stories (id, country, cat, headline, summary, first_seen, last_seen, outlets) VALUES (?, ?, ?, ?, ?, ?, ?, 0)"
+        "INSERT INTO stories (id, country, cat, headline, summary, first_seen, last_seen, outlets, domestic) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)"
       ).bind(id, country, CATS.includes(g.ressort) ? g.ressort : "chronik", title,
-        String(g.satz || "").replace(/\s+/g, " ").trim().slice(0, 300), now, now));
+        String(g.satz || "").replace(/\s+/g, " ").trim().slice(0, 300), now, now, g.inland === false ? 0 : 1));
     }
     const touched = new Set();
     const handled = new Set();
@@ -219,7 +221,7 @@ export async function onRequestGet(context) {
   const where = country === "EU" ? "" : "country = ? AND";
   const binds = country === "EU" ? [cat, since] : [country, cat, since];
   const stories = (await env.DB.prepare(
-    `SELECT * FROM stories WHERE ${where} cat = ? AND last_seen >= ? AND outlets > 0
+    `SELECT * FROM stories WHERE ${where} domestic = 1 AND cat = ? AND last_seen >= ? AND outlets > 0
      ORDER BY last_seen DESC LIMIT ${country === "EU" ? 80 : 60}`
   ).bind(...binds).all()).results;
 

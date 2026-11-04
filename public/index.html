@@ -325,6 +325,7 @@ const COUNTRIES = [
 ].map(([code,flag,name])=>({code,flag,name}))
  .sort((a,b)=>a.name.localeCompare(b.name,"de"));
 const BY = Object.fromEntries(COUNTRIES.map(c=>[c.code,c]));
+const FROM = {NL:"aus den Niederlanden",CH:"aus der Schweiz",SK:"aus der Slowakei",UA:"aus der Ukraine",GB:"aus dem Vereinigten Königreich"};
 const CATS = {
   politik:{label:"Politik"}, wirtschaft:{label:"Wirtschaft"}, sport:{label:"Sport"}, kultur:{label:"Kultur"},
   wissenschaft:{label:"Wissenschaft"}, technik:{label:"Technik"}, gesundheit:{label:"Gesundheit"},
@@ -366,7 +367,7 @@ async function api(path, opts={}){
 // ---------- Auswahl ----------
 const optHtml = COUNTRIES.map(c=>`<option value="${c.code}">${c.flag} ${esc(c.name)}</option>`).join("");
 $("country").innerHTML = `<option value="EU">aus ganz Europa</option><optgroup label="Länder">` +
-  COUNTRIES.map(c=>`<option value="${c.code}">aus ${esc(c.name)}</option>`).join("") + `</optgroup>`;
+  COUNTRIES.map(c=>`<option value="${c.code}">${esc(FROM[c.code]||"aus "+c.name)}</option>`).join("") + `</optgroup>`;
 $("pc").innerHTML = `<option value="INT">🇪🇺 Ganz Europa</option>` + optHtml;
 const scopeCode = ()=> state.intl ? "EU" : state.country;
 const pollScope = ()=> state.intl ? "INT" : state.country;
