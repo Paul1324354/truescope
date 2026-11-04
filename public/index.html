@@ -726,7 +726,7 @@ function overviewHtml(d, mode){
       : note("Für diese Meldung gibt es gerade keinen ausführlichen Überblick. Die Originalartikel findest du unten.");
   }
   return `<h3 class="dh">Zusammenfassung <span class="ki">KI</span>${extra}</h3>${body}
-    ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten aus den Angaben der Medien geschrieben. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}`;
+    ${d&&d.detail?`<p class="dfine">Eine KI hat diesen Text in eigenen Worten aus den Angaben der Medien geschrieben und Hintergrund aus Wikipedia und Mitteilungen offizieller Stellen ergänzt. Er wurde nicht von Menschen geprüft und kann Fehler enthalten.</p>`:""}`;
 }
 
 const ICON_CHECK = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 8.4l3 3 6.6-6.8"/></svg>`;

@@ -64,6 +64,18 @@ CREATE TABLE IF NOT EXISTS robots (
   fetched_at INTEGER NOT NULL
 );
 
+-- Kontext-Bot: Mitteilungen offizieller Stellen (nur als Hintergrund für die KI, werden nicht angezeigt)
+CREATE TABLE IF NOT EXISTS official (
+  id         TEXT PRIMARY KEY,          -- Hash des Links
+  country    TEXT NOT NULL,             -- Land oder EU (gilt für alle)
+  body       TEXT NOT NULL,             -- Stelle, z. B. Europäisches Parlament
+  title      TEXT NOT NULL,
+  descr      TEXT DEFAULT '',
+  published  INTEGER NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS official_q ON official (country, published);
+
 -- Bestehende Datenbank erweitern (einmalig, falls die Spalten fehlen):
 -- ALTER TABLE stories ADD COLUMN detail_v INTEGER DEFAULT 0;
 -- ALTER TABLE stories ADD COLUMN compare_json TEXT DEFAULT '';
