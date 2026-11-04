@@ -339,7 +339,16 @@ async function loadNews(){
   try{
     const data = await api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
     if(id!==newsReq) return;
-    newsItems = data.items||[]; newsShown=15; newsNote = data.pendingDays ? "Ältere Tage werden gerade nach und nach geladen. Lade die Seite später neu, um mehr zu sehen." : ""; renderNews();
+    newsItems = data.items||[]; newsShown=15; newsNote = data.pendingDays ? "Ältere Tage werden gerade nach und nach geladen. Lade die Seite später neu, um mehr zu sehen." : "";
+    if(!newsItems.length && !state.intl){
+      const intl = await api(`/api/news?country=INT&cat=${state.cat}&when=${PERIODS[state.period].gn}`);
+      if(id!==newsReq) return;
+      if((intl.items||[]).length){
+        newsItems = intl.items;
+        newsNote = `Zu ${scopeName()} gibt es in diesem Zeitraum keine Meldungen in der Quelle. Hier sind die internationalen Schlagzeilen.`;
+      }
+    }
+    renderNews();
   }catch(e){
     if(id!==newsReq) return;
     $("news").innerHTML = `<p class="empty">Die Nachrichten konnten nicht geladen werden (${esc(e.message)}). Tippe auf „Aktualisieren“, um es noch einmal zu versuchen.</p>`;
