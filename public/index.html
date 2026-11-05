@@ -452,15 +452,20 @@ dialog.authdlg::backdrop{background:rgba(5,16,18,.62);animation:fade .2s both}
 }
 /* Suche */
 .search{position:relative;display:flex;align-items:center;flex:1;max-width:560px;margin-left:8px}
-.search > svg{position:absolute;left:13px;width:18px;height:18px;color:var(--muted);pointer-events:none}
-.search input{width:100%;height:40px;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:0 40px 0 40px;font-size:.95rem;color:var(--ink);-webkit-appearance:none;appearance:none}
+.search > svg{position:absolute;left:14px;width:19px;height:19px;color:var(--accent);pointer-events:none}
+.search input{width:100%;height:44px;border:1.5px solid color-mix(in srgb,var(--accent) 55%,var(--line));background:var(--accent-soft);border-radius:999px;padding:0 44px 0 42px;font-size:.96rem;font-weight:500;color:var(--ink);-webkit-appearance:none;appearance:none;box-shadow:0 2px 10px -4px color-mix(in srgb,var(--accent) 45%,transparent);transition:border-color .15s,box-shadow .15s,background .15s}
+.search input::placeholder{color:color-mix(in srgb,var(--accent) 65%,var(--ink-2));opacity:1}
+.search input:hover{border-color:var(--accent)}
+.search .qk{position:absolute;right:12px;display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:6px;font:600 .74rem/1 var(--ui);color:var(--accent);background:var(--surface);pointer-events:none}
+.search input:focus ~ .qk,.search input:not(:placeholder-shown) ~ .qk{display:none}
 .search input::-webkit-search-cancel-button{display:none}
-.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:var(--surface)}
+.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent);background:var(--surface)}
 .search .qx{position:absolute;right:6px;display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--muted)}
 .search .qx:hover{background:var(--sunk);color:var(--ink)}
 .search .qx svg{width:16px;height:16px}
 .qcancel{display:none;border:0;background:transparent;color:var(--accent);font-weight:600;font-size:.92rem;padding:8px 2px 8px 12px;white-space:nowrap}
 #qOpen{display:none}
+#qOpen{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));background:var(--accent-soft);color:var(--accent)}
 .sbar{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;margin-top:22px;padding:10px 0;border-block:1px solid var(--line);font-size:.9rem;color:var(--ink-2)}
 .sbar .seg2{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
 .sbar .seg2 button{border:0;background:transparent;border-radius:999px;padding:6px 12px;font-weight:600;font-size:.86rem;color:var(--muted)}
@@ -523,6 +528,7 @@ html.searching .toolbar,html.searching #reload,html.searching #note{display:none
     <form class="search" id="searchForm" role="search" autocomplete="off">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
       <input id="q" type="search" placeholder="Thema oder Medium suchen, z. B. ORF" aria-label="Meldungen nach Thema oder Medium durchsuchen" maxlength="80" enterkeyhint="search" spellcheck="false">
+      <kbd class="qk" title="Taste / zum Suchen">/</kbd>
       <button class="qx" id="qClear" type="button" aria-label="Suche löschen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
       <button class="qcancel" id="qCancel" type="button">Abbrechen</button>
     </form>
@@ -1177,6 +1183,13 @@ $("searchForm").addEventListener("submit", e=>{
 });
 qIn.addEventListener("keydown", e=>{ if(e.key==="Escape"){ e.preventDefault(); exitSearch(); closeMobileSearch(); qIn.blur(); } });
 $("qClear").onclick = ()=>{ exitSearch(); qIn.focus(); };
+// Taste „/“ springt in die Suche (außer beim Tippen in einem Feld oder bei offenem Fenster)
+document.addEventListener("keydown", e=>{
+  if(e.key!=="/" || e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target; if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  if(document.querySelector("dialog[open]") || document.documentElement.classList.contains("intro-on")) return;
+  e.preventDefault(); if(matchMedia("(max-width:759px)").matches) topBar.classList.add("open-search"); qIn.focus();
+});
 $("qOpen").onclick = ()=>{ topBar.classList.add("open-search"); setTimeout(()=>qIn.focus(), 30); };
 $("qCancel").onclick = ()=>{ exitSearch(); closeMobileSearch(); };
 $("news").addEventListener("click", e=>{
