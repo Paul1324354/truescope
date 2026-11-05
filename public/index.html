@@ -9,7 +9,9 @@
 <meta name="theme-color" content="#0A1517" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/archivo.woff" as="font" type="font/woff" crossorigin>
-<script>try{var t=localStorage.getItem("ts-theme");if(t==='"light"'||t==='"dark"')document.documentElement.dataset.theme=JSON.parse(t)}catch(e){}</script>
+<script>try{var t=localStorage.getItem("ts-theme");if(t==='"light"'||t==='"dark"')document.documentElement.dataset.theme=JSON.parse(t)}catch(e){}
+/* Startbildschirm beim ersten Besuch (nicht bei geteilten Links zu einer Meldung) */
+try{if(localStorage.getItem("ts-intro")!=="1"&&location.hash.indexOf("#s=")!==0)document.documentElement.classList.add("intro-on")}catch(e){}</script>
 <style>
 @font-face{font-family:"Archivo";src:url("/fonts/archivo.woff") format("woff");font-weight:400 800;font-stretch:75% 100%;font-display:swap}
 @font-face{font-family:"Literata";src:url("/fonts/literata.woff") format("woff");font-weight:400 700;font-display:swap}
@@ -319,12 +321,90 @@ footer.site nav a:hover{color:var(--ink)}
   .logo b{font-size:1.2rem}
   .logo svg{width:30px;height:30px}
 }
+
+/* Startbildschirm */
+.intro{display:none}
+html.intro-on{overflow:hidden}
+html.intro-on .intro{display:flex}
+.intro{--ia:#4FD1C5;position:fixed;inset:0;z-index:100;overflow-y:auto;background:
+  radial-gradient(circle at 50% 38%,rgba(79,209,197,.14) 0,rgba(79,209,197,0) 46%),
+  repeating-radial-gradient(circle at 50% 38%,rgba(232,243,241,.045) 0 1px,transparent 1px 72px),
+  var(--rail);color:var(--rail-ink);
+  padding:max(28px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  flex-direction:column;align-items:center}
+.intro.out{animation:introout .42s ease forwards}
+@keyframes introout{to{opacity:0;transform:scale(1.03)}}
+.i-in{margin:auto 0;width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 0}
+.i-mark{width:clamp(96px,16vw,132px);height:auto;color:var(--rail-ink);animation:irise .7s cubic-bezier(.2,.8,.2,1) both}
+.i-mark .needle{transform-origin:24px 24px;animation:ineedle 1.4s cubic-bezier(.3,1.5,.4,1) .15s both}
+@keyframes irise{from{opacity:0;transform:translateY(10px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes ineedle{from{transform:rotate(-70deg)}to{transform:none}}
+.i-name{margin-top:18px;font:800 clamp(1.5rem,3.4vw,1.9rem)/1 var(--head);font-stretch:84%;letter-spacing:-.01em;animation:irise .7s .08s both}
+.i-name i{font-style:normal;color:var(--ia)}
+.i-title{margin-top:26px;font:800 clamp(2.6rem,8.4vw,5.2rem)/.94 var(--head);font-stretch:74%;letter-spacing:-.018em;text-wrap:balance;animation:irise .8s .16s both}
+.i-title em{font-style:normal;color:var(--ia)}
+.i-sub{margin-top:18px;max-width:46ch;font:400 clamp(1.02rem,2.2vw,1.18rem)/1.6 var(--read);color:var(--rail-ink);opacity:.86;animation:irise .8s .24s both}
+.i-pts{margin-top:34px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%;text-align:left;animation:irise .8s .32s both}
+.i-pt{border:1px solid var(--rail-line);border-radius:12px;padding:15px 16px;background:rgba(232,243,241,.035)}
+.i-pt svg{width:22px;height:22px;color:var(--ia);display:block}
+.i-pt b{display:block;margin-top:10px;font:700 1rem/1.2 var(--head);font-stretch:88%}
+.i-pt span{display:block;margin-top:5px;font-size:.86rem;line-height:1.45;color:var(--rail-muted)}
+.i-go{margin-top:34px;display:inline-flex;align-items:center;gap:10px;border:0;border-radius:999px;background:var(--ia);color:#06201E;font:700 1.06rem/1 var(--ui);padding:16px 26px;min-height:52px;box-shadow:0 10px 30px -10px rgba(79,209,197,.55);transition:transform .15s,box-shadow .15s;animation:irise .8s .4s both}
+.i-go svg{width:18px;height:18px;transition:transform .15s}
+.i-go:hover{transform:translateY(-1px);box-shadow:0 14px 34px -10px rgba(79,209,197,.7)}
+.i-go:hover svg{transform:translateX(3px)}
+.intro :focus-visible{outline:2px solid var(--rail-ink);outline-offset:3px}
+.i-foot{margin-top:22px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;font-size:.8rem;color:var(--rail-muted);animation:irise .8s .46s both}
+.i-foot a{color:var(--rail-muted);text-underline-offset:3px}
+.i-foot a:hover{color:var(--rail-ink)}
+@media (max-width:640px){
+  .i-in{padding:4px 0 0}
+  .i-mark{width:64px}
+  .i-name{margin-top:10px;font-size:1.3rem}
+  .i-title{margin-top:16px;font-size:clamp(2.3rem,11vw,3rem)}
+  .i-sub{margin-top:12px;font-size:.98rem;line-height:1.5}
+  .i-pts{margin-top:20px;grid-template-columns:1fr;gap:6px}
+  .i-pt{display:grid;grid-template-columns:20px 1fr;column-gap:12px;padding:10px 12px}
+  .i-pt svg{grid-row:1/3;margin-top:1px;width:20px;height:20px}
+  .i-pt b{margin-top:0;font-size:.95rem}
+  .i-pt span{font-size:.8rem;margin-top:2px}
+  .i-go{position:sticky;bottom:max(10px,env(safe-area-inset-bottom));margin-top:20px;width:100%;justify-content:center;box-shadow:0 -14px 22px 8px var(--rail),0 10px 30px -10px rgba(79,209,197,.55)}
+  .i-foot{margin-top:14px}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important}
 }
 </style>
 </head>
 <body>
+<div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="iTitle">
+  <div class="i-in">
+    <svg class="i-mark" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 24L33.62 14.38L31.02 21.09ZM24 24L14.38 14.38L21.09 16.98ZM24 24L14.38 33.62L16.98 26.91ZM24 24L33.62 33.62L26.91 31.02Z" fill="currentColor" opacity=".3"/><path d="M24 24L33.62 14.38L26.91 16.98ZM24 24L14.38 14.38L16.98 21.09ZM24 24L14.38 33.62L21.09 31.02ZM24 24L33.62 33.62L31.02 26.91Z" fill="currentColor" opacity=".68"/><path d="M24 24L46 24L31.02 26.91ZM24 24L2 24L16.98 21.09ZM24 24L24 46L21.09 31.02Z" fill="currentColor" opacity=".38"/><path d="M24 24L46 24L31.02 21.09ZM24 24L2 24L16.98 26.91ZM24 24L24 46L26.91 31.02Z" fill="currentColor"/><g class="needle"><path d="M24 24L24 2L26.91 16.98Z" fill="#4FD1C5" opacity=".55"/><path d="M24 24L24 2L21.09 16.98Z" fill="#4FD1C5"/></g></svg>
+    <p class="i-name">True<i>Scope</i></p>
+    <h1 class="i-title" id="iTitle">See Beyond the <em>Headlines</em></h1>
+    <p class="i-sub">Nachrichten aus ganz Europa – von mehreren Medien gegengeprüft, verständlich zusammengefasst und Quelle für Quelle verglichen.</p>
+    <div class="i-pts">
+      <div class="i-pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg><b>Gegengeprüft</b><span>Als bestätigt gilt eine Meldung erst, wenn mehrere Medien berichten.</span></div>
+      <div class="i-pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14M5 11h14M5 16h9"/></svg><b>Zusammengefasst</b><span>Das Wichtigste zu jeder Meldung in ein bis zwei Minuten.</span></div>
+      <div class="i-pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M5 8l-3 6h6zM19 8l-3 6h6zM5 8h14"/></svg><b>Verglichen</b><span>Wo Medien Unterschiedliches berichten, siehst du es auf einen Blick.</span></div>
+    </div>
+    <button class="i-go" id="introGo" type="button">Zu den Nachrichten<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <p class="i-foot"><span>Keine Cookies, kein Tracking</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a></p>
+  </div>
+</div>
+<script>(function(){
+  var h=document.documentElement,el=document.getElementById("intro"),b=document.getElementById("introGo");
+  if(!h.classList.contains("intro-on")){el.remove();return;}
+  function go(){
+    try{localStorage.setItem("ts-intro","1")}catch(e){}
+    el.classList.add("out");
+    setTimeout(function(){h.classList.remove("intro-on");el.remove();},420);
+    document.removeEventListener("keydown",esc,true);
+  }
+  function esc(e){if(e.key==="Escape"||e.key==="Enter"&&document.activeElement===document.body){e.preventDefault();e.stopPropagation();go();}}
+  b.addEventListener("click",go);
+  document.addEventListener("keydown",esc,true);
+})();</script>
 <header class="top">
   <div class="top-in">
     <a class="logo" href="/" aria-label="TrueScope Startseite">
