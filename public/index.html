@@ -520,7 +520,7 @@ footer.site nav .flink:hover{color:var(--ink)}
       <div class="i-pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M5 8l-3 6h6zM19 8l-3 6h6zM5 8h14"/></svg><b>Verglichen</b><span>Wo Medien Unterschiedliches berichten, siehst du es auf einen Blick.</span></div>
     </div>
     <button class="i-go" id="introGo" type="button">Zu den Nachrichten<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-    <p class="i-foot"><span>Kein Tracking, keine Werbung</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><button class="flink" type="button" data-open-cookies>Cookies</button></p>
+    <p class="i-foot"><span>Kein Tracking</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><button class="flink" type="button" data-open-cookies>Cookies</button></p>
   </div>
 </div>
 <script>(function(){
@@ -1252,7 +1252,7 @@ function renderCookies(){
   if(cView==="intro"){
     $("cBody").innerHTML = `<div class="cintro">${ICON_COOKIE_BIG}
       <h2 class="at" id="cTitle">Cookies und Speicher</h2>
-      <p class="asub">Kein Tracking, keine Werbung. Notwendiges wie Anmeldung und Daumen-Bewertungen ist immer aktiv. Dürfen wir uns zusätzlich deine Einstellungen merken, also Land, Zeitraum, Ressort und Hell oder Dunkel?</p></div>
+      <p class="asub">Kein Tracking. Notwendiges wie Anmeldung und Daumen-Bewertungen ist immer aktiv. Dürfen wir uns zusätzlich deine Einstellungen merken, also Land, Zeitraum, Ressort und Hell oder Dunkel?</p></div>
       <div class="aform">
         <button class="abtn" type="button" data-c="all">Alle akzeptieren</button>
         <button class="aalt" type="button" data-c="need">Nur notwendige</button>
@@ -1261,7 +1261,7 @@ function renderCookies(){
     return;
   }
   $("cBody").innerHTML = `<h2 class="at" id="cTitle">Cookie-Einstellungen</h2>
-    <p class="asub">TrueScope nutzt kein Tracking und keine Werbung. Du entscheidest nur, ob wir uns deine Einstellungen merken dürfen.</p>
+    <p class="asub">TrueScope nutzt kein Tracking. Du entscheidest nur, ob wir uns deine Einstellungen merken dürfen.</p>
     <div class="clist">
       <div class="crow">
         <div><b>Notwendig</b><p>Damit du angemeldet bleibst (Anmelde-Cookie, nur mit Konto), deine Daumen-Bewertung zählt (zufällige Browser-Kennung) und der Startbildschirm pro Besuch nur einmal kommt. Ohne geht die Seite nicht.</p></div>
