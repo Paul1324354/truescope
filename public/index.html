@@ -286,6 +286,8 @@ dialog.drawer::backdrop{background:rgba(5,16,18,.56);animation:fade .2s both}
 
 footer.site{border-top:1px solid var(--line);background:var(--bg);padding:26px max(20px,env(safe-area-inset-left)) calc(26px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center}
 footer.site .claim{font-weight:700;font-size:.92rem;color:var(--muted)}
+footer.site .fbrand{display:grid;gap:3px}
+footer.site .fcopy{font-size:.8rem;color:var(--muted)}
 footer.site nav{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
 footer.site nav a{color:var(--muted);text-decoration:none}
 footer.site nav a:hover{color:var(--ink)}
@@ -573,7 +575,7 @@ html.ts-playing .dbody{padding-bottom:120px}
       <div class="i-pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M5 8l-3 6h6zM19 8l-3 6h6zM5 8h14"/></svg><b>Verglichen</b><span>Wo Medien Unterschiedliches berichten, siehst du es auf einen Blick.</span></div>
     </div>
     <button class="i-go" id="introGo" type="button">Zu den Nachrichten<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-    <p class="i-foot"><span>Kein Tracking</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><button class="flink" type="button" data-open-cookies>Cookies</button><a href="/einstellungen.html">Einstellungen und Vorlesen</a></p>
+    <p class="i-foot"><span>Kein Tracking</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><button class="flink" type="button" data-open-cookies>Cookies</button><a href="/einstellungen.html">Einstellungen und Vorlesen</a><span>© 2026 TrueScope</span></p>
   </div>
 </div>
 <script>(function(){
@@ -679,7 +681,7 @@ html.ts-playing .dbody{padding-bottom:120px}
 </div>
 
 <footer class="site">
-  <span class="claim">See beyond the headlines</span>
+  <div class="fbrand"><span class="claim">See beyond the headlines</span><small class="fcopy">© 2026 TrueScope · Alle Rechte vorbehalten</small></div>
   <nav>
     <a href="/einstellungen.html">Einstellungen und Vorlesen</a>
     <a href="/impressum.html">Impressum</a>
