@@ -522,7 +522,7 @@ html.searching .toolbar,html.searching #reload,html.searching #note{display:none
     </a>
     <form class="search" id="searchForm" role="search" autocomplete="off">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
-      <input id="q" type="search" placeholder="Meldungen durchsuchen …" aria-label="Meldungen durchsuchen" maxlength="80" enterkeyhint="search" spellcheck="false">
+      <input id="q" type="search" placeholder="Thema oder Medium suchen, z. B. ORF" aria-label="Meldungen nach Thema oder Medium durchsuchen" maxlength="80" enterkeyhint="search" spellcheck="false">
       <button class="qx" id="qClear" type="button" aria-label="Suche löschen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
       <button class="qcancel" id="qCancel" type="button">Abbrechen</button>
     </form>
@@ -1102,9 +1102,8 @@ function renderSearch(){
   document.documentElement.classList.add("searching");
   $("title").textContent = `Suche: „${S.q}“`;
   const own = S.scope !== "EU";
-  const home = state.intl ? null : state.country;
-  const btns = (home ? `<button type="button" data-sc="${esc(home)}" aria-pressed="${own}">${esc(BY[home]?.name||home)}</button>` : "")
-    + `<button type="button" data-sc="EU" aria-pressed="${!own}">Ganz Europa</button>`;
+  const scopes = [...new Set([own ? S.scope : null, state.intl ? null : state.country].filter(Boolean)), "EU"];
+  const btns = scopes.map(sc=>`<button type="button" data-sc="${esc(sc)}" aria-pressed="${sc===S.scope}">${sc==="EU"?"Ganz Europa":esc(BY[sc]?.name||sc)}</button>`).join("");
   const scopeBar = `<div class="sbar" role="group" aria-label="Suchbereich">
       <span>Suchen in</span><span class="seg2">${btns}</span>
       <button class="back" type="button" data-sback>Zurück zu den Nachrichten</button>
@@ -1117,12 +1116,14 @@ function renderSearch(){
     $("news").innerHTML = scopeBar + `<div class="empty"><h3>Die Suche hat nicht geklappt.</h3>${esc(S.error)}</div>`;
   } else if(!S.items.length){
     $("sub").textContent = `Keine Treffer in den letzten 30 Tagen in ${searchScopeName(S.scope)}.`;
-    $("news").innerHTML = scopeBar + `<div class="empty"><h3>Nichts gefunden.</h3>Versuch es mit weniger oder anderen Wörtern${own?" oder such in ganz Europa":""}. Gesucht wird in den Schlagzeilen und Kurzfassungen der letzten 30 Tage.</div>`;
+    $("news").innerHTML = scopeBar + `<div class="empty"><h3>Nichts gefunden.</h3>Versuch es mit weniger oder anderen Wörtern${own?" oder such in ganz Europa":""}. Gesucht wird in den Schlagzeilen, Kurzfassungen und Medien der letzten 30 Tage.</div>`;
   } else {
     const n = S.items.length;
-    $("sub").textContent = `${S.more?"Mehr als ":""}${n} Treffer in den letzten 30 Tagen in ${searchScopeName(S.scope)}${S.more?", die neuesten zuerst":""}.`;
+    const med = S.outlets?.length ? `, mit allen Artikeln von ${S.outlets.join(" und ")}` : "";
+    $("sub").textContent = `${S.more?"Mehr als ":""}${n} Treffer in den letzten 30 Tagen in ${searchScopeName(S.scope)}${med}${S.more?", die neuesten zuerst":""}.`;
     const items = S.items.map(x=>({...x, europe: S.scope==="EU" && !state.intl}));
-    $("news").innerHTML = scopeBar + `<ol class="rows" style="margin-top:6px">${items.map(x=>rowHtml(x,true)).join("")}</ol>`;
+    $("news").innerHTML = scopeBar + `<ol class="rows" style="margin-top:6px">${items.map(x=>rowHtml(x,true)).join("")}</ol>`
+      + (S.more ? `<div class="more"><button class="btn line" type="button" data-smore${S.loadingMore?" disabled":""}>${S.loadingMore?"Lade weitere Treffer …":"Weitere Treffer"}</button></div>` : "");
     loadReactions(items.map(x=>x.id).filter(id=>!(id in REACT)));
   }
   $("more").hidden = true;
@@ -1134,12 +1135,23 @@ async function runSearch(q, scope){
   try{
     const d = await api(`/api/search?q=${encodeURIComponent(q)}&country=${encodeURIComponent(scope)}`);
     if(id!==searchReq) return;
-    SEARCH = {q, scope, items:d.items||[], more:!!d.more};
+    SEARCH = {q, scope:d.country||scope, items:d.items||[], more:!!d.more, outlets:d.outlets||[]};
   }catch(e){
     if(id!==searchReq) return;
     SEARCH = {q, scope, items:[], error:e.message};
   }
   renderSearch();
+}
+async function moreSearch(){
+  const S = SEARCH; if(!S || !S.more || S.loadingMore) return;
+  const id = searchReq; S.loadingMore = true; renderSearch();
+  try{
+    const d = await api(`/api/search?q=${encodeURIComponent(S.q)}&country=${encodeURIComponent(S.scope)}&offset=${S.items.length}`);
+    if(id!==searchReq || SEARCH!==S) return;
+    const have = new Set(S.items.map(x=>x.id));
+    S.items.push(...(d.items||[]).filter(x=>!have.has(x.id))); S.more = !!d.more;
+  }catch(e){ toast("Weitere Treffer konnten nicht geladen werden."); }
+  S.loadingMore = false; if(SEARCH===S) renderSearch();
 }
 function exitSearch(keepText){
   searchReq++; clearTimeout(searchT);
@@ -1170,6 +1182,7 @@ $("qCancel").onclick = ()=>{ exitSearch(); closeMobileSearch(); };
 $("news").addEventListener("click", e=>{
   const sc = e.target.closest("[data-sc]");
   if(sc && SEARCH){ if(sc.dataset.sc!==SEARCH.scope) runSearch(SEARCH.q, sc.dataset.sc); return; }
+  if(e.target.closest("[data-smore]")){ moreSearch(); return; }
   if(e.target.closest("[data-sback]")){ exitSearch(); closeMobileSearch(); }
 });
 // Wer Land, Zeitraum oder Ressort ändert, verlässt die Suche

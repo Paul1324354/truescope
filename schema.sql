@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS articles (
 );
 CREATE INDEX IF NOT EXISTS articles_open ON articles (country, story_id, published);
 CREATE INDEX IF NOT EXISTS articles_story ON articles (story_id);
+CREATE INDEX IF NOT EXISTS articles_outlet ON articles (outlet, story_id);  -- Suche nach Medium
 
 CREATE TABLE IF NOT EXISTS stories (
   id         TEXT PRIMARY KEY,
