@@ -342,6 +342,18 @@ html.intro-on .intro{display:flex}
   100%{transform:translateY(102%);border-radius:28px 28px 0 0}
 }
 @keyframes introfade{to{opacity:.35}}
+/* Radar: ein Strahl streicht über die Ringe, Punkte leuchten auf, wenn er sie trifft (Umlauf 6 s) */
+.i-radar{position:fixed;left:50%;top:38%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;border-radius:50%;pointer-events:none;z-index:0;
+  background:conic-gradient(from 0deg,rgba(79,209,197,0) 0deg,rgba(79,209,197,0) 280deg,rgba(79,209,197,.15) 359.2deg,rgba(79,209,197,0) 360deg);
+  -webkit-mask:radial-gradient(circle,#000 0,#000 16%,transparent 36%);mask:radial-gradient(circle,#000 0,#000 16%,transparent 36%);
+  animation:isweep 6s linear infinite}
+@keyframes isweep{to{transform:rotate(360deg)}}
+.i-blip{position:fixed;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#4FD1C5;box-shadow:0 0 14px 4px rgba(79,209,197,.55);opacity:0;pointer-events:none;z-index:0;animation:iblip 6s linear infinite}
+@keyframes iblip{0%{opacity:1;transform:scale(1.25)}35%{opacity:0;transform:scale(.5)}100%{opacity:0}}
+.i-in{position:relative;z-index:1}
+.i-acct{z-index:2}
+@media (prefers-reduced-motion:reduce){.i-radar,.i-blip{display:none}}
+
 .top,.app{transition:transform .8s cubic-bezier(.65,0,.25,1),opacity .8s ease,filter .8s ease;transform-origin:50% 0}
 html.intro-on:not(.intro-leaving) .top,html.intro-on:not(.intro-leaving) .app{transform:scale(.94) translateY(18px);opacity:.4;filter:blur(2px)}
 .i-in{margin:auto 0;width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 0}
@@ -440,6 +452,7 @@ dialog.authdlg::backdrop{background:rgba(5,16,18,.62);animation:fade .2s both}
 </head>
 <body>
 <div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="iTitle">
+  <div class="i-radar" aria-hidden="true"></div><div aria-hidden="true"><i class="i-blip" style="left:calc(50% + 165px);top:calc(38% + -95px);animation-delay:1.0s"></i><i class="i-blip" style="left:calc(50% + 325px);top:calc(38% + 57px);animation-delay:1.667s"></i><i class="i-blip" style="left:calc(50% + -160px);top:calc(38% + 58px);animation-delay:4.167s"></i><i class="i-blip" style="left:calc(50% + -154px);top:calc(38% + -184px);animation-delay:5.333s"></i></div>
   <button class="i-acct" id="iAcct" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>Anmelden</span></button>
   <div class="i-in">
     <svg class="i-mark" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 24L33.62 14.38L31.02 21.09ZM24 24L14.38 14.38L21.09 16.98ZM24 24L14.38 33.62L16.98 26.91ZM24 24L33.62 33.62L26.91 31.02Z" fill="currentColor" opacity=".3"/><path d="M24 24L33.62 14.38L26.91 16.98ZM24 24L14.38 14.38L16.98 21.09ZM24 24L14.38 33.62L21.09 31.02ZM24 24L33.62 33.62L31.02 26.91Z" fill="currentColor" opacity=".68"/><path d="M24 24L46 24L31.02 26.91ZM24 24L2 24L16.98 21.09ZM24 24L24 46L21.09 31.02Z" fill="currentColor" opacity=".38"/><path d="M24 24L46 24L31.02 21.09ZM24 24L2 24L16.98 26.91ZM24 24L24 46L26.91 31.02Z" fill="currentColor"/><g class="needle"><path d="M24 24L24 2L26.91 16.98Z" fill="#4FD1C5" opacity=".55"/><path d="M24 24L24 2L21.09 16.98Z" fill="#4FD1C5"/></g></svg>
