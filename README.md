@@ -62,6 +62,14 @@ Beim Öffnen einer Meldung wird je Medium der früheste Artikel bewertet (höchs
 - **Lesezeit** = Wörter ÷ 200, gerundet. Dafür ruft der Server die Artikelseite einmal ab (`User-Agent: TrueScope/1.0 (+https://truescope.dev/; Lesezeit-Messung)`). Vorher wird die robots.txt des Mediums geprüft (24 Stunden zwischengespeichert in `robots`; Gruppe `TrueScope`, sonst `*`). Es wird **nichts abgerufen**, wenn der Abruf nicht erlaubt ist, die robots.txt nicht erreichbar ist (alles außer 404/410) oder ein Vorbehalt vorliegt (`tdm-reservation: 1`, `X-Robots-Tag`/Meta `noai`). Gespeichert werden nur `articles.words`, `paywall` und `measured_at`, nie Text.
 - Medien können den Abruf selbst sperren: `User-agent: TrueScope` / `Disallow: /` in der robots.txt.
 
+## Cookie-Auswahl
+
+Beim ersten Besuch (nach dem Startbildschirm) erscheint unten ein Hinweis mit „Alle akzeptieren“, „Nur notwendige“ und „Auswahl anpassen“; ändern lässt sich die Wahl jederzeit über „Cookie-Einstellungen“ unten auf der Seite (oder `/#cookies`).
+
+- **Notwendig, immer aktiv:** Anmelde-Cookie `ts_session` (nur mit Konto), Bewertungs-Kennung `ts-client`, Startbildschirm-Merker `ts-intro` (sessionStorage), die Auswahl selbst `ts-consent`.
+- **Optional „Einstellungen merken“:** `ts-pref` (Land, Zeitraum, Ressort, Sortierung), `ts-theme`, `ts-confirmed`. Ohne Zustimmung speichert `store.set` diese Schlüssel nicht; beim Widerruf werden sie gelöscht.
+- Statistik- oder Werbe-Cookies gibt es nicht; der Dialog sagt das ausdrücklich.
+
 ## Bewertungen
 
 Die Daumen speichern nur Meldung, Wert (1 oder -1), zufällige Browser-Kennung und Zeitpunkt in der Tabelle `reactions`. Es gibt keine Namen, Texte oder Konten und damit nichts zu moderieren.

@@ -480,6 +480,33 @@ html.searching .toolbar,html.searching #reload,html.searching #note{display:none
   .top.open-search .qcancel{display:inline-block}
   .top.open-search .search .qx{right:96px}
 }
+/* Cookie-Hinweis und -Auswahl */
+.cbanner{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));margin:0 auto;z-index:95;max-width:780px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px -20px rgba(0,0,0,.5);padding:18px 20px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 20px;align-items:center;animation:apop .32s cubic-bezier(.2,.8,.2,1) both}
+.cbanner[hidden]{display:none}
+.cbanner h2{font:800 1.12rem/1.1 var(--head);font-stretch:86%;display:flex;align-items:center;gap:8px}
+.cbanner h2 svg{width:20px;height:20px;color:var(--accent)}
+.cbanner p{margin-top:5px;font-size:.88rem;line-height:1.45;color:var(--ink-2)}
+.cbtns{display:flex;flex-direction:column;gap:7px;min-width:190px}
+.cbtns .abtn,.cbtns .aalt{min-height:40px;padding:9px 16px;font-size:.9rem}
+.cbtns .clink{border:0;background:none;color:var(--accent);font-weight:600;font-size:.85rem;padding:4px;text-decoration:underline;text-underline-offset:3px}
+.clist{display:grid;margin-top:18px;border-top:1px solid var(--line)}
+.crow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 18px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line)}
+.crow b{font-size:.98rem}
+.crow p{margin-top:4px;font-size:.84rem;line-height:1.45;color:var(--ink-2)}
+.crow.off b,.crow.off p{color:var(--muted)}
+.cfix{font-size:.76rem;font-weight:700;color:var(--muted);white-space:nowrap;padding-top:2px}
+.crow .switch input{width:42px;height:24px}
+.crow .switch input::after{width:18px;height:18px}
+.crow .switch input:checked::after{transform:translateX(18px)}
+.flink{border:0;background:none;padding:0;color:inherit;font:inherit;text-decoration:inherit;cursor:pointer}
+@media (max-width:640px){
+  .cbanner{grid-template-columns:1fr;bottom:calc(10px + env(safe-area-inset-bottom));padding:16px}
+  .cbtns{min-width:0}
+}
+footer.site nav .flink{color:var(--muted)}
+footer.site nav .flink:hover{color:var(--ink)}
+.i-foot .flink{color:var(--rail-muted);text-decoration:underline;text-underline-offset:3px}
+.i-foot .flink:hover{color:var(--rail-ink)}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important}
 }
@@ -501,7 +528,7 @@ html.searching .toolbar,html.searching #reload,html.searching #note{display:none
       <div class="i-pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M5 8l-3 6h6zM19 8l-3 6h6zM5 8h14"/></svg><b>Verglichen</b><span>Wo Medien Unterschiedliches berichten, siehst du es auf einen Blick.</span></div>
     </div>
     <button class="i-go" id="introGo" type="button">Zu den Nachrichten<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-    <p class="i-foot"><span>Kein Tracking, keine Werbung</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a></p>
+    <p class="i-foot"><span>Kein Tracking, keine Werbung</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><button class="flink" type="button" data-open-cookies>Cookies</button></p>
   </div>
 </div>
 <script>(function(){
@@ -607,6 +634,7 @@ html.searching .toolbar,html.searching #reload,html.searching #note{display:none
   <nav>
     <a href="/impressum.html">Impressum</a>
     <a href="/datenschutz.html">Datenschutz</a>
+    <button class="flink" type="button" data-open-cookies>Cookie-Einstellungen</button>
   </nav>
 </footer>
 
@@ -621,6 +649,21 @@ html.searching .toolbar,html.searching #reload,html.searching #note{display:none
   <div class="abar"><button class="iconbtn" id="aClose" type="button" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="abody" id="aBody"></div>
 </dialog>
+<dialog class="authdlg" id="cookies" aria-labelledby="cTitle">
+  <div class="abar"><button class="iconbtn" id="cClose" type="button" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="abody" id="cBody"></div>
+</dialog>
+<div class="cbanner" id="cbanner" role="region" aria-label="Cookie-Hinweis" hidden>
+  <div>
+    <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 3.5 3.5 0 0 1-4.2-3.4A3.5 3.5 0 0 1 12 3z"/><circle cx="8.5" cy="10" r=".9" fill="currentColor"/><circle cx="10" cy="15.5" r=".9" fill="currentColor"/><circle cx="15" cy="15" r=".9" fill="currentColor"/></svg>Cookies und Speicher</h2>
+    <p>Kein Tracking, keine Werbung. Notwendiges wie Anmeldung und Daumen-Bewertungen ist immer aktiv. Dürfen wir uns zusätzlich deine Einstellungen merken, also Land, Zeitraum, Ressort und Hell oder Dunkel?</p>
+  </div>
+  <div class="cbtns">
+    <button class="abtn" id="cbAll" type="button">Alle akzeptieren</button>
+    <button class="aalt" id="cbNeed" type="button">Nur notwendige</button>
+    <button class="clink" id="cbMore" type="button">Auswahl anpassen</button>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -651,9 +694,12 @@ const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":
 const safeUrl = u=>/^https?:\/\//i.test(u)?u:"#";
 const ICON_OUT = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5H3.5v9h9V10M9 3h4v4M13 3L7.5 8.5"/></svg>`;
 
+// Einstellungen (Land, Zeitraum, Ressort, Hell/Dunkel …) werden nur mit Zustimmung gespeichert (Cookie-Auswahl unten)
+const CONSENT_KEY = "ts-consent", PREF_KEYS = ["ts-pref","ts-theme","ts-confirmed"];
+function readConsent(){ try{ const c = JSON.parse(localStorage.getItem(CONSENT_KEY)); return c && c.v===1 ? c : null; }catch(e){ return null; } }
 const store = {
   get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
-  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  set(k,v){ if(PREF_KEYS.includes(k) && !(readConsent()?.prefs)) return; try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 };
 const pref = store.get("ts-pref",{});
 const state = { country: BY[pref.country]?pref.country:"AT", intl: !!pref.intl,
@@ -1201,6 +1247,73 @@ $("news").addEventListener("click", e=>{
 // Wer Land, Zeitraum oder Ressort ändert, verlässt die Suche
 for(const id of ["period","cat"]) $(id).addEventListener("click", ()=>{ if(SEARCH){ exitSearch(); closeMobileSearch(); } }, true);
 $("country").addEventListener("change", ()=>{ if(SEARCH){ exitSearch(); closeMobileSearch(); } }, true);
+</script>
+<script>
+// ---------- Cookie-Auswahl ----------
+// Notwendig (immer): Anmelde-Cookie ts_session, Bewertungs-Kennung ts-client, Startbildschirm-Merker ts-intro, diese Auswahl ts-consent.
+// Optional: Einstellungen merken (ts-pref, ts-theme, ts-confirmed) – nur mit Zustimmung, jederzeit widerrufbar.
+const cdlg = $("cookies");
+function saveConsent(prefs){
+  try{ localStorage.setItem(CONSENT_KEY, JSON.stringify({v:1, prefs:!!prefs, at:Date.now()})); }catch(e){}
+  if(prefs){
+    savePref(); store.set("ts-confirmed", onlyConfirmed);
+    if(document.documentElement.dataset.theme) store.set("ts-theme", document.documentElement.dataset.theme);
+  } else {
+    for(const k of PREF_KEYS){ try{ localStorage.removeItem(k); }catch(e){} }
+  }
+  const b = $("cbanner"); if(b) b.hidden = true;
+}
+function renderCookies(){
+  const c = readConsent();
+  $("cBody").innerHTML = `<h2 class="at" id="cTitle">Cookie-Einstellungen</h2>
+    <p class="asub">TrueScope nutzt kein Tracking und keine Werbung. Du entscheidest nur, ob wir uns deine Einstellungen merken dürfen.</p>
+    <div class="clist">
+      <div class="crow">
+        <div><b>Notwendig</b><p>Damit du angemeldet bleibst (Anmelde-Cookie, nur mit Konto), deine Daumen-Bewertung zählt (zufällige Browser-Kennung) und der Startbildschirm pro Besuch nur einmal kommt. Ohne geht die Seite nicht.</p></div>
+        <span class="cfix">Immer aktiv</span>
+      </div>
+      <div class="crow">
+        <div><b>Einstellungen merken</b><p>Land, Zeitraum, Ressort, Sortierung, „Nur bestätigte“ und Hell oder Dunkel bleiben beim nächsten Besuch erhalten. Gespeichert nur in deinem Browser.</p></div>
+        <label class="switch"><input type="checkbox" id="cPrefs" ${c && c.prefs ? "checked" : ""} aria-label="Einstellungen merken"></label>
+      </div>
+      <div class="crow off">
+        <div><b>Statistik und Werbung</b><p>Verwenden wir nicht. Es gibt keine Analyse-Dienste, keine Werbe-Cookies und keine Inhalte von Drittanbietern.</p></div>
+        <span class="cfix">Gibt es nicht</span>
+      </div>
+    </div>
+    <div class="aform">
+      <button class="abtn" type="button" data-c="all">Alle akzeptieren</button>
+      <button class="aalt" type="button" data-c="save">Auswahl speichern</button>
+    </div>
+    <p class="afine" style="margin-top:14px">Mehr dazu in der <a href="/datenschutz.html">Datenschutzerklärung</a>. Du kannst deine Auswahl jederzeit unten auf der Seite unter „Cookie-Einstellungen“ ändern.</p>`;
+}
+function openCookies(){ renderCookies(); if(!cdlg.open) cdlg.showModal(); }
+$("cClose").onclick = ()=>cdlg.close();
+cdlg.addEventListener("click", e=>{
+  if(e.target===cdlg){ cdlg.close(); return; }
+  const b = e.target.closest("[data-c]"); if(!b) return;
+  const prefs = b.dataset.c==="all" ? true : $("cPrefs").checked;
+  saveConsent(prefs); cdlg.close();
+  toast(prefs ? "Gespeichert: Deine Einstellungen werden gemerkt." : "Gespeichert: Nur notwendige Speicherung.");
+});
+document.addEventListener("click", e=>{
+  const o = e.target.closest("[data-open-cookies]"); if(!o) return;
+  e.preventDefault(); openCookies();
+});
+$("cbAll").onclick = ()=>{ saveConsent(true); };
+$("cbNeed").onclick = ()=>{ saveConsent(false); };
+$("cbMore").onclick = ()=>openCookies();
+// Hinweis zeigen, solange noch nichts gewählt ist – erst nach dem Startbildschirm
+function showBannerWhenReady(){
+  if(readConsent()) return;
+  const h = document.documentElement;
+  const show = ()=>{ $("cbanner").hidden = false; };
+  if(!h.classList.contains("intro-on")) { show(); return; }
+  const mo = new MutationObserver(()=>{ if(!h.classList.contains("intro-on")){ mo.disconnect(); setTimeout(show, 450); } });
+  mo.observe(h, {attributes:true, attributeFilter:["class"]});
+}
+showBannerWhenReady();
+if(location.hash === "#cookies"){ history.replaceState(null, "", location.pathname + location.search); openCookies(); }
 </script>
 <script>
 // ---------- Konto: Anmelden, Registrieren, Passwort zurücksetzen ----------
