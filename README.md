@@ -46,7 +46,7 @@ Freiwillige Konten mit Vor- und Nachname, E-Mail-Adresse und Passwort. Knopf obe
 
 Workers AI ist bis 10.000 Neurons pro Tag kostenlos (Tageswechsel 0 Uhr UTC, also 1 Uhr österreichischer Winterzeit). Damit es reicht:
 
-- **Reserve für „Mehr lesen“:** `lib/bot.js` schätzt den Verbrauch jedes KI-Aufrufs (Tabelle `ai_usage`). Der Recherche-Bot hört bei `BOT_BUDGET` (7.000 Neurons) auf; der Rest bleibt für Zusammenfassung, Quellenvergleich und Ranking.
+- **Reserve für „Mehr lesen“:** `lib/bot.js` schätzt den Verbrauch jedes KI-Aufrufs (Tabelle `ai_usage`). Der Recherche-Bot hört bei `BOT_BUDGET` (15.000 Neurons pro Tag) auf; was über die 10.000 Gratis-Neurons hinausgeht, wird im Workers-Paid-Plan abgerechnet (0,011 US-Dollar je 1.000 Neurons). „Mehr lesen“ ist zusätzlich über `DETAIL_CAP` und `RANK_CAP` begrenzt.
 - Nur günstige Modelle (Gemma, GLM); das teure Llama 3.3 70B ist gestrichen.
 - Der automatische Bot läuft alle 5 Minuten (GitHub startet geplante Läufe oft etwas verspätet) und nur für Österreich, Deutschland, Schweiz und International (`.github/workflows/bot.yml`). Alle anderen Länder werden aufgefüllt, sobald jemand sie auswählt. Feeds werden höchstens alle 4 Minuten abgerufen; die KI ordnet erst zu, wenn mindestens 8 neue Artikel warten oder der älteste 15 Minuten alt ist (spart die wiederholt mitgeschickte Liste bekannter Meldungen).
 - Artikel, die nach 24 Stunden noch nicht zugeordnet sind, werden verworfen statt nachgearbeitet.
