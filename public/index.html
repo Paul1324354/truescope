@@ -10,8 +10,9 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/archivo.woff" as="font" type="font/woff" crossorigin>
 <script>try{var t=localStorage.getItem("ts-theme");if(t==='"light"'||t==='"dark"')document.documentElement.dataset.theme=JSON.parse(t)}catch(e){}
-/* Startbildschirm beim ersten Besuch (nicht bei geteilten Links zu einer Meldung) */
-try{if(localStorage.getItem("ts-intro")!=="1"&&location.hash.indexOf("#s=")!==0)document.documentElement.classList.add("intro-on")}catch(e){}</script>
+/* Startbildschirm bei jedem Besuch (einmal pro Besuch, d. h. pro Browser-Tab; nicht bei geteilten Links zu einer Meldung) */
+var introSeen=false;try{introSeen=sessionStorage.getItem("ts-intro")==="1"}catch(e){}
+if(!introSeen&&location.hash.indexOf("#s=")!==0)document.documentElement.classList.add("intro-on");</script>
 <style>
 @font-face{font-family:"Archivo";src:url("/fonts/archivo.woff") format("woff");font-weight:400 800;font-stretch:75% 100%;font-display:swap}
 @font-face{font-family:"Literata";src:url("/fonts/literata.woff") format("woff");font-weight:400 700;font-display:swap}
@@ -396,7 +397,7 @@ html.intro-on .intro{display:flex}
   var h=document.documentElement,el=document.getElementById("intro"),b=document.getElementById("introGo");
   if(!h.classList.contains("intro-on")){el.remove();return;}
   function go(){
-    try{localStorage.setItem("ts-intro","1")}catch(e){}
+    try{sessionStorage.setItem("ts-intro","1")}catch(e){}
     el.classList.add("out");
     setTimeout(function(){h.classList.remove("intro-on");el.remove();},420);
     document.removeEventListener("keydown",esc,true);
