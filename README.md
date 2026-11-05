@@ -64,7 +64,7 @@ Beim Öffnen einer Meldung wird je Medium der früheste Artikel bewertet (höchs
 
 ## Cookie-Auswahl
 
-Beim ersten Besuch (nach dem Startbildschirm) erscheint unten ein Hinweis mit „Alle akzeptieren“, „Nur notwendige“ und „Auswahl anpassen“; ändern lässt sich die Wahl jederzeit über „Cookie-Einstellungen“ unten auf der Seite (oder `/#cookies`).
+Beim ersten Besuch (nach dem Startbildschirm) poppt in der Mitte ein kleines Fenster auf mit „Alle akzeptieren“, „Nur notwendige“ und „Auswahl anpassen“ (zeigt im selben Fenster die Kategorien); Schließen ohne Wahl gilt als „Nur notwendige“; ändern lässt sich die Wahl jederzeit über „Cookie-Einstellungen“ unten auf der Seite (oder `/#cookies`).
 
 - **Notwendig, immer aktiv:** Anmelde-Cookie `ts_session` (nur mit Konto), Bewertungs-Kennung `ts-client`, Startbildschirm-Merker `ts-intro` (sessionStorage), die Auswahl selbst `ts-consent`.
 - **Optional „Einstellungen merken“:** `ts-pref` (Land, Zeitraum, Ressort, Sortierung), `ts-theme`, `ts-confirmed`. Ohne Zustimmung speichert `store.set` diese Schlüssel nicht; beim Widerruf werden sie gelöscht.
