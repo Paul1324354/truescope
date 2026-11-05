@@ -13,6 +13,9 @@ Läuft auf Cloudflare Pages mit einer D1-Datenbank, erreichbar unter https://tru
 - `lib/readtime.js`: Lesezeit-Messung (robots.txt prüfen, Seite abrufen, nur Wörter zählen, Bezahlschranke erkennen)
 - `lib/bot.js`: gemeinsame Helfer für KI-Aufruf und Sperren
 - `functions/api/react.js`: Daumen hoch / runter für Meldungen (eine Bewertung pro Browser-Kennung, umschaltbar; Zählung für viele Meldungen auf einmal)
+- `public/einstellungen.html`: Einstellungen-Seite (Zahnrad-Symbol oben rechts, Link im Fuß): Hell/Dunkel/wie das Gerät, Helligkeit (50–100 %, legt eine dunkle Schicht über Seite und Fenster), Kontrast, Schriftgröße (4 Stufen), einfache Schrift, Links unterstreichen, Animationen aus, Vorlesen (Stimme, Tempo, Knöpfe zeigen, beim Öffnen sofort vorlesen). Mit Vorschau und Probe zum Anhören.
+- `public/a11y.js`: wird auf jeder Seite zuerst geladen und setzt die Einstellungen als Attribute an `<html>` (`data-theme`, `data-size`, `data-contrast`, `data-font`, `data-links`, `data-motion`, `data-dim`), bevor etwas angezeigt wird; `window.TS` zum Lesen und Ändern.
+- `public/speak.js`: Vorlesen mit der Sprachausgabe des Browsers (Web Speech API, kein Server, kein KI-Kontingent). In jeder Meldung „Vorlesen“ (Titel, Zusammenfassung, Bestätigung, Quellenvergleich, beste Quelle; ist die Zusammenfassung noch nicht fertig, wird sie nachgereicht), über der Liste „Vorlesen“ für alle Schlagzeilen. Der gelesene Abschnitt ist gelb markiert; die Leiste unten hat Zurück, Pause, Weiter, Tempo und Beenden. Texte werden in kurze Stücke geteilt, weil Chrome lange Äußerungen nach etwa 15 Sekunden abbricht.
 - `public/impressum.html`, `datenschutz.html`: rechtliche Seiten (Platzhalter im Impressum und in der Datenschutzerklärung ausfüllen!)
 - `schema.sql`: Tabellen der D1-Datenbank
 - `wrangler.toml`: Cloudflare-Einstellungen (Datenbank-Bindung `DB`)
@@ -67,7 +70,7 @@ Beim Öffnen einer Meldung wird je Medium der früheste Artikel bewertet (höchs
 Beim ersten Besuch (nach dem Startbildschirm) poppt in der Mitte ein kleines Fenster auf mit „Alle akzeptieren“, „Nur notwendige“ und „Auswahl anpassen“ (zeigt im selben Fenster die Kategorien); Schließen ohne Wahl gilt als „Nur notwendige“; ändern lässt sich die Wahl jederzeit über „Cookie-Einstellungen“ unten auf der Seite (oder `/#cookies`).
 
 - **Notwendig, immer aktiv:** Anmelde-Cookie `ts_session` (nur mit Konto), Bewertungs-Kennung `ts-client`, Startbildschirm-Merker `ts-intro` (sessionStorage), die Auswahl selbst `ts-consent`.
-- **Optional „Einstellungen merken“:** `ts-pref` (Land, Zeitraum, Ressort, Sortierung), `ts-theme`, `ts-confirmed`. Ohne Zustimmung speichert `store.set` diese Schlüssel nicht; beim Widerruf werden sie gelöscht.
+- **Optional „Einstellungen merken“:** `ts-pref` (Land, Zeitraum, Ressort, Sortierung), `ts-theme` (alt), `ts-confirmed`, `ts-settings` (alles von der Einstellungen-Seite). Ohne Zustimmung liegt `ts-settings` nur im `sessionStorage` (gilt, solange der Tab offen ist); die Einstellungen-Seite bietet dafür einen Knopf „Einstellungen merken“. Ohne Zustimmung speichert `store.set` diese Schlüssel nicht; beim Widerruf werden sie gelöscht.
 - Statistik- oder Werbe-Cookies gibt es nicht; der Dialog sagt das ausdrücklich.
 
 ## Bewertungen

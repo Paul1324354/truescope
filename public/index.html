@@ -9,8 +9,8 @@
 <meta name="theme-color" content="#0A1517" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/archivo.woff" as="font" type="font/woff" crossorigin>
-<script>try{var t=localStorage.getItem("ts-theme");if(t==='"light"'||t==='"dark"')document.documentElement.dataset.theme=JSON.parse(t)}catch(e){}
-/* Startbildschirm bei jedem Besuch (einmal pro Besuch, d. h. pro Browser-Tab; nicht bei geteilten Links zu einer Meldung) */
+<script src="/a11y.js"></script>
+<script>/* Startbildschirm bei jedem Besuch (einmal pro Besuch, d. h. pro Browser-Tab; nicht bei geteilten Links zu einer Meldung) */
 var introSeen=false;try{introSeen=sessionStorage.getItem("ts-intro")==="1"}catch(e){}
 if(!introSeen&&location.hash.indexOf("#s=")!==0)document.documentElement.classList.add("intro-on");</script>
 <style>
@@ -44,7 +44,7 @@ if(!introSeen&&location.hash.indexOf("#s=")!==0)document.documentElement.classLi
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--hh) + 60px)}
 html.locked{overflow:hidden}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--ui)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.5 var(--ui)}
 [hidden]{display:none!important}
 a{color:inherit}
 button,select,input,textarea{font:inherit;color:inherit}
@@ -476,7 +476,7 @@ html.searching .toolbar,html.searching #reload,html.searching #note{display:none
   .search{display:none;margin-left:0;max-width:none}
   #qOpen{display:grid}
   .top.open-search .search{display:flex}
-  .top.open-search .logo,.top.open-search .acct,.top.open-search #qOpen,.top.open-search #theme,.top.open-search .grow{display:none}
+  .top.open-search .logo,.top.open-search .acct,.top.open-search #qOpen,.top.open-search #theme,.top.open-search #setBtn,.top.open-search .grow{display:none}
   .top.open-search .qcancel{display:inline-block}
   .top.open-search .search .qx{right:96px}
 }
@@ -502,6 +502,59 @@ footer.site nav .flink:hover{color:var(--ink)}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important}
 }
+html[data-motion="reduce"] .i-radar,html[data-motion="reduce"] .i-blip{display:none}
+
+/* Vorlesen: Knopf, Markierung des gerade gelesenen Abschnitts und die Leiste unten */
+.saybtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px 7px 11px;font-weight:700;font-size:.86rem;white-space:nowrap}
+.saybtn:hover{border-color:var(--ink-2)}
+.saybtn svg{width:18px;height:18px;flex:none;color:var(--accent)}
+.saybtn small{font-weight:500;font-size:.8rem;color:var(--muted)}
+.saybtn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.saybtn[aria-pressed="true"] svg,.saybtn[aria-pressed="true"] small{color:inherit}
+.dsay{margin-top:14px}
+.tright{display:inline-flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ts-speaking{background:color-mix(in srgb,var(--marker) 55%,transparent)!important;box-shadow:0 0 0 6px color-mix(in srgb,var(--marker) 55%,transparent);border-radius:6px;scroll-margin:120px 0}
+html[data-scheme="dark"] .ts-speaking{background:color-mix(in srgb,var(--marker) 70%,transparent)!important;box-shadow:0 0 0 6px color-mix(in srgb,var(--marker) 70%,transparent)}
+.player{position:fixed;left:12px;right:12px;margin:0 auto;bottom:calc(18px + env(safe-area-inset-bottom));z-index:40;display:flex;align-items:center;gap:14px;max-width:620px;background:var(--rail);color:var(--rail-ink);border:1px solid var(--rail-line);border-radius:16px;padding:10px 10px 10px 16px;box-shadow:0 20px 50px -18px rgba(0,0,0,.65);animation:slideup .25s cubic-bezier(.2,.8,.2,1) both}
+.pl-info{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.pl-wave{display:inline-flex;align-items:flex-end;gap:3px;height:20px;flex:none}
+.pl-wave i{width:3px;height:100%;border-radius:2px;background:var(--accent);transform-origin:bottom;animation:plw 1s ease-in-out infinite}
+.pl-wave i:nth-child(2){animation-delay:.15s}.pl-wave i:nth-child(3){animation-delay:.3s}.pl-wave i:nth-child(4){animation-delay:.45s}
+.player.paused .pl-wave i{animation:none;transform:scaleY(.3)}
+@keyframes plw{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
+.pl-txt{display:grid;min-width:0}
+.pl-txt b{font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-txt small{font-size:.78rem;color:var(--rail-muted)}
+.pl-ctl{display:flex;align-items:center;gap:4px;flex:none}
+.pl-b{display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--rail-ink)}
+.pl-b:hover{background:rgba(232,243,241,.1)}
+.pl-b svg{width:20px;height:20px}
+.pl-b.main{width:46px;height:46px;background:var(--rail-ink);color:var(--rail)}
+.pl-b.main:hover{background:var(--rail-ink);opacity:.9}
+.pl-rate{min-width:52px;height:34px;border:1px solid var(--rail-line);border-radius:999px;background:transparent;color:var(--rail-ink);font-weight:700;font-size:.84rem;padding:0 10px;font-variant-numeric:tabular-nums}
+.pl-rate:hover{border-color:var(--rail-muted)}
+.player :focus-visible{outline-color:var(--rail-ink)}
+html.ts-playing footer.site{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+html.ts-playing .dbody{padding-bottom:120px}
+/* Handy: Anmelde-Knopf nur als Symbol, damit Suche, Hell/Dunkel und Einstellungen Platz haben */
+@media (max-width:480px){
+  .acct{width:36px;padding:0;justify-content:center}
+  .acct span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
+@media (max-width:380px){ .top-in{gap:8px} }
+@media (max-width:520px){
+  .player{gap:8px;padding:8px 8px 8px 12px;border-radius:14px}
+  .pl-wave{display:none}
+  .pl-b{width:36px;height:36px}
+  .pl-b.main{width:42px;height:42px}
+  .pl-rate{min-width:46px;padding:0 6px}
+}
+@media (max-width:380px){
+  .pl-ctl{gap:0}
+  .pl-b{width:34px;height:34px}
+  .pl-b.main{width:40px;height:40px}
+  .pl-rate{min-width:42px;height:32px;padding:0 4px;font-size:.78rem}
+}
 </style>
 </head>
 <body>
@@ -520,7 +573,7 @@ footer.site nav .flink:hover{color:var(--ink)}
       <div class="i-pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M5 8l-3 6h6zM19 8l-3 6h6zM5 8h14"/></svg><b>Verglichen</b><span>Wo Medien Unterschiedliches berichten, siehst du es auf einen Blick.</span></div>
     </div>
     <button class="i-go" id="introGo" type="button">Zu den Nachrichten<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-    <p class="i-foot"><span>Kein Tracking</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><button class="flink" type="button" data-open-cookies>Cookies</button></p>
+    <p class="i-foot"><span>Kein Tracking</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a><button class="flink" type="button" data-open-cookies>Cookies</button><a href="/einstellungen.html">Einstellungen und Vorlesen</a></p>
   </div>
 </div>
 <script>(function(){
@@ -554,6 +607,7 @@ footer.site nav .flink:hover{color:var(--ink)}
     <span class="grow"></span>
     <button class="iconbtn" id="qOpen" type="button" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></button>
     <button class="iconbtn" id="theme" aria-label="Hell oder dunkel wechseln" title="Hell oder dunkel wechseln"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+    <a class="iconbtn" id="setBtn" href="/einstellungen.html" aria-label="Einstellungen: Helligkeit, Schrift und Vorlesen" title="Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg></a>
   </div>
 </header>
 
@@ -602,7 +656,10 @@ footer.site nav .flink:hover{color:var(--ink)}
           <button type="button" data-s="new" aria-pressed="true">Neueste</button>
           <button type="button" data-s="top" aria-pressed="false">Meiste Quellen</button>
         </div>
-        <label class="switch"><input type="checkbox" id="onlyConf"><span>Nur bestätigte</span></label>
+        <div class="tright">
+          <button class="saybtn" id="sayList" type="button" aria-pressed="false" title="Die Schlagzeilen nacheinander vorlesen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span>Vorlesen</span></button>
+          <label class="switch"><input type="checkbox" id="onlyConf"><span>Nur bestätigte</span></label>
+        </div>
       </div>
       <div id="note"></div>
       <div id="news" aria-live="polite"></div>
@@ -624,6 +681,7 @@ footer.site nav .flink:hover{color:var(--ink)}
 <footer class="site">
   <span class="claim">See beyond the headlines</span>
   <nav>
+    <a href="/einstellungen.html">Einstellungen und Vorlesen</a>
     <a href="/impressum.html">Impressum</a>
     <a href="/datenschutz.html">Datenschutz</a>
     <button class="flink" type="button" data-open-cookies>Cookie-Einstellungen</button>
@@ -645,7 +703,18 @@ footer.site nav .flink:hover{color:var(--ink)}
   <div class="abar"><button class="iconbtn" id="cClose" type="button" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="abody" id="cBody"></div>
 </dialog>
+<div class="player" id="player" role="region" aria-label="Vorlesen" hidden>
+  <div class="pl-info"><span class="pl-wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span><div class="pl-txt"><b id="plTitle">Vorlesen</b><small id="plPos" aria-live="polite"></small></div></div>
+  <div class="pl-ctl">
+    <button class="pl-b" id="plPrev" type="button" aria-label="Zurück zum vorigen Abschnitt" title="Zurück"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h2.2v14H6zM19 5.6v12.8L9.4 12z"/></svg></button>
+    <button class="pl-b main" id="plPlay" type="button" aria-label="Pause" title="Pause"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg></button>
+    <button class="pl-b" id="plNext" type="button" aria-label="Weiter zum nächsten Abschnitt" title="Weiter"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.8 5H18v14h-2.2zM5 5.6v12.8L14.6 12z"/></svg></button>
+    <button class="pl-rate" id="plRate" type="button" aria-label="Tempo ändern" title="Tempo">1,0×</button>
+    <button class="pl-b" id="plStop" type="button" aria-label="Vorlesen beenden" title="Beenden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" hidden></div>
+<script src="/speak.js"></script>
 
 <script>
 const COUNTRIES = [
@@ -676,7 +745,7 @@ const safeUrl = u=>/^https?:\/\//i.test(u)?u:"#";
 const ICON_OUT = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5H3.5v9h9V10M9 3h4v4M13 3L7.5 8.5"/></svg>`;
 
 // Einstellungen (Land, Zeitraum, Ressort, Hell/Dunkel …) werden nur mit Zustimmung gespeichert (Cookie-Auswahl unten)
-const CONSENT_KEY = "ts-consent", PREF_KEYS = ["ts-pref","ts-theme","ts-confirmed"];
+const CONSENT_KEY = "ts-consent", PREF_KEYS = ["ts-pref","ts-theme","ts-confirmed","ts-settings"];
 function readConsent(){ try{ const c = JSON.parse(localStorage.getItem(CONSENT_KEY)); return c && c.v===1 ? c : null; }catch(e){ return null; } }
 const store = {
   get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
@@ -701,11 +770,8 @@ async function api(path, opts={}){
 }
 
 // ---------- Hell / Dunkel ----------
-$("theme").onclick=()=>{
-  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
-  const next = cur==="dark"?"light":"dark";
-  document.documentElement.dataset.theme = next; store.set("ts-theme",next);
-};
+// (alle Darstellungs-Einstellungen liegen in /a11y.js; mehr davon auf /einstellungen.html)
+$("theme").onclick=()=>{ TS.set({theme: TS.scheme()==="dark" ? "light" : "dark"}); };
 
 // ---------- Auswahl ----------
 const optHtml = COUNTRIES.map(c=>`<option value="${c.code}">${c.flag} ${esc(c.name)}</option>`).join("");
@@ -721,7 +787,7 @@ function renderControls(){
   $("onlyConf").checked = onlyConfirmed;
   $("title").textContent = `${CATS[state.cat].label} in ${scopeIn()}`;
 }
-function changed(){ savePref(); renderControls(); loadNews(); }
+function changed(){ if(TSSpeak.info().key==="list") TSSpeak.stop(); savePref(); renderControls(); loadNews(); }
 $("country").addEventListener("change",e=>{ const v=e.target.value; if(v==="EU"){ state.intl=true; } else { state.intl=false; state.country=v; } changed(); });
 $("period").addEventListener("click",e=>{ const b=e.target.closest("[data-p]"); if(!b) return; state.period=b.dataset.p; changed(); });
 $("cat").addEventListener("click",e=>{ const b=e.target.closest("[data-c]"); if(!b) return; state.cat=b.dataset.c; changed(); });
@@ -968,13 +1034,13 @@ function overviewHtml(d, mode){
   let body, extra = "";
   if(mode==="loading") body = `<div class="dsk"><i></i><i></i><i style="width:70%"></i><i></i><i style="width:55%"></i></div>`;
   else if(d.detail){
-    body = d.detail.split(/\n\n+/).map(p=>`<p class="dread">${esc(p)}</p>`).join("");
+    body = d.detail.split(/\n\n+/).map((p,i)=>`<p class="dread" data-say="p${i}">${esc(p)}</p>`).join("");
     extra = `Lesezeit ca. ${readMin(d.detail)} Min.`;
   }
   else if(d.status==="busy") body = `<div class="dsk"><i></i><i></i><i style="width:60%"></i></div><p class="dfine">Der Überblick wird gerade geschrieben.</p>`;
   else {
     // ohne ausführlichen Überblick: die kurze KI-Zusammenfassung der Meldung, falls es sie gibt
-    const note = txt=> d.summary ? `<p class="dread">${esc(d.summary)}</p><p class="dfine">${txt}</p>` : `<p class="dread mute">${txt}</p>`;
+    const note = txt=> d.summary ? `<p class="dread" data-say="p0">${esc(d.summary)}</p><p class="dfine">${txt}</p>` : `<p class="dread mute">${txt}</p>`;
     body = d.status==="limit"
       ? note("Der ausführliche Überblick ist für heute nicht mehr möglich: Das Gratis-Kontingent der KI ist aufgebraucht. Morgen geht es weiter. Die Originalartikel findest du unten.")
       : note("Für diese Meldung gibt es gerade keinen ausführlichen Überblick. Die Originalartikel findest du unten.");
@@ -990,8 +1056,8 @@ function compareHtml(d, mode){
   const n = new Set((d.articles||[]).map(a=>a.outlet)).size;
   if(n < 2) return "";
   const head = `<h3 class="dh">Quellenvergleich <span class="ki">KI</span><span class="n">${n} Medien</span></h3>`;
-  if(!d.compare.length) return head + `<div class="cmpok">${ICON_CHECK}<span>Die Medien berichten in den wesentlichen Punkten übereinstimmend – die KI hat keine abweichenden Angaben gefunden.</span></div>`;
-  return head + `<p class="dsub">Hier unterscheiden sich die Angaben der Medien:</p><div class="cmp">${d.compare.map(c=>`<div class="cmpi"><h4>${esc(c.topic)}</h4><ul>${
+  if(!d.compare.length) return head + `<div class="cmpok" data-say="cok">${ICON_CHECK}<span>Die Medien berichten in den wesentlichen Punkten übereinstimmend – die KI hat keine abweichenden Angaben gefunden.</span></div>`;
+  return head + `<p class="dsub">Hier unterscheiden sich die Angaben der Medien:</p><div class="cmp">${d.compare.map((c,ci)=>`<div class="cmpi" data-say="c${ci}"><h4>${esc(c.topic)}</h4><ul>${
     c.items.map(x=>`<li${x.says==="keine Angabe"?' class="none"':""}><b>${esc(x.outlet)}</b><span>${esc(x.says)}</span></li>`).join("")}</ul></div>`).join("")}</div>
     <p class="dfine">Die KI hat die Angaben aus Titel und Anriss der Artikel verglichen und in eigenen Worten zusammengefasst. Unterschiede können auch entstehen, weil Medien zu verschiedenen Zeitpunkten berichtet haben.</p>`;
 }
@@ -1053,16 +1119,143 @@ function rankHtml(){
 function renderDrawer(){
   const {item, d, mode} = dSt;
   const keepScroll = $("dBody").scrollTop;
-  $("dBody").innerHTML = head(item,d) + overviewHtml(d||{}, mode) + headProof(item,d) + compareHtml(d, mode) + rankHtml() +
+  $("dBody").innerHTML = head(item,d) + storySayHtml() + overviewHtml(d||{}, mode) + headProof(item,d) + compareHtml(d, mode) + rankHtml() +
     `<p class="dfine" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--line)">Ein Fehler in der Meldung oder ein Medium, das nicht verlinkt werden möchte? Melde dich über das <a href="/impressum.html">Impressum</a>.</p>`;
   $("dBody").scrollTop = keepScroll;
+  TSSpeak.refresh();
 }
+
+// ---------- Vorlesen ----------
+// Liest die geöffnete Meldung (Titel, Zusammenfassung, Bestätigung, Quellenvergleich, beste Quelle) oder die Schlagzeilen der Liste vor.
+const ICON_SAY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>`;
+let sayPending = null;            // Meldung, deren Zusammenfassung beim Vorlesen noch nachgereicht wird
+const storyKey = ()=>"story:"+dId;
+const sayTitle = ()=> (dSt.d && dSt.d.title) || (dSt.item && dSt.item.title) || "Meldung";
+function sayLabel(key){
+  const i = TSSpeak.info();
+  if(i.key!==key || i.state==="idle") return {on:false, text:"Vorlesen"};
+  return {on:true, text: i.state==="playing" ? "Pause" : "Weiter vorlesen"};
+}
+function storySayHtml(){
+  if(!TSSpeak.supported) return "";
+  const l = sayLabel(storyKey()), d = dSt.d;
+  const words = d && d.detail ? d.detail.split(/\s+/).length : 0;
+  const min = words ? Math.max(1, Math.round(words / 150 / (TS.get().rate || 1))) : 0;
+  return `<div class="dsay"><button class="saybtn" type="button" data-say-story aria-pressed="${l.on}">${ICON_SAY}<span>${l.text}</span>${min && !l.on ? `<small>ca. ${min} Min.</small>` : ""}</button></div>`;
+}
+function storySegments(withTitle, force){
+  const {item, d, mode, rank} = dSt, body = $("dBody");
+  const q = sel => ()=>body.querySelector(sel);
+  const segs = [];
+  if(withTitle) segs.push({text: sayTitle(), el: q("#dTitle")});
+  if(mode!=="done" || !d) return {segs, ready:false};
+  if(!force && d.status==="busy" && !d.detail) return {segs, ready:false};
+  if(d.detail) d.detail.split(/\n\n+/).forEach((p,i)=>segs.push({text:p, el:q(`[data-say="p${i}"]`)}));
+  else if(d.summary) segs.push({text:d.summary, el:q('[data-say="p0"]')});
+  const outs = d.outlets || item?.sources.length || 0;
+  segs.push({text: d.confirmed ? `Bestätigt von ${Math.max(outs,2)} Medien.` : "Nur eine Quelle. Die Meldung ist noch nicht bestätigt.", el:q(".dproof")});
+  if(d.detail && Array.isArray(d.compare) && new Set((d.articles||[]).map(a=>a.outlet)).size >= 2){
+    if(!d.compare.length) segs.push({text:"Quellenvergleich: Die Medien berichten in den wichtigsten Punkten gleich.", el:q('[data-say="cok"]')});
+    else d.compare.forEach((c,i)=>segs.push({
+      text: (i===0 ? "Quellenvergleich. Hier sagen die Medien etwas anderes. " : "") + `${c.topic}: ` + c.items.map(x=>`${x.outlet}: ${x.says}`).join(". ") + ".",
+      el: q(`[data-say="c${i}"]`)}));
+  }
+  const best = rank && Array.isArray(rank.sources) ? rank.sources.find(s=>s.best) : null;
+  if(best) segs.push({text:`Beste Quelle: ${best.outlet}. ${best.title}`, el:q(".rcard.best")});
+  return {segs, ready:true};
+}
+function startStory(){
+  const {segs, ready} = storySegments(true);
+  if(!ready) segs.push({text:"Einen Moment, die Zusammenfassung wird noch geschrieben."});
+  sayPending = ready ? null : dId;
+  TSSpeak.play(segs, {title:sayTitle(), key:storyKey()});
+}
+// Zusammenfassung ist fertig geworden, während schon vorgelesen wird
+function sayStoryReady(id, final){
+  if(sayPending!==id) return;
+  const {segs, ready} = storySegments(false, final);
+  if(!ready) return;
+  sayPending = null;
+  const i = TSSpeak.info();
+  if(i.key===storyKey() && i.state!=="idle") TSSpeak.append(segs, storyKey());
+  else if(i.state==="idle") TSSpeak.play(segs, {title:sayTitle(), key:storyKey()});
+}
+function listSegments(){
+  const segs = [{text:`${$("title").textContent}. ${$("sub").textContent}`, el:()=>$("title")}];
+  const seen = new Set();
+  document.querySelectorAll("#news [data-open]").forEach(a=>{
+    const id = a.dataset.open; if(seen.has(id)) return; seen.add(id);
+    const it = findItem(id), n = it ? it.sources.length : 0;
+    const t = a.textContent.trim();
+    segs.push({text: t + (/[.!?…]$/.test(t) ? "" : ".") + (n>1 ? ` ${n} Medien.` : n===1 ? " Eine Quelle." : ""),
+      el: ()=>{ const x = document.querySelector(`#news [data-open="${CSS.escape(id)}"]`); return x ? (x.closest("li,article") || x) : null; }});
+  });
+  return segs;
+}
+function updateSayButtons(){
+  const l = sayLabel("list"), b = $("sayList");
+  b.setAttribute("aria-pressed", l.on); b.querySelector("span").textContent = l.on ? l.text : "Vorlesen";
+  const s = $("dBody").querySelector("[data-say-story]");
+  if(s){ const k = sayLabel(storyKey()); s.setAttribute("aria-pressed", k.on); s.querySelector("span").textContent = k.text; const sm = s.querySelector("small"); if(sm) sm.hidden = k.on; }
+}
+$("sayList").onclick = ()=>{
+  const i = TSSpeak.info();
+  if(i.key==="list" && i.state!=="idle"){ TSSpeak.toggle(); return; }
+  TSSpeak.play(listSegments(), {title:"Schlagzeilen: " + $("title").textContent, key:"list"});
+};
+$("dBody").addEventListener("click", e=>{
+  if(!e.target.closest("[data-say-story]")) return;
+  const i = TSSpeak.info();
+  if(i.key===storyKey() && i.state!=="idle") TSSpeak.toggle(); else startStory();
+});
+// Leiste unten: liegt im geöffneten Fenster, sonst auf der Seite (ein offenes Fenster sperrt alles dahinter)
+const player = $("player");
+function placePlayer(){ const host = drawer.open ? drawer : document.body; if(player.parentNode!==host) host.appendChild(player); }
+const RATES = [0.8, 1, 1.2, 1.4, 1.6];
+const fmtRate = r => (Math.round(r*10)/10).toFixed(1).replace(".", ",") + "×";
+const ICON_PAUSE = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg>`;
+const ICON_PLAY = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>`;
+TSSpeak.on(i=>{
+  const on = i.state!=="idle";
+  player.hidden = !on;
+  document.documentElement.classList.toggle("ts-playing", on);
+  if(i.type==="stop") sayPending = null;
+  if(on){
+    placePlayer();
+    $("plTitle").textContent = i.title || "Vorlesen";
+    $("plPos").textContent = (i.state==="paused" ? "Pausiert · " : "Liest vor · ") + `${Math.min(i.pos+1, i.total)} von ${i.total}`;
+    const pb = $("plPlay"), playing = i.state==="playing";
+    pb.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+    pb.setAttribute("aria-label", playing ? "Pause" : "Weiter vorlesen"); pb.title = playing ? "Pause" : "Weiter";
+    player.classList.toggle("paused", !playing);
+    $("plRate").textContent = fmtRate(TS.get().rate);
+    $("plRate").setAttribute("aria-label", `Tempo ${fmtRate(TS.get().rate)}, tippen zum Ändern`);
+  }
+  updateSayButtons();
+});
+$("plPlay").onclick = ()=>TSSpeak.toggle();
+$("plPrev").onclick = ()=>TSSpeak.prev();
+$("plNext").onclick = ()=>TSSpeak.next();
+$("plStop").onclick = ()=>TSSpeak.stop();
+$("plRate").onclick = ()=>{
+  const r = TS.get().rate, n = RATES.find(x=>x > r + 0.01) ?? RATES[0];
+  TS.set({rate:n}); TSSpeak.restart();
+};
+// neu gezeichnete Liste: Markierung wieder setzen
+new MutationObserver(()=>TSSpeak.refresh()).observe($("news"), {childList:true});
 function openStory(id, item, fromHash){
   const req = ++dReq; dId = id; item = item || findItem(id);
   dSt = {item, d:null, mode:"loading", rank:null, rmode:"loading"};
+  sayPending = null;
+  const si = TSSpeak.info();
+  if(si.key.startsWith("story:") && si.key!==storyKey()) TSSpeak.stop();      // andere Meldung wurde vorgelesen
+  else if(si.key==="list" && si.state==="playing") TSSpeak.pause();          // Schlagzeilen anhalten, solange die Meldung offen ist
   renderDrawer();
   if(!drawer.open){ drawer.showModal(); document.documentElement.classList.add("locked"); }
+  placePlayer();
   $("dBody").scrollTop = 0;
+  // Einstellung „Meldung beim Öffnen automatisch vorlesen“ (Browser erlauben das nur nach einem Tippen, nicht beim Laden)
+  if(!fromHash && TS.get().autoRead && TSSpeak.supported) startStory();
   if(!fromHash && location.hash !== "#s="+id){ history.pushState({s:id},"","#s="+id); dPushed = true; }
   else if(fromHash) dPushed = false;
   if(!REACT[id]) loadReactions([id]);
@@ -1076,7 +1269,9 @@ async function loadStory(id, req, tries){
     if(!dSt.item) dSt.item = {sources:[],confirmed:d.confirmed};
     dSt.d = d; dSt.mode = "done";
     renderDrawer();
-    if(d.status==="busy" && tries<3) setTimeout(()=>{ if(req===dReq && drawer.open) loadStory(id, req, tries+1); }, 4000);
+    const again = d.status==="busy" && tries<3;
+    sayStoryReady(id, !again);
+    if(again) setTimeout(()=>{ if(req===dReq && drawer.open) loadStory(id, req, tries+1); }, 4000);
   }catch(e){
     if(req!==dReq) return;
     $("dBody").innerHTML = `<div class="empty"><h3>Das hat nicht geklappt.</h3>${esc(e.message)}</div>`;
@@ -1097,6 +1292,9 @@ async function loadRank(id, req, tries){
 }
 drawer.addEventListener("close",()=>{
   document.documentElement.classList.remove("locked"); dReq++;
+  if(TSSpeak.info().key.startsWith("story:")) TSSpeak.stop();
+  sayPending = null;
+  placePlayer();
   if(location.hash.startsWith("#s=")){
     if(dPushed){ dPushed=false; history.back(); }
     else history.replaceState(null,"",location.pathname+location.search);
@@ -1241,10 +1439,10 @@ function saveConsent(prefs){
   try{ localStorage.setItem(CONSENT_KEY, JSON.stringify({v:1, prefs:!!prefs, at:Date.now()})); }catch(e){}
   if(prefs){
     savePref(); store.set("ts-confirmed", onlyConfirmed);
-    if(document.documentElement.dataset.theme) store.set("ts-theme", document.documentElement.dataset.theme);
   } else {
     for(const k of PREF_KEYS){ try{ localStorage.removeItem(k); }catch(e){} }
   }
+  TS.persist(); // Einstellungen dauerhaft speichern oder nur für diesen Tab behalten
 }
 function renderCookies(){
   const c = readConsent();
@@ -1252,7 +1450,7 @@ function renderCookies(){
   if(cView==="intro"){
     $("cBody").innerHTML = `<div class="cintro">${ICON_COOKIE_BIG}
       <h2 class="at" id="cTitle">Cookies und Speicher</h2>
-      <p class="asub">Kein Tracking. Notwendiges wie Anmeldung und Daumen-Bewertungen ist immer aktiv. Dürfen wir uns zusätzlich deine Einstellungen merken, also Land, Zeitraum, Ressort und Hell oder Dunkel?</p></div>
+      <p class="asub">Kein Tracking. Notwendiges wie Anmeldung und Daumen-Bewertungen ist immer aktiv. Dürfen wir uns zusätzlich deine Einstellungen merken, also Land, Zeitraum, Ressort, Hell oder Dunkel, Schriftgröße und Vorlesen?</p></div>
       <div class="aform">
         <button class="abtn" type="button" data-c="all">Alle akzeptieren</button>
         <button class="aalt" type="button" data-c="need">Nur notwendige</button>
@@ -1268,7 +1466,7 @@ function renderCookies(){
         <span class="cfix">Immer aktiv</span>
       </div>
       <div class="crow">
-        <div><b>Einstellungen merken</b><p>Land, Zeitraum, Ressort, Sortierung, „Nur bestätigte“ und Hell oder Dunkel bleiben beim nächsten Besuch erhalten. Gespeichert nur in deinem Browser.</p></div>
+        <div><b>Einstellungen merken</b><p>Land, Zeitraum, Ressort, Sortierung, „Nur bestätigte“ sowie alles von der Seite <a href="/einstellungen.html">Einstellungen</a> (Hell oder Dunkel, Helligkeit, Schrift, Vorlesen) bleiben beim nächsten Besuch erhalten. Gespeichert nur in deinem Browser.</p></div>
         <label class="switch"><input type="checkbox" id="cPrefs" ${c && c.prefs ? "checked" : ""} aria-label="Einstellungen merken"></label>
       </div>
       <div class="crow off">
