@@ -1,6 +1,6 @@
 # TrueScope
 
-Nachrichten nach Land, Ressort und Zeitraum, mit International-Ansicht, KI-Überblick, Ranking der Quellen und Daumen-Bewertungen.
+Nachrichten nach Land, Ressort und Zeitraum (24 Stunden, Woche, Monat; zuerst 80 Meldungen, mit „Mehr anzeigen“ bis 400), mit International-Ansicht, KI-Überblick, Ranking der Quellen und Daumen-Bewertungen.
 Läuft auf Cloudflare Pages mit einer D1-Datenbank, erreichbar unter https://truescope.dev (und www.truescope.dev; dazu https://truescope-49p.pages.dev).
 
 ## Aufbau
@@ -48,7 +48,7 @@ Workers AI ist bis 10.000 Neurons pro Tag kostenlos (Tageswechsel 0 Uhr UTC, als
 
 - **Reserve für „Mehr lesen“:** `lib/bot.js` schätzt den Verbrauch jedes KI-Aufrufs (Tabelle `ai_usage`). Der Recherche-Bot hört bei `BOT_BUDGET` (7.000 Neurons) auf; der Rest bleibt für Zusammenfassung, Quellenvergleich und Ranking.
 - Nur günstige Modelle (Gemma, GLM); das teure Llama 3.3 70B ist gestrichen.
-- Der automatische Bot läuft alle 6 Stunden und nur für Österreich, Deutschland, Schweiz und International (`.github/workflows/bot.yml`). Alle anderen Länder werden aufgefüllt, sobald jemand sie auswählt.
+- Der automatische Bot läuft alle 5 Minuten (GitHub startet geplante Läufe oft etwas verspätet) und nur für Österreich, Deutschland, Schweiz und International (`.github/workflows/bot.yml`). Alle anderen Länder werden aufgefüllt, sobald jemand sie auswählt. Feeds werden höchstens alle 4 Minuten abgerufen; die KI ordnet erst zu, wenn mindestens 8 neue Artikel warten oder der älteste 15 Minuten alt ist (spart die wiederholt mitgeschickte Liste bekannter Meldungen).
 - Artikel, die nach 24 Stunden noch nicht zugeordnet sind, werden verworfen statt nachgearbeitet.
 
 ## Ranking der Quellen und Lesezeit

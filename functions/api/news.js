@@ -8,15 +8,20 @@ import { parseFeed } from "../../lib/rss.js";
 import { ask, clean, lock, unlock } from "../../lib/bot.js";
 
 const UA = "TrueScope/1.0 (+https://truescope.dev/; RSS-Leser)";
-const FEED_TTL = 20 * 60 * 1000;          // Feeds höchstens alle 20 Minuten abrufen
+const FEED_TTL = 4 * 60 * 1000;           // Feeds höchstens alle 4 Minuten abrufen (Bot läuft alle 5 Minuten)
 const KEEP_MS = 4 * 864e5;                // nur Artikel der letzten 4 Tage aufnehmen
 const STALE_MS = 864e5;                   // nicht zugeordnete Artikel nach 24 Stunden verwerfen statt nachzuarbeiten
+// KI erst fragen, wenn sich genug angesammelt hat oder der älteste neue Artikel lange genug wartet –
+// sonst würde bei Läufen alle 5 Minuten jedes Mal die ganze Liste bekannter Meldungen mitgeschickt (teuer).
+const BATCH_MIN = 8;
+const BATCH_WAIT = 15 * 60 * 1000;
+const LIST_DEFAULT = 80, LIST_MAX = 400;     // Meldungen je Abruf; „Mehr anzeigen“ fordert mehr an
 const STORY_WINDOW = 3 * 864e5;           // neue Artikel mit Ereignissen der letzten 3 Tage vergleichen
 const AI_BATCH = 40;
 const MIN_PER_CAT = 10;
 const CATS = ["politik", "wirtschaft", "sport", "kultur", "wissenschaft", "technik", "gesundheit", "umwelt", "chronik"];
 const STRICT = new Set(["politik", "wirtschaft", "chronik"]); // hier zählen zuerst nur Inlandsmeldungen
-const DAYS = { "1d": 1, "7d": 7, "30d": 30, "1y": 365 };
+const DAYS = { "1d": 1, "7d": 7, "30d": 30 };
 export const COUNTRY_DE = {
   AT: "Österreich", DE: "Deutschland", CH: "Schweiz", FR: "Frankreich", IT: "Italien", ES: "Spanien", GB: "Vereinigtes Königreich",
   NL: "Niederlande", BE: "Belgien", LU: "Luxemburg", PL: "Polen", CZ: "Tschechien", SK: "Slowakei", HU: "Ungarn", SI: "Slowenien",
@@ -187,7 +192,11 @@ export async function work(env, country, { cat = null, maxFeeds = 8, rounds = 2,
     try {
       await env.DB.prepare("UPDATE articles SET story_id = '-' WHERE country = ? AND story_id IS NULL AND published < ?").bind(country, Date.now() - STALE_MS).run();
     } catch (e) { log.push("cleanup: " + String(e).slice(0, 200)); }
-    try { res.assigned = await assign(env, country, rounds, log); } catch (e) { log.push("assign: " + String(e).slice(0, 200)); }
+    try {
+      const p = await env.DB.prepare("SELECT COUNT(*) AS n, MIN(created_at) AS oldest FROM articles WHERE country = ? AND story_id IS NULL").bind(country).first();
+      if (p && p.n > 0 && (p.n >= BATCH_MIN || Date.now() - p.oldest >= BATCH_WAIT)) res.assigned = await assign(env, country, rounds, log);
+      else if (p && p.n > 0) log.push(`warte: ${p.n} neue Artikel, KI erst ab ${BATCH_MIN} oder nach 15 Minuten`);
+    } catch (e) { log.push("assign: " + String(e).slice(0, 200)); }
     try { await summarize(env, country, log); } catch (e) { log.push("summary: " + String(e).slice(0, 200)); }
   } finally { await unlock(env, "bot:" + country); }
   return res;
@@ -199,6 +208,7 @@ export async function onRequestGet(context) {
   const country = url.searchParams.get("country") || "EU";
   const cat = CATS.includes(url.searchParams.get("cat")) ? url.searchParams.get("cat") : "politik";
   const when = DAYS[url.searchParams.get("when")] ? url.searchParams.get("when") : "7d";
+  const limit = Math.min(LIST_MAX, Math.max(20, Number(url.searchParams.get("limit")) || LIST_DEFAULT));
   if (!COUNTRY_DE[country]) return Response.json({ error: "Dieses Land wird nicht unterstützt." }, { status: 400 });
   const log = [];
 
@@ -222,20 +232,20 @@ export async function onRequestGet(context) {
   if (country === "EU") {
     stories = (await env.DB.prepare(
       `SELECT * FROM stories WHERE domestic = 1 AND cat = ? AND last_seen >= ? AND outlets > 0
-       ORDER BY outlets DESC, last_seen DESC LIMIT 100`
-    ).bind(cat, since).all()).results;
+       ORDER BY outlets DESC, last_seen DESC LIMIT ?`
+    ).bind(cat, since, limit + 1).all()).results;
   } else {
     stories = (await env.DB.prepare(
       `SELECT * FROM stories WHERE country = ? AND cat = ? AND last_seen >= ? AND outlets > 0
-       ORDER BY domestic DESC, last_seen DESC LIMIT 120`
-    ).bind(country, cat, since).all()).results;
+       ORDER BY domestic DESC, last_seen DESC LIMIT ?`
+    ).bind(country, cat, since, Math.round(limit * 1.5) + 1).all()).results;
     const dom = stories.filter((s) => s.domestic);
     if (STRICT.has(cat)) {
       // Inlandsmeldungen zuerst; reichen sie nicht für 10, mit Auslandsmeldungen der Medien des Landes auffüllen
       const foreign = stories.filter((s) => !s.domestic).sort((a, b) => b.outlets - a.outlets || b.last_seen - a.last_seen);
       stories = dom.length >= MIN_PER_CAT ? dom : [...dom, ...foreign.slice(0, Math.max(MIN_PER_CAT - dom.length, 0) + 5)];
     }
-    stories = stories.slice(0, 80);
+    stories = stories.slice(0, limit + 1);
     // Immer noch weniger als 10? Mit Meldungen derselben Kategorie aus anderen Ländern Europas auffüllen.
     if (stories.length < MIN_PER_CAT) {
       const more = (await env.DB.prepare(
@@ -246,11 +256,16 @@ export async function onRequestGet(context) {
     }
   }
 
+  // gibt es mehr als angefordert? Dann zeigt die Seite „Mehr anzeigen“
+  const more = stories.filter((s) => !s._europe).length > limit;
+  if (more) stories = stories.filter((s) => !s._europe).slice(0, limit);
+
   let articles = [];
-  if (stories.length) {
-    articles = (await env.DB.prepare(
-      `SELECT story_id, outlet, link, published FROM articles WHERE story_id IN (${stories.map(() => "?").join(",")}) ORDER BY published ASC`
-    ).bind(...stories.map((s) => s.id)).all()).results;
+  for (let i = 0; i < stories.length; i += 90) { // D1 erlaubt höchstens 100 Parameter je Abfrage
+    const part = stories.slice(i, i + 90);
+    articles.push(...(await env.DB.prepare(
+      `SELECT story_id, outlet, link, published FROM articles WHERE story_id IN (${part.map(() => "?").join(",")}) ORDER BY published ASC`
+    ).bind(...part.map((s) => s.id)).all()).results);
   }
   const bySt = {};
   for (const a of articles) {
@@ -277,7 +292,7 @@ export async function onRequestGet(context) {
   items.sort((a, b) => b.last - a.last);
   const outlets = [...new Set(FEEDS.filter((f) => f[0] === country).map((f) => f[1]))];
   return Response.json(
-    { country, cat, when, items, pending, debug: url.searchParams.get("debug") ? log : undefined, feeds: outlets },
+    { country, cat, when, items, more, limit, pending, debug: url.searchParams.get("debug") ? log : undefined, feeds: outlets },
     { headers: { "Cache-Control": "public, max-age=60" } }
   );
 }

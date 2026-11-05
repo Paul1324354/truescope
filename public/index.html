@@ -513,7 +513,7 @@ dialog.authdlg::backdrop{background:rgba(5,16,18,.62);animation:fade .2s both}
           <div>
             <span class="rlabel" id="plabel">Zeitraum</span>
             <div class="seg" id="period" role="group" aria-labelledby="plabel">
-              <button data-p="day">24 Std.</button><button data-p="week">Woche</button><button data-p="month">Monat</button><button data-p="year">Jahr</button>
+              <button data-p="day">24 Std.</button><button data-p="week">Woche</button><button data-p="month">Monat</button>
             </div>
           </div>
         </div>
@@ -549,7 +549,7 @@ dialog.authdlg::backdrop{background:rgba(5,16,18,.62);animation:fade .2s both}
       </div>
       <div id="note"></div>
       <div id="news" aria-live="polite"></div>
-      <div class="more"><button class="btn line" id="more" type="button" hidden>Weitere Meldungen</button></div>
+      <div class="more"><button class="btn line" id="more" type="button" hidden>Mehr anzeigen</button></div>
 
       <details class="how">
         <summary>So entstehen die Meldungen</summary>
@@ -606,7 +606,7 @@ const CATS = {
 };
 const PERIODS = {
   day:{gn:"1d",days:1,label:"in den letzten 24 Stunden"}, week:{gn:"7d",days:7,label:"in der letzten Woche"},
-  month:{gn:"30d",days:30,label:"im letzten Monat"}, year:{gn:"1y",days:365,label:"im letzten Jahr"}
+  month:{gn:"30d",days:30,label:"im letzten Monat"}
 };
 const $ = id=>document.getElementById(id);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -763,14 +763,14 @@ function rowHtml(n, flat){
 }
 
 // ---------- Nachrichten ----------
-let newsItems=[], newsShown=20, newsReq=0, newsNote="", newsFeeds=[];
+let newsItems=[], newsShown=20, newsReq=0, newsNote="", newsFeeds=[], newsLimit=80, newsMore=false;
 function skeleton(){
   return `<div class="loadmsg"><span class="pulse"></span>Der Bot liest die Nachrichtendienste und vergleicht die Artikel. Beim ersten Mal dauert das bis zu 30 Sekunden.</div>
   ${[78,64,86,58].map(w=>`<div class="sk"><i style="width:${w}%"></i><i></i><i style="width:46%"></i></div>`).join("")}`;
 }
-async function fetchNews(){ return api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}`); }
+async function fetchNews(){ return api(`/api/news?country=${scopeCode()}&cat=${state.cat}&when=${PERIODS[state.period].gn}&limit=${newsLimit}`); }
 function applyNews(data, fresh){
-  newsItems = data.items||[]; newsFeeds = data.feeds||[];
+  newsItems = data.items||[]; newsFeeds = data.feeds||[]; newsMore = !!data.more;
   loadReactions(newsItems.map(n=>n.id).filter(id=>fresh || !(id in REACT)));
   newsNote = data.pending ? `Der Bot vergleicht gerade noch ${data.pending} Artikel mit anderen Medien. Die Liste aktualisiert sich selbst.` : "";
 }
@@ -783,7 +783,7 @@ async function refreshNews(){ // stilles Nachladen, ohne die Liste zu leeren
   }catch(e){}
 }
 async function loadNews(){
-  const id=++newsReq; loadNews._n=0; clearTimeout(loadNews._t);
+  const id=++newsReq; loadNews._n=0; clearTimeout(loadNews._t); newsLimit=80; newsMore=false;
   $("sub").textContent = `${PERIODS[state.period].label[0].toUpperCase()+PERIODS[state.period].label.slice(1)}`;
   $("note").innerHTML = ""; $("news").innerHTML = skeleton(); $("more").hidden = true;
   try{
@@ -849,9 +849,24 @@ function renderNews(){
     html += `<h3 class="dayh">Mehr aus Europa<span>${esc(CATS[state.cat].label)} aus anderen Ländern</span></h3><ol class="rows">${extra.map(n=>rowHtml(n,true)).join("")}</ol>`;
   }
   $("news").innerHTML = html;
-  $("more").hidden = newsShown >= list.length;
+  $("more").hidden = newsShown >= list.length && !newsMore;
 }
-$("more").onclick=()=>{ newsShown+=20; renderNews(); };
+// „Mehr anzeigen“: zuerst die schon geladenen Meldungen, danach weitere vom Server nachladen
+$("more").onclick=async()=>{
+  const b=$("more");
+  newsShown+=30;
+  if(newsShown > newsItems.length - 5 && newsMore && newsLimit < 400){
+    b.disabled=true; b.textContent="Lade weitere Meldungen …";
+    const id=newsReq;
+    try{
+      newsLimit=Math.min(400,newsLimit+120);
+      const data=await fetchNews();
+      if(id===newsReq) applyNews(data,false);
+    }catch(e){ toast("Weitere Meldungen konnten nicht geladen werden."); }
+    b.disabled=false; b.textContent="Mehr anzeigen";
+  }
+  renderNews();
+};
 $("reload").onclick=loadNews;
 
 // ---------- Mehr lesen (Seitenfenster) ----------

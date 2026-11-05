@@ -4,13 +4,18 @@ name: Recherche-Bot
 # Kostet nichts (öffentliches Repo). Die KI-Arbeit läuft im kostenlosen Kontingent von Cloudflare.
 on:
   schedule:
-    - cron: "17 */6 * * *"   # alle 6 Stunden (spart KI-Kontingent)
+    - cron: "*/5 * * * *"    # alle 5 Minuten (GitHub startet geplante Läufe oft einige Minuten verspätet)
   workflow_dispatch: {}
+
+# Nie zwei Läufe gleichzeitig: ein neuer wartet, bis der vorige fertig ist
+concurrency:
+  group: recherche-bot
+  cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 15
     steps:
       - name: Alle Länder abarbeiten
         run: |
