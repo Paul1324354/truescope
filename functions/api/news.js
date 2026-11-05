@@ -7,7 +7,7 @@ import { FEEDS } from "../../lib/feeds.js";
 import { parseFeed } from "../../lib/rss.js";
 import { ask, clean, lock, unlock } from "../../lib/bot.js";
 
-const UA = "TrueScope/1.0 (+https://truescope-49p.pages.dev; RSS-Leser)";
+const UA = "TrueScope/1.0 (+https://truescope.dev/; RSS-Leser)";
 const FEED_TTL = 20 * 60 * 1000;          // Feeds höchstens alle 20 Minuten abrufen
 const KEEP_MS = 4 * 864e5;                // nur Artikel der letzten 4 Tage aufnehmen
 const STALE_MS = 864e5;                   // nicht zugeordnete Artikel nach 24 Stunden verwerfen statt nachzuarbeiten

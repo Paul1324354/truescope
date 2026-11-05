@@ -1,7 +1,7 @@
 # TrueScope
 
 Nachrichten nach Land, Ressort und Zeitraum, mit International-Ansicht, KI-Überblick, Ranking der Quellen und Daumen-Bewertungen.
-Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
+Läuft auf Cloudflare Pages mit einer D1-Datenbank, erreichbar unter https://truescope.dev (und www.truescope.dev; dazu https://truescope-49p.pages.dev).
 
 ## Aufbau
 
@@ -58,7 +58,7 @@ Beim Öffnen einer Meldung wird je Medium der früheste Artikel bewertet (höchs
 - **Faktendichte und Sachlichkeit** (1–10) schätzt die KI aus Titel und Anriss (ein Aufruf je Meldung, höchstens 150 pro Tag, Ergebnis in `stories.rank_json`). Das ist eine Einschätzung des einzelnen Artikels, nicht des Mediums.
 - **Tempo**: wer zuerst berichtet (fällt über die Stunden Abstand ab). **Umfang**: gezählte Wörter der Artikelseite.
 - Gesamtwertung = 0,4 Fakten + 0,25 Sachlichkeit + 0,15 Tempo + 0,2 Umfang (fehlende KI-Werte oder unbekannter Umfang zählen als Durchschnitt der übrigen Medien, damit fehlende Daten weder belohnen noch bestrafen; hat niemand solche Werte, entfällt der Teil für alle; Bezahlschranke −1). „Beste Quelle“ gibt es nur, wenn die KI bewertet hat und mindestens 2 Medien vorliegen. Ohne KI (Kontingent leer) wird nach Tempo und Umfang sortiert und das angezeigt.
-- **Lesezeit** = Wörter ÷ 200, gerundet. Dafür ruft der Server die Artikelseite einmal ab (`User-Agent: TrueScope/1.0 (+https://truescope-49p.pages.dev/; Lesezeit-Messung)`). Vorher wird die robots.txt des Mediums geprüft (24 Stunden zwischengespeichert in `robots`; Gruppe `TrueScope`, sonst `*`). Es wird **nichts abgerufen**, wenn der Abruf nicht erlaubt ist, die robots.txt nicht erreichbar ist (alles außer 404/410) oder ein Vorbehalt vorliegt (`tdm-reservation: 1`, `X-Robots-Tag`/Meta `noai`). Gespeichert werden nur `articles.words`, `paywall` und `measured_at`, nie Text.
+- **Lesezeit** = Wörter ÷ 200, gerundet. Dafür ruft der Server die Artikelseite einmal ab (`User-Agent: TrueScope/1.0 (+https://truescope.dev/; Lesezeit-Messung)`). Vorher wird die robots.txt des Mediums geprüft (24 Stunden zwischengespeichert in `robots`; Gruppe `TrueScope`, sonst `*`). Es wird **nichts abgerufen**, wenn der Abruf nicht erlaubt ist, die robots.txt nicht erreichbar ist (alles außer 404/410) oder ein Vorbehalt vorliegt (`tdm-reservation: 1`, `X-Robots-Tag`/Meta `noai`). Gespeichert werden nur `articles.words`, `paywall` und `measured_at`, nie Text.
 - Medien können den Abruf selbst sperren: `User-agent: TrueScope` / `Disallow: /` in der robots.txt.
 
 ## Bewertungen
