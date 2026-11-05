@@ -333,8 +333,17 @@ html.intro-on .intro{display:flex}
   var(--rail);color:var(--rail-ink);
   padding:max(28px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
   flex-direction:column;align-items:center}
-.intro.out{animation:introout .42s ease forwards}
-@keyframes introout{to{opacity:0;transform:scale(1.03)}}
+/* Übergang zur Hauptseite: der Startbildschirm wischt wie ein Blatt nach unten weg, die Seite dahinter rückt nach vorne */
+.intro.out{animation:introout .8s cubic-bezier(.65,0,.25,1) forwards;pointer-events:none;box-shadow:0 -24px 60px -10px rgba(0,0,0,.45)}
+.intro.out .i-in,.intro.out .i-acct{animation:introfade .5s ease forwards}
+@keyframes introout{
+  0%{transform:translateY(0);border-radius:0}
+  18%{transform:translateY(-1.5%);border-radius:28px 28px 0 0}
+  100%{transform:translateY(102%);border-radius:28px 28px 0 0}
+}
+@keyframes introfade{to{opacity:.35}}
+.top,.app{transition:transform .8s cubic-bezier(.65,0,.25,1),opacity .8s ease,filter .8s ease;transform-origin:50% 0}
+html.intro-on:not(.intro-leaving) .top,html.intro-on:not(.intro-leaving) .app{transform:scale(.94) translateY(18px);opacity:.4;filter:blur(2px)}
 .i-in{margin:auto 0;width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 0}
 .i-mark{width:clamp(96px,16vw,132px);height:auto;color:var(--rail-ink);animation:irise .7s cubic-bezier(.2,.8,.2,1) both}
 .i-mark .needle{transform-origin:24px 24px;animation:ineedle 1.4s cubic-bezier(.3,1.5,.4,1) .15s both}
@@ -453,7 +462,8 @@ dialog.authdlg::backdrop{background:rgba(5,16,18,.62);animation:fade .2s both}
   function go(){
     try{sessionStorage.setItem("ts-intro","1")}catch(e){}
     el.classList.add("out");
-    setTimeout(function(){h.classList.remove("intro-on");el.remove();},420);
+    h.classList.add("intro-leaving");
+    setTimeout(function(){h.classList.remove("intro-on","intro-leaving");el.remove();},820);
     document.removeEventListener("keydown",esc,true);
   }
   function esc(e){if(document.querySelector("dialog[open]"))return;if(e.key==="Escape"||e.key==="Enter"&&document.activeElement===document.body){e.preventDefault();e.stopPropagation();go();}}
