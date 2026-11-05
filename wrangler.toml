@@ -9,3 +9,9 @@ database_id = "fcea0853-95b7-41a7-9591-dee2a2631342"
 
 [ai]
 binding = "AI"
+
+# E-Mail-Versand für Konten (Cloudflare Email Service). Die Anmeldung ist erst aktiv, wenn EMAIL_FROM gesetzt ist
+# und im Pages-Projekt das Geheimnis EMAIL_API_TOKEN hinterlegt wurde (siehe README, Abschnitt Konten).
+[vars]
+CF_ACCOUNT_ID = "05945ba7907d54d86d3942f45bed80f1"
+EMAIL_FROM = ""

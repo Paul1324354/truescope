@@ -82,6 +82,43 @@ CREATE TABLE IF NOT EXISTS ai_usage (
   neurons REAL NOT NULL DEFAULT 0
 );
 
+-- Konten (erst nach bestätigter E-Mail-Adresse); Passwörter nur als PBKDF2-Hash
+CREATE TABLE IF NOT EXISTS users (
+  id         TEXT PRIMARY KEY,
+  email      TEXT NOT NULL UNIQUE,      -- kleingeschrieben
+  first_name TEXT NOT NULL,
+  last_name  TEXT NOT NULL,
+  pw_hash    TEXT NOT NULL,
+  pw_salt    TEXT NOT NULL,
+  pw_iter    INTEGER NOT NULL,
+  created_at INTEGER NOT NULL,
+  consent_at INTEGER NOT NULL           -- Zeitpunkt der Zustimmung (Cookie und Datenschutzerklärung)
+);
+-- Anmeldungen: nur der SHA-256-Hash des Cookie-Schlüssels
+CREATE TABLE IF NOT EXISTS sessions (
+  token_hash TEXT PRIMARY KEY,
+  user_id    TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS sessions_user ON sessions (user_id);
+-- Einmal-Links: verify (Registrierung, data = Name und Passwort-Hash bis zur Bestätigung) und reset (Passwort)
+CREATE TABLE IF NOT EXISTS auth_tokens (
+  token_hash TEXT PRIMARY KEY,
+  user_id    TEXT,
+  kind       TEXT NOT NULL,
+  expires_at INTEGER NOT NULL,
+  email      TEXT,
+  data       TEXT
+);
+CREATE INDEX IF NOT EXISTS auth_tokens_email ON auth_tokens (email, kind);
+-- Missbrauchsschutz: Zähler je IP-Adresse bzw. E-Mail-Adresse und Zeitfenster
+CREATE TABLE IF NOT EXISTS auth_limits (
+  key          TEXT PRIMARY KEY,
+  count        INTEGER NOT NULL,
+  window_start INTEGER NOT NULL
+);
+
 -- Bestehende Datenbank erweitern (einmalig, falls die Spalten fehlen):
 -- ALTER TABLE stories ADD COLUMN detail_v INTEGER DEFAULT 0;
 -- ALTER TABLE stories ADD COLUMN compare_json TEXT DEFAULT '';

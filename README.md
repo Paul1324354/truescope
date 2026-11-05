@@ -25,6 +25,23 @@ Läuft kostenlos auf Cloudflare Pages mit einer D1-Datenbank.
 
 Danach wird jede Änderung auf GitHub automatisch veröffentlicht.
 
+## Konten (Anmeldung)
+
+Freiwillige Konten mit Vor- und Nachname, E-Mail-Adresse und Passwort. Knopf oben rechts im Startbildschirm und oben links auf der Hauptseite; man kann auch ohne Konto fortfahren. Angemeldete sehen im Startbildschirm „Hallo <Vorname>!“.
+
+- `functions/api/auth/[action].js`: `me`, `register`, `verify`, `login`, `logout`, `forgot`, `reset`, `delete`; Hilfen in `lib/auth.js`.
+- Ein Konto entsteht erst nach Klick auf den Bestätigungslink (48 Stunden gültig). Passwort-Links gelten eine Stunde und nur einmal; nach dem Zurücksetzen werden alle Sitzungen beendet.
+- Passwörter: PBKDF2-SHA-256 mit Salz. Sitzung: HttpOnly-Cookie `ts_session` (30 Tage), in der Datenbank nur als Hash. Anfragen werden je IP-Adresse und E-Mail-Adresse begrenzt; die Antworten verraten nicht, ob eine Adresse registriert ist.
+- Tabellen: `users`, `sessions`, `auth_tokens`, `auth_limits` (siehe `schema.sql`).
+
+**E-Mail-Versand einrichten** (Cloudflare Email Service, im Workers-Paid-Plan 3.000 E-Mails pro Monat inklusive). Solange das fehlt, ist die Registrierung abgeschaltet und die App zeigt einen Hinweis:
+
+1. Eine eigene Domain, deren DNS bei Cloudflare liegt.
+2. Dashboard → **Compute → Email Service → Email Sending → Onboard Domain**, Domain auswählen (Cloudflare legt SPF, DKIM und DMARC selbst an).
+3. Dashboard → **Mein Profil → API-Tokens → Token erstellen** mit der Berechtigung **Email Sending: Edit**.
+4. Pages-Projekt → **Einstellungen → Variablen und Geheimnisse**: Geheimnis `EMAIL_API_TOKEN` mit diesem Token anlegen.
+5. In `wrangler.toml` `EMAIL_FROM` auf die Absenderadresse setzen (z. B. `noreply@deine-domain.at`) und veröffentlichen.
+
 ## KI-Kontingent
 
 Workers AI ist bis 10.000 Neurons pro Tag kostenlos (Tageswechsel 0 Uhr UTC, also 1 Uhr österreichischer Winterzeit). Damit es reicht:

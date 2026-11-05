@@ -284,7 +284,7 @@ footer.site .claim{font-weight:700;font-size:.92rem;color:var(--muted)}
 footer.site nav{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem}
 footer.site nav a{color:var(--muted);text-decoration:none}
 footer.site nav a:hover{color:var(--ink)}
-.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:8px;font-size:.9rem;font-weight:600;z-index:60;max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:8px;font-size:.9rem;font-weight:600;z-index:120;max-width:calc(100% - 32px)}
 
 /* Tablet und Handy: Leiste wird zum Kopfband, Ressorts kleben darunter */
 @media (max-width:899px){
@@ -359,7 +359,7 @@ html.intro-on .intro{display:flex}
 .i-foot a{color:var(--rail-muted);text-underline-offset:3px}
 .i-foot a:hover{color:var(--rail-ink)}
 @media (max-width:640px){
-  .i-in{padding:4px 0 0}
+  .i-in{padding:52px 0 0}
   .i-mark{width:64px}
   .i-name{margin-top:10px;font-size:1.3rem}
   .i-title{margin-top:16px;font-size:clamp(2.3rem,11vw,3rem)}
@@ -372,6 +372,58 @@ html.intro-on .intro{display:flex}
   .i-go{position:sticky;bottom:max(10px,env(safe-area-inset-bottom));margin-top:20px;width:100%;justify-content:center;box-shadow:0 -14px 22px 8px var(--rail),0 10px 30px -10px rgba(79,209,197,.55)}
   .i-foot{margin-top:14px}
 }
+
+/* Konto: Knopf oben links (Hauptseite) und oben rechts (Startbildschirm), Anmeldefenster */
+.acct{display:inline-flex;align-items:center;gap:7px;height:36px;border:1px solid var(--line);background:transparent;border-radius:999px;padding:0 13px 0 9px;font-weight:600;font-size:.86rem;color:var(--ink-2);white-space:nowrap;max-width:46vw}
+.acct:hover{border-color:var(--ink-2);color:var(--ink)}
+.acct svg{width:18px;height:18px;flex:none}
+.acct span{overflow:hidden;text-overflow:ellipsis}
+.acct.on{border-color:var(--accent);color:var(--accent)}
+.i-acct{position:absolute;top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));display:inline-flex;align-items:center;gap:8px;height:40px;border:1px solid var(--rail-line);background:rgba(232,243,241,.06);color:var(--rail-ink);border-radius:999px;padding:0 15px 0 11px;font-weight:600;font-size:.9rem;max-width:60vw;animation:irise .6s .2s both}
+.i-acct:hover{border-color:var(--rail-muted);background:rgba(232,243,241,.1)}
+.i-acct svg{width:18px;height:18px;flex:none}
+.i-acct span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.i-hello{margin-top:22px;font:700 clamp(1.15rem,2.6vw,1.45rem)/1.2 var(--head);font-stretch:88%;color:var(--ia);animation:irise .6s both}
+.i-hello + .i-title{margin-top:10px}
+
+dialog.authdlg{--ring:var(--surface);border:0;padding:0;border-radius:16px;width:min(440px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(0,0,0,.5);overflow:hidden}
+dialog.authdlg[open]{display:flex;flex-direction:column;animation:apop .22s cubic-bezier(.2,.8,.2,1) both}
+dialog.authdlg::backdrop{background:rgba(5,16,18,.62);animation:fade .2s both}
+@keyframes apop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.abar{display:flex;justify-content:flex-end;padding:10px 10px 0}
+.abody{overflow-y:auto;padding:0 26px 24px}
+.at{font:800 1.75rem/1.05 var(--head);font-stretch:80%;letter-spacing:-.01em}
+.asub{margin-top:6px;color:var(--muted);font-size:.92rem}
+.aform{display:grid;gap:13px;margin-top:20px}
+.arow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.af{display:grid;gap:5px;font-weight:600;font-size:.84rem;color:var(--ink-2)}
+.af input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:11px 12px;font-size:1rem;font-weight:400;color:var(--ink)}
+.af input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.acheck{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;font-size:.84rem;line-height:1.45;color:var(--ink-2);cursor:pointer}
+.acheck input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--accent)}
+.acheck a{color:var(--accent)}
+.abtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:1rem;padding:13px 18px;min-height:48px}
+.abtn:hover{filter:brightness(1.07)}
+.abtn[disabled]{opacity:.55;cursor:default;filter:none}
+.aalt{display:inline-flex;align-items:center;justify-content:center;width:100%;border:1px solid var(--line);background:transparent;border-radius:999px;color:var(--ink-2);font-weight:600;font-size:.94rem;padding:11px 18px;min-height:44px}
+.aalt:hover{border-color:var(--ink-2);color:var(--ink)}
+.aalt.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
+.alink{border:0;background:none;padding:0;color:var(--accent);font-weight:600;font-size:.88rem;text-decoration:underline;text-underline-offset:3px}
+.alinks{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
+.asep{display:flex;align-items:center;gap:12px;margin:18px 0 12px;color:var(--muted);font-size:.8rem}
+.asep::before,.asep::after{content:"";flex:1;height:1px;background:var(--line)}
+.aerr{border-radius:10px;padding:10px 12px;font-size:.88rem;background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger);font-weight:600}
+.anote{border-radius:10px;padding:10px 12px;font-size:.88rem;background:var(--accent-soft);color:var(--ink)}
+.afine{font-size:.78rem;color:var(--muted);line-height:1.45}
+.aok{display:grid;justify-items:center;text-align:center;gap:10px;padding:10px 0 4px}
+.aok svg{width:48px;height:48px;color:var(--accent)}
+.ame{display:grid;gap:4px;margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:12px}
+.ame b{font-size:1.05rem}.ame span{color:var(--muted);font-size:.9rem;word-break:break-all}
+@media (max-width:759px){
+  .acct{padding:0 10px 0 8px}
+  .abody{padding:0 18px 20px}
+  .arow{grid-template-columns:1fr}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important}
 }
@@ -379,9 +431,11 @@ html.intro-on .intro{display:flex}
 </head>
 <body>
 <div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="iTitle">
+  <button class="i-acct" id="iAcct" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>Anmelden</span></button>
   <div class="i-in">
     <svg class="i-mark" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 24L33.62 14.38L31.02 21.09ZM24 24L14.38 14.38L21.09 16.98ZM24 24L14.38 33.62L16.98 26.91ZM24 24L33.62 33.62L26.91 31.02Z" fill="currentColor" opacity=".3"/><path d="M24 24L33.62 14.38L26.91 16.98ZM24 24L14.38 14.38L16.98 21.09ZM24 24L14.38 33.62L21.09 31.02ZM24 24L33.62 33.62L31.02 26.91Z" fill="currentColor" opacity=".68"/><path d="M24 24L46 24L31.02 26.91ZM24 24L2 24L16.98 21.09ZM24 24L24 46L21.09 31.02Z" fill="currentColor" opacity=".38"/><path d="M24 24L46 24L31.02 21.09ZM24 24L2 24L16.98 26.91ZM24 24L24 46L26.91 31.02Z" fill="currentColor"/><g class="needle"><path d="M24 24L24 2L26.91 16.98Z" fill="#4FD1C5" opacity=".55"/><path d="M24 24L24 2L21.09 16.98Z" fill="#4FD1C5"/></g></svg>
     <p class="i-name">True<i>Scope</i></p>
+    <p class="i-hello" id="iHello" hidden></p>
     <h1 class="i-title" id="iTitle">See Beyond the <em>Headlines</em></h1>
     <p class="i-sub">Nachrichten aus ganz Europa – von mehreren Medien gegengeprüft, verständlich zusammengefasst und Quelle für Quelle verglichen.</p>
     <div class="i-pts">
@@ -390,7 +444,7 @@ html.intro-on .intro{display:flex}
       <div class="i-pt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M5 8l-3 6h6zM19 8l-3 6h6zM5 8h14"/></svg><b>Verglichen</b><span>Wo Medien Unterschiedliches berichten, siehst du es auf einen Blick.</span></div>
     </div>
     <button class="i-go" id="introGo" type="button">Zu den Nachrichten<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-    <p class="i-foot"><span>Keine Cookies, kein Tracking</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a></p>
+    <p class="i-foot"><span>Kein Tracking, keine Werbung</span><a href="/impressum.html">Impressum</a><a href="/datenschutz.html">Datenschutz</a></p>
   </div>
 </div>
 <script>(function(){
@@ -402,12 +456,13 @@ html.intro-on .intro{display:flex}
     setTimeout(function(){h.classList.remove("intro-on");el.remove();},420);
     document.removeEventListener("keydown",esc,true);
   }
-  function esc(e){if(e.key==="Escape"||e.key==="Enter"&&document.activeElement===document.body){e.preventDefault();e.stopPropagation();go();}}
+  function esc(e){if(document.querySelector("dialog[open]"))return;if(e.key==="Escape"||e.key==="Enter"&&document.activeElement===document.body){e.preventDefault();e.stopPropagation();go();}}
   b.addEventListener("click",go);
   document.addEventListener("keydown",esc,true);
 })();</script>
 <header class="top">
   <div class="top-in">
+    <button class="acct" id="acctBtn" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>Anmelden</span></button>
     <a class="logo" href="/" aria-label="TrueScope Startseite">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 24L33.62 14.38L31.02 21.09ZM24 24L14.38 14.38L21.09 16.98ZM24 24L14.38 33.62L16.98 26.91ZM24 24L33.62 33.62L26.91 31.02Z" fill="currentColor" opacity=".3"/><path d="M24 24L33.62 14.38L26.91 16.98ZM24 24L14.38 14.38L16.98 21.09ZM24 24L14.38 33.62L21.09 31.02ZM24 24L33.62 33.62L31.02 26.91Z" fill="currentColor" opacity=".68"/><path d="M24 24L46 24L31.02 26.91ZM24 24L2 24L16.98 21.09ZM24 24L24 46L21.09 31.02Z" fill="currentColor" opacity=".38"/><path d="M24 24L46 24L31.02 21.09ZM24 24L2 24L16.98 26.91ZM24 24L24 46L26.91 31.02Z" fill="currentColor"/><path d="M24 24L24 2L26.91 16.98Z" fill="var(--accent)" opacity=".55"/><path d="M24 24L24 2L21.09 16.98Z" fill="var(--accent)"/></svg>
       <b>True<i>Scope</i></b>
@@ -496,6 +551,10 @@ html.intro-on .intro{display:flex}
     <button class="ghost" id="dShare" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.5l1-1a3 3 0 0 1 4.2 4.2l-1 1M9 11.5l-1 1a3 3 0 0 1-4.2-4.2l1-1"/></svg>Link kopieren</button>
   </div>
   <div class="dbody" id="dBody"></div>
+</dialog>
+<dialog class="authdlg" id="auth" aria-labelledby="aTitle">
+  <div class="abar"><button class="iconbtn" id="aClose" type="button" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="abody" id="aBody"></div>
 </dialog>
 <div class="toast" id="toast" role="status" hidden></div>
 
@@ -964,6 +1023,184 @@ window.addEventListener("popstate",()=>{
 renderControls();
 loadNews();
 if(location.hash.startsWith("#s=")) openStory(decodeURIComponent(location.hash.slice(3)), null, true);
+</script>
+<script>
+// ---------- Konto: Anmelden, Registrieren, Passwort zurücksetzen ----------
+const auth = $("auth");
+let AUTH = {enabled:false, user:null, loaded:false};
+let aView = "login", aMsg = null, aResetToken = null, aBusy = false;
+
+async function authCall(action, body){
+  const res = await fetch("/api/auth/"+action, {method: body===undefined?"GET":"POST", headers:{"Content-Type":"application/json"}, body: body===undefined?undefined:JSON.stringify(body), credentials:"same-origin"});
+  let data = {}; try{ data = await res.json(); }catch(e){}
+  return {ok:res.ok, status:res.status, data};
+}
+function paintAccount(){
+  const u = AUTH.user;
+  const label = u ? u.firstName : "Anmelden";
+  for(const id of ["acctBtn","iAcct"]){
+    const b = $(id); if(!b) continue;
+    b.querySelector("span").textContent = label;
+    b.classList.toggle("on", !!u);
+    b.setAttribute("aria-label", u ? `Konto von ${u.firstName} ${u.lastName}` : "Anmelden oder registrieren");
+  }
+  const h = $("iHello");
+  if(h){ h.hidden = !u; h.textContent = u ? `Hallo ${u.firstName}!` : ""; }
+}
+async function loadMe(){
+  try{ const r = await authCall("me"); if(r.ok){ AUTH = {...r.data, loaded:true}; } }catch(e){}
+  paintAccount();
+}
+
+const field = (name, label, type="text", extra="") => `<label class="af">${label}<input name="${name}" type="${type}" ${extra}></label>`;
+const msgHtml = () => aMsg ? `<p class="${aMsg.ok?"anote":"aerr"}" role="${aMsg.ok?"status":"alert"}">${esc(aMsg.text)}</p>` : "";
+const offNote = () => AUTH.enabled ? "" : `<p class="anote">Konten werden gerade eingerichtet. Bis dahin kannst du TrueScope ohne Anmeldung nutzen.</p>`;
+const skipBtn = `<div class="asep">oder</div><button class="aalt" type="button" data-a="skip">Ohne Anmeldung fortfahren</button>`;
+const ICON_MAIL = `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="11" width="36" height="26" rx="4"/><path d="M7 13l17 13 17-13"/></svg>`;
+
+function renderAuth(){
+  let h = "";
+  if(aView==="login"){
+    h = `<h2 class="at" id="aTitle">Anmelden</h2><p class="asub">Willkommen zurück bei TrueScope.</p>
+      <form class="aform" data-f="login" novalidate>${msgHtml()}
+        ${field("email","E-Mail-Adresse","email",'autocomplete="email" required')}
+        ${field("password","Passwort","password",'autocomplete="current-password" required')}
+        <button class="abtn" type="submit">Anmelden</button>
+        <div class="alinks"><button class="alink" type="button" data-a="forgot">Passwort vergessen?</button><span>Neu hier? <button class="alink" type="button" data-a="register">Registrieren</button></span></div>
+        <p class="afine">Beim Anmelden setzen wir ein technisch notwendiges Cookie, damit du angemeldet bleibst – sonst nichts.</p>
+      </form>${skipBtn}`;
+  } else if(aView==="register"){
+    h = `<h2 class="at" id="aTitle">Konto erstellen</h2><p class="asub">Kostenlos. Wir schicken dir eine E-Mail zur Bestätigung.</p>
+      <form class="aform" data-f="register" novalidate>${offNote()}${msgHtml()}
+        <div class="arow">${field("firstName","Vorname","text",'autocomplete="given-name" maxlength="60" required')}${field("lastName","Nachname","text",'autocomplete="family-name" maxlength="60" required')}</div>
+        ${field("email","E-Mail-Adresse","email",'autocomplete="email" required')}
+        ${field("password","Passwort (mindestens 8 Zeichen)","password",'autocomplete="new-password" minlength="8" required')}
+        <label class="acheck"><input type="checkbox" name="consent"><span>Ich akzeptiere das Anmelde-Cookie (technisch notwendig, kein Tracking) und habe die <a href="/datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a> gelesen.</span></label>
+        <button class="abtn" type="submit"${AUTH.enabled?"":" disabled"}>Registrieren</button>
+        <div class="alinks"><span>Schon ein Konto? <button class="alink" type="button" data-a="login">Anmelden</button></span></div>
+      </form>${skipBtn}`;
+  } else if(aView==="forgot"){
+    h = `<h2 class="at" id="aTitle">Passwort vergessen?</h2><p class="asub">Gib deine E-Mail-Adresse ein. Wir schicken dir einen Link, mit dem du ein neues Passwort festlegst.</p>
+      <form class="aform" data-f="forgot" novalidate>${offNote()}${msgHtml()}
+        ${field("email","E-Mail-Adresse","email",'autocomplete="email" required')}
+        <button class="abtn" type="submit"${AUTH.enabled?"":" disabled"}>Link senden</button>
+        <div class="alinks"><button class="alink" type="button" data-a="login">Zurück zur Anmeldung</button></div>
+      </form>`;
+  } else if(aView==="reset"){
+    h = `<h2 class="at" id="aTitle">Neues Passwort</h2><p class="asub">Lege ein neues Passwort für dein Konto fest.</p>
+      <form class="aform" data-f="reset" novalidate>${msgHtml()}
+        ${field("password","Neues Passwort (mindestens 8 Zeichen)","password",'autocomplete="new-password" minlength="8" required')}
+        ${field("password2","Passwort wiederholen","password",'autocomplete="new-password" required')}
+        <button class="abtn" type="submit">Passwort speichern</button>
+      </form>`;
+  } else if(aView==="sent"){
+    h = `<div class="aok">${ICON_MAIL}<h2 class="at" id="aTitle">Schau in dein Postfach</h2><p class="asub">${esc(aMsg?.text||"")}</p></div>
+      <div class="aform"><button class="abtn" type="button" data-a="close">Alles klar</button></div>`;
+  } else if(aView==="account"){
+    const u = AUTH.user||{};
+    h = `<h2 class="at" id="aTitle">Hallo ${esc(u.firstName||"")}!</h2><p class="asub">Du bist bei TrueScope angemeldet.</p>
+      <div class="ame"><b>${esc((u.firstName||"")+" "+(u.lastName||""))}</b><span>${esc(u.email||"")}</span></div>
+      <div class="aform">${msgHtml()}<button class="abtn" type="button" data-a="logout">Abmelden</button>
+        <button class="aalt danger" type="button" data-a="delask">Konto löschen</button></div>`;
+  } else if(aView==="delete"){
+    h = `<h2 class="at" id="aTitle">Konto löschen?</h2><p class="asub">Dein Konto mit Name und E-Mail-Adresse wird endgültig gelöscht. Das lässt sich nicht rückgängig machen.</p>
+      <form class="aform" data-f="delete" novalidate>${msgHtml()}
+        ${field("password","Zur Sicherheit: dein Passwort","password",'autocomplete="current-password" required')}
+        <button class="abtn" type="submit" style="background:var(--danger);color:var(--danger-ink)">Endgültig löschen</button>
+        <button class="aalt" type="button" data-a="account">Abbrechen</button>
+      </form>`;
+  }
+  $("aBody").innerHTML = h;
+  const first = $("aBody").querySelector("input:not([type=checkbox])");
+  if(first && matchMedia("(pointer:fine)").matches) setTimeout(()=>first.focus({preventScroll:true}),30);
+}
+function openAuth(view, msg){
+  aView = view || (AUTH.user ? "account" : "login"); aMsg = msg || null;
+  renderAuth();
+  if(!auth.open) auth.showModal();
+}
+function closeAuth(){ if(auth.open) auth.close(); }
+$("aClose").onclick = closeAuth;
+auth.addEventListener("click", e=>{ if(e.target===auth) closeAuth(); });
+$("acctBtn").onclick = ()=>openAuth();
+if($("iAcct")) $("iAcct").onclick = ()=>openAuth();
+
+$("aBody").addEventListener("click", async e=>{
+  const b = e.target.closest("[data-a]"); if(!b) return;
+  const a = b.dataset.a;
+  if(a==="login"||a==="register"||a==="forgot"||a==="account"){ aView=a; aMsg=null; renderAuth(); return; }
+  if(a==="close"){ closeAuth(); return; }
+  if(a==="skip"){ closeAuth(); const ig=$("introGo"); if(ig) ig.click(); return; }
+  if(a==="delask"){ aView="delete"; aMsg=null; renderAuth(); return; }
+  if(a==="logout"){
+    await authCall("logout", {}); AUTH.user = null; paintAccount(); closeAuth(); toast("Du bist abgemeldet."); return;
+  }
+});
+
+$("aBody").addEventListener("submit", async e=>{
+  e.preventDefault();
+  if(aBusy) return;
+  const f = e.target, kind = f.dataset.f, v = Object.fromEntries(new FormData(f));
+  const btn = f.querySelector("button[type=submit]");
+  const err = t=>{ aMsg={ok:false,text:t}; renderAuth(); refill(v); };
+  // einfache Prüfungen schon im Browser
+  if(kind==="register"){
+    if(!v.firstName?.trim()||!v.lastName?.trim()) return err("Bitte gib Vor- und Nachnamen an.");
+    if(!/^\S+@\S+\.\S+$/.test(v.email||"")) return err("Bitte gib eine gültige E-Mail-Adresse an.");
+    if((v.password||"").length<8) return err("Das Passwort muss mindestens 8 Zeichen lang sein.");
+    if(!v.consent) return err("Bitte akzeptiere das Cookie und die Datenschutzerklärung.");
+  }
+  if((kind==="login"||kind==="forgot") && !/^\S+@\S+\.\S+$/.test(v.email||"")) return err("Bitte gib eine gültige E-Mail-Adresse an.");
+  if(kind==="reset"){
+    if((v.password||"").length<8) return err("Das Passwort muss mindestens 8 Zeichen lang sein.");
+    if(v.password!==v.password2) return err("Die beiden Passwörter stimmen nicht überein.");
+  }
+  aBusy = true; if(btn){ btn.disabled = true; btn.textContent = "Einen Moment …"; }
+  try{
+    let r;
+    if(kind==="login") r = await authCall("login", {email:v.email, password:v.password});
+    else if(kind==="register") r = await authCall("register", {firstName:v.firstName, lastName:v.lastName, email:v.email, password:v.password, consent:!!v.consent});
+    else if(kind==="forgot") r = await authCall("forgot", {email:v.email});
+    else if(kind==="reset") r = await authCall("reset", {token:aResetToken, password:v.password});
+    else if(kind==="delete") r = await authCall("delete", {password:v.password});
+    aBusy = false;
+    if(!r.ok){
+      if(kind==="reset" && r.data.code==="badtoken"){ aView="forgot"; aMsg={ok:false,text:r.data.error}; renderAuth(); return; }
+      return err(r.data.error || "Das hat nicht geklappt. Bitte versuche es noch einmal.");
+    }
+    if(kind==="login"||kind==="reset"){
+      AUTH.user = r.data.user; paintAccount(); closeAuth();
+      toast(kind==="reset" ? "Neues Passwort gespeichert – du bist angemeldet." : `Hallo ${AUTH.user.firstName}, du bist angemeldet.`);
+    } else if(kind==="register"||kind==="forgot"){
+      aView="sent"; aMsg={ok:true,text:r.data.message}; renderAuth();
+    } else if(kind==="delete"){
+      AUTH.user = null; paintAccount(); closeAuth(); toast("Dein Konto wurde gelöscht.");
+    }
+  }catch(ex){ aBusy = false; err("Keine Verbindung. Bitte versuche es noch einmal."); }
+});
+// Eingaben nach einer Fehlermeldung wiederherstellen
+function refill(v){
+  const f = $("aBody").querySelector("form"); if(!f) return;
+  for(const [k,val] of Object.entries(v)){
+    const el = f.elements[k]; if(!el) continue;
+    if(el.type==="checkbox") el.checked = !!val; else el.value = val;
+  }
+}
+
+// Rückkehr aus E-Mail-Links: ?konto=… bzw. ?reset=…
+(function(){
+  const q = new URLSearchParams(location.search);
+  const konto = q.get("konto"), reset = q.get("reset");
+  if(!konto && !reset) return;
+  history.replaceState(null, "", location.pathname + location.hash);
+  if(reset){ aResetToken = reset; openAuth("reset"); return; }
+  if(konto==="bestaetigt"){ loadMe().then(()=>{ if(AUTH.user) toast(`E-Mail bestätigt – willkommen, ${AUTH.user.firstName}!`); }); return; }
+  if(konto==="anmelden") openAuth("login");
+  else if(konto==="schon-bestaetigt") openAuth("login", {ok:true, text:"Deine E-Mail-Adresse ist schon bestätigt. Du kannst dich anmelden."});
+  else if(konto==="link-abgelaufen") openAuth("register", {ok:false, text:"Der Bestätigungslink ist abgelaufen. Bitte registriere dich noch einmal."});
+  else if(konto==="link-ungueltig") openAuth("login", {ok:false, text:"Dieser Link ist ungültig oder wurde schon benutzt. Melde dich an oder fordere einen neuen Link an."});
+})();
+loadMe();
 </script>
 </body>
 </html>
